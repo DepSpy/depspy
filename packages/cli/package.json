@@ -1,0 +1,33 @@
+{
+  "name": "@dep-spy/cli",
+  "version": "1.3.0",
+  "description": "",
+  "main": "./dist/index.js",
+  "private": false,
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "bin": {
+    "ds": "./bin/cli",
+    "depspy": "./bin/cli"
+  },
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup --minify"
+  },
+  "dependencies": {
+    "@dep-spy/core": "^1.2.1",
+    "cac": "^6.7.14",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/yargs": "^17.0.24",
+    "tsup": "^7.1.0"
+  },
+  "gitHead": "50c073c23fc0eed9ed09baaa47244288326bc3d8"
+}
