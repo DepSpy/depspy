@@ -11,10 +11,12 @@ import {
 import * as fs from "fs";
 import * as path from "path";
 import axios from "axios";
+import rf from "resolve-from";
 const inBrowser = typeof window !== "undefined";
 //给定想要获取模块的info，输出指定模块的详情
 export default async function getModuleInfo(
   info: string = "",
+  father: string = "",
   online: boolean = false,
 ): Promise<MODULE_INFO_TYPE> {
   let pak: Package_TYPE;
@@ -25,7 +27,7 @@ export default async function getModuleInfo(
         ? await getNpmOnlineInfo(info!)
         : online
         ? await getNpmOnlineInfo(info!)
-        : await getNpmLocalInfo(info!);
+        : await getNpmLocalInfo(info!, father);
       break;
     case INFO_TYPES.JSON:
       pak = JSON.parse(info!);
@@ -44,12 +46,47 @@ async function getNpmOnlineInfo(packageName: string) {
   return await axios.get(url).then((res) => res.data);
 }
 //获取本地某模块的package.json信息
-async function getNpmLocalInfo(info: string) {
-  return getPkgByPath(
-    require.resolve(path.join(info, "package.json"), {
-      paths: [path.resolve(process.cwd(), "node_modules", ".pnpm")],
-    }),
-  );
+async function getNpmLocalInfo(info: string, father: string) {
+  let actualPath = "";
+  info = path.join(info, "package.json");
+  if (isPnpm()) {
+    if (father) {
+      let basedir = path.resolve(
+        process.cwd(),
+        "node_modules",
+        ".pnpm",
+        father,
+      );
+      try {
+        actualPath = rf(basedir, info);
+      } catch {
+        basedir = path.resolve(process.cwd(), "node_modules", ".pnpm");
+        actualPath = rf(basedir, info);
+      }
+    } else {
+      const basedir = path.resolve(process.cwd(), "node_modules");
+      actualPath = rf(basedir, info);
+    }
+  } else {
+    if (father) {
+      let basedir = path.resolve(process.cwd(), "node_modules", father);
+      try {
+        actualPath = rf(basedir, info);
+      } catch {
+        basedir = path.resolve(process.cwd(), "node_modules");
+        actualPath = rf(basedir, info);
+      }
+    } else {
+      const basedir = path.resolve(process.cwd(), "node_modules");
+      actualPath = rf(basedir, info);
+    }
+  }
+  return getPkgByPath(actualPath);
+}
+//判断是不是pnpm
+function isPnpm(): boolean {
+  const pnpmCachePath = path.resolve(process.cwd(), "node_modules", ".pnpm");
+  return fs.existsSync(pnpmCachePath);
 }
 //获取根目录的package.json信息
 function getRootInfo() {

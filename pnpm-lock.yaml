@@ -69,7 +69,7 @@ importers:
   packages/cli:
     dependencies:
       '@dep-spy/core':
-        specifier: ^1.2.1
+        specifier: workspace:^
         version: link:../core
       cac:
         specifier: ^6.7.14
@@ -103,6 +103,9 @@ importers:
       axios:
         specifier: ^1.4.0
         version: 1.4.0
+      resolve-from:
+        specifier: ^5.0.0
+        version: 5.0.0
     devDependencies:
       '@types/resolve':
         specifier: ^1.20.2
@@ -5121,7 +5124,6 @@ packages:
   /resolve-from@5.0.0:
     resolution: {integrity: sha512-qYg9KP24dD5qka9J47d0aVky0N+b4fTU89LN9iDnjB5waksiC49rvMB0PrUJQGoTmH50XPiqOvAjDfaijGxYZw==}
     engines: {node: '>=8'}
-    dev: true
 
   /resolve-global@1.0.0:
     resolution: {integrity: sha512-zFa12V4OLtT5XUX/Q4VLvTfBf+Ok0SPc1FNGM/z9ctUdiU618qwKpWnd0CHs3+RqROfyEg/DhuHbMWYqcgljEw==}

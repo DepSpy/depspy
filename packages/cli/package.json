@@ -17,7 +17,7 @@
     "build": "tsup --minify"
   },
   "dependencies": {
-    "@dep-spy/core": "^1.2.1",
+    "@dep-spy/core": "workspace:^",
     "cac": "^6.7.14",
     "chalk": "^4.1.2",
     "ora": "^5.4.1"

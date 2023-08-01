@@ -7,9 +7,10 @@ export class Graph {
     private readonly info: string,
     private readonly config: Config = { depth: Infinity, online: false },
   ) {}
-  async initGraph(info: string) {
+  async initGraph(info: string, father: string) {
     const { name, version, dependencies, description } = await getModuleInfo(
       info,
+      father,
       this.config.online,
     );
     const id = name + "!" + version;
@@ -38,7 +39,7 @@ export class Graph {
       if (this.config.depth && this.path.size == this.config.depth) {
         break;
       }
-      const child = await this.initGraph(dependenceNames[i]);
+      const child = await this.initGraph(dependenceNames[i], name);
       const childId = child.name + "!" + child.version;
       this.cache.set(childId, child!);
       children[childId] = child;
@@ -48,7 +49,7 @@ export class Graph {
     return curNode;
   }
   async output() {
-    return await this.initGraph(this.info);
+    return await this.initGraph(this.info, "");
   }
 }
 
