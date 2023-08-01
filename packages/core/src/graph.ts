@@ -39,7 +39,10 @@ export class Graph {
       if (this.config.depth && this.path.size == this.config.depth) {
         break;
       }
-      const child = await this.initGraph(dependenceNames[i], name);
+      const child = await this.initGraph(
+        dependenceNames[i],
+        this.path.size == 1 ? "" : name,
+      );
       const childId = child.name + "!" + child.version;
       this.cache.set(childId, child!);
       children[childId] = child;
