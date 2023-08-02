@@ -16,7 +16,7 @@ const inBrowser = typeof window !== "undefined";
 //给定想要获取模块的info，输出指定模块的详情
 export default async function getModuleInfo(
   info: string = "",
-  father: string = "",
+  baseDir: string,
   online: boolean = false,
 ): Promise<MODULE_INFO_TYPE> {
   let pak: Package_TYPE;
@@ -27,7 +27,7 @@ export default async function getModuleInfo(
         ? await getNpmOnlineInfo(info!)
         : online
         ? await getNpmOnlineInfo(info!)
-        : await getNpmLocalInfo(info!, father);
+        : await getNpmLocalInfo(info!, baseDir);
       break;
     case INFO_TYPES.JSON:
       pak = JSON.parse(info!);
@@ -38,6 +38,12 @@ export default async function getModuleInfo(
   }
   return transformPackage(pak);
 }
+//获取根目录的package.json信息
+function getRootInfo() {
+  const pkg = getPkgByPath(path.join(process.cwd(), "package.json"));
+  pkg.resolvePath = process.cwd();
+  return pkg;
+}
 //获取npm提供的package.json信息
 async function getNpmOnlineInfo(packageName: string) {
   // const url = `${JSDELIVR_API}/${packageName}/package.json`;
@@ -46,16 +52,44 @@ async function getNpmOnlineInfo(packageName: string) {
   return await axios.get(url).then((res) => res.data);
 }
 //获取本地某模块的package.json信息
-async function getNpmLocalInfo(info: string, father: string) {
+async function getNpmLocalInfo(info: string, baseDir: string) {
+  const pkgResolvePath = getPkgResolvePath(info, baseDir);
+  const pkg = getPkgByPath(pkgResolvePath);
+  pkg.size = getDirSize(pkgResolvePath, ["node_modules"]);
+  pkg.resolvePath = path.dirname(pkgResolvePath);
+  return pkg;
+}
+//读取文件夹的总大小
+function getDirSize(directory: string, ignoreFiles: string[] = []): number {
+  const dirStats = fs.statSync(directory);
+  if (!dirStats.isDirectory()) directory = path.dirname(directory);
+  let totalSize = 0;
+  const dirContent = fs.readdirSync(directory);
+  for (let i = 0; i < dirContent.length; i++) {
+    if (ignoreFiles.includes(dirContent[i])) continue;
+    const filePath = path.join(directory, dirContent[i]);
+    const fileStats = fs.statSync(filePath);
+    if (fileStats.isDirectory()) {
+      totalSize += getDirSize(filePath, ignoreFiles); // 如果是目录，则递归调用
+    } else {
+      totalSize += fileStats.size;
+    }
+  }
+  return totalSize;
+}
+//找到info的绝对路径,返回其package.json路径
+function getPkgResolvePath(info: string, baseDir: string) {
   let actualPath = "";
-  info = path.join(info, "package.json");
+
   if (isPnpm()) {
-    if (father) {
+    actualPath = resolve(info, baseDir);
+    info = path.join(info, "package.json");
+    if (baseDir) {
       let basedir = path.resolve(
         process.cwd(),
         "node_modules",
         ".pnpm",
-        father,
+        baseDir,
       );
       try {
         actualPath = rf(basedir, info);
@@ -68,30 +102,31 @@ async function getNpmLocalInfo(info: string, father: string) {
       actualPath = rf(basedir, info);
     }
   } else {
-    if (father) {
-      let basedir = path.resolve(process.cwd(), "node_modules", father);
-      try {
-        actualPath = rf(basedir, info);
-      } catch {
-        basedir = path.resolve(process.cwd(), "node_modules");
-        actualPath = rf(basedir, info);
-      }
-    } else {
-      const basedir = path.resolve(process.cwd(), "node_modules");
-      actualPath = rf(basedir, info);
+    actualPath = resolve(info, baseDir);
+  }
+  return actualPath;
+}
+//实现npm模块查找机制，但是只查找package.json
+function resolve(name: string, baseDir: string) {
+  const currentDir = path.join(baseDir, "node_modules");
+  if (fs.existsSync(currentDir)) {
+    //在当前目录下尝试寻找
+    const optionPath = path.join(baseDir, "node_modules", name, "package.json");
+    if (fs.existsSync(optionPath)) {
+      return optionPath;
     }
   }
-  return getPkgByPath(actualPath);
+  const root = process.cwd();
+  if (root != baseDir) {
+    baseDir = path.join(baseDir, "../");
+    return resolve(name, baseDir);
+  }
+  throw new Error(`Cannot find module '${name}' from '${baseDir}'`);
 }
 //判断是不是pnpm
 function isPnpm(): boolean {
   const pnpmCachePath = path.resolve(process.cwd(), "node_modules", ".pnpm");
   return fs.existsSync(pnpmCachePath);
-}
-//获取根目录的package.json信息
-function getRootInfo() {
-  const root = process.cwd();
-  return getPkgByPath(path.join(root, "package.json"));
 }
 // 选出需要的数据
 function transformPackage(pkg: Package_TYPE): MODULE_INFO_TYPE {
