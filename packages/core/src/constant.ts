@@ -4,7 +4,7 @@ export interface Node {
   description?: string;
   cache?: string;
   circlePath?: string[];
-  devDependencies: Record<string, Node>;
+  dependencies: Record<string, Node>;
   size?: number;
 }
 export interface Config {

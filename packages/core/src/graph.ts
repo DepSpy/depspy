@@ -19,7 +19,7 @@ export class Graph {
     const { name, version, size, resolvePath, dependencies, description } =
       await getModuleInfo(
         info,
-        this.resolvePaths.slice(-1)[0],
+        this.resolvePaths.slice(-1)[0], //指定解析的根目录
         this.config.online,
       );
     const id = name + version;
@@ -43,33 +43,44 @@ export class Graph {
         { description, circlePath, size },
       );
     }
-    //生成父节点
-    const devDependencies: Record<string, Node> = {};
+    //生成父节点（初始化一系列等下要用的变量）
+    const children: Record<string, Node> = {};
     let totalSize = size;
-    const curNode = new GraphNode(name, version, devDependencies, {
+    const curNode = new GraphNode(name, version, children, {
       description,
     });
-    const dependenceNames = Object.keys(dependencies);
-    //A-加入当前路径
+    const dependenceEntries = Object.entries(dependencies);
+    //加入当前依赖路径
     this.path.push(name);
+    //加入当前节点的绝对路径
     this.resolvePaths.push(resolvePath);
-    //递归生成子节点
-    for (let i = 0; i < dependenceNames.length; i++) {
+
+    /*⬅️⬅️⬅️  递归子节点处理逻辑  ➡️➡️➡️*/
+
+    for (let i = 0; i < dependenceEntries.length; i++) {
+      //深度判断
       if (this.config.depth && this.path.length == this.config.depth) {
         break;
       }
-      const child = await this.initGraph(dependenceNames[i]);
+      //核心递归
+      const child = await this.initGraph(dependenceEntries[i].join("!"));
+      //模块唯一id
       const childId = child.name + child.version;
+      //累加size
       totalSize += child.size;
+      //缓存节点
       this.cache.set(childId, child!);
-      devDependencies[child.name] = child;
-      // if (this.config.actual) {
-      //   child.version = dependencies[dependenceNames[i]];
-      // }
+      //将子节点加入父节点（注意是children是引入类型，所以可以直接加）
+      children[child.name] = child;
     }
-    //A-删除当前路径
+
+    /*⬅️⬅️⬅️  后序处理逻辑  ➡️➡️➡️*/
+
+    //删除当前依赖路径
     this.path.pop();
+    //删除当前绝对路径
     this.resolvePaths.pop();
+    //将当前节点的size设置为所有子节点的size之和
     curNode.size = totalSize;
     return curNode;
   }
@@ -85,7 +96,7 @@ class GraphNode implements Node {
   constructor(
     public name: string,
     public version: string,
-    public devDependencies: Record<string, Node>,
+    public dependencies: Record<string, Node>,
     otherFields: { description?: string; circlePath?: string[]; size?: number },
   ) {
     Object.entries(otherFields).forEach(([key, value]) => {

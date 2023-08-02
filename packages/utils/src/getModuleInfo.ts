@@ -11,7 +11,6 @@ import {
 import * as fs from "fs";
 import * as path from "path";
 import axios from "axios";
-import rf from "resolve-from";
 const inBrowser = typeof window !== "undefined";
 //给定想要获取模块的info，输出指定模块的详情
 export default async function getModuleInfo(
@@ -19,16 +18,18 @@ export default async function getModuleInfo(
   baseDir: string,
   online: boolean = false,
 ): Promise<MODULE_INFO_TYPE> {
+  const [name] = info.split("!");
   let pak: Package_TYPE;
-  switch (transformInfo(info)) {
+  switch (transformInfo(name)) {
     case INFO_TYPES.GITHUB:
-    case INFO_TYPES.NPM:
+    case INFO_TYPES.NPM: {
       pak = inBrowser
-        ? await getNpmOnlineInfo(info!)
+        ? await getNpmOnlineInfo(name!)
         : online
-        ? await getNpmOnlineInfo(info!)
+        ? await getNpmOnlineInfo(name!)
         : await getNpmLocalInfo(info!, baseDir);
       break;
+    }
     case INFO_TYPES.JSON:
       pak = JSON.parse(info!);
       break;
@@ -38,20 +39,20 @@ export default async function getModuleInfo(
   }
   return transformPackage(pak);
 }
-//获取根目录的package.json信息
+//获取根目录的package.json信息🌳
 function getRootInfo() {
   const pkg = getPkgByPath(path.join(process.cwd(), "package.json"));
   pkg.resolvePath = process.cwd();
   return pkg;
 }
-//获取npm提供的package.json信息
+//获取npm提供的package.json信息🌐
 async function getNpmOnlineInfo(packageName: string) {
   // const url = `${JSDELIVR_API}/${packageName}/package.json`;
   // return await axios.get(url).then((res) => res.data);
   const url = `${NPM_DOMAIN}/${packageName}/latest`;
   return await axios.get(url).then((res) => res.data);
 }
-//获取本地某模块的package.json信息
+//获取本地某模块的package.json信息💻
 async function getNpmLocalInfo(info: string, baseDir: string) {
   const pkgResolvePath = getPkgResolvePath(info, baseDir);
   const pkg = getPkgByPath(pkgResolvePath);
@@ -80,33 +81,15 @@ function getDirSize(directory: string, ignoreFiles: string[] = []): number {
 //找到info的绝对路径,返回其package.json路径
 function getPkgResolvePath(info: string, baseDir: string) {
   let actualPath = "";
-
+  const [name, version] = info.split("!");
   if (isPnpm()) {
-    actualPath = resolve(info, baseDir);
-    info = path.join(info, "package.json");
-    if (baseDir) {
-      let basedir = path.resolve(
-        process.cwd(),
-        "node_modules",
-        ".pnpm",
-        baseDir,
-      );
-      try {
-        actualPath = rf(basedir, info);
-      } catch {
-        basedir = path.resolve(process.cwd(), "node_modules", ".pnpm");
-        actualPath = rf(basedir, info);
-      }
-    } else {
-      const basedir = path.resolve(process.cwd(), "node_modules");
-      actualPath = rf(basedir, info);
-    }
+    console.log(name, version); //这个就是模块的名称和版本号🤗
   } else {
-    actualPath = resolve(info, baseDir);
+    actualPath = resolve(name, baseDir);
   }
   return actualPath;
 }
-//实现npm模块查找机制，但是只查找package.json
+//实现npm依赖冒泡查找机制，但是只查找package.json
 function resolve(name: string, baseDir: string) {
   const currentDir = path.join(baseDir, "node_modules");
   if (fs.existsSync(currentDir)) {
@@ -149,7 +132,7 @@ function transformInfo(info?: string): INFO_TYPES {
   }
   throw new Error("Invalid info type");
 }
-//获取json文件的对象
+//获取json文件的对象格式
 function getPkgByPath(path: string): Package_TYPE {
   const info = fs.readFileSync(path, "utf8");
   return JSON.parse(info);
