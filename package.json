@@ -10,7 +10,8 @@
     "prepare": "husky install",
     "publish": "lerna publish",
     "test": "vitest",
-    "build": "pnpm -r exec pnpm run build"
+    "build": "pnpm -r exec pnpm run build",
+    "dev": "pnpm -r exec pnpm run dev"
   },
   "keywords": [],
   "author": "",

@@ -4,7 +4,7 @@ export interface Node {
   description?: string;
   cache?: string;
   circlePath?: string;
-  children: Record<string, Node>;
+  dependencies: Record<string, Node>;
 }
 export interface Config {
   depth?: number;
