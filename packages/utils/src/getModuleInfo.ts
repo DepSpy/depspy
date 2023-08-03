@@ -83,9 +83,16 @@ function getPkgResolvePath(info: string, baseDir: string) {
   let actualPath = "";
   let baseNext = "";
   if (isPnpm()) {
-    const linkPath = fs.readlinkSync(
-      path.resolve(baseDir, "node_modules", info),
-    );
+    let linkPath = "";
+    // 如果是 macOS 系统
+    if (process.platform === "darwin") {
+      linkPath = getAbsoluteLinkTarget(
+        path.resolve(baseDir, "node_modules", info),
+      );
+    } else {
+      linkPath = fs.readlinkSync(path.resolve(baseDir, "node_modules", info));
+    }
+
     actualPath = path.resolve(linkPath, "package.json");
     baseNext = transformLinkToBase(linkPath);
   } else {
@@ -153,4 +160,14 @@ function transformInfo(info?: string): INFO_TYPES {
 function getPkgByPath(path: string): Package_TYPE {
   const info = fs.readFileSync(path, "utf8");
   return JSON.parse(info);
+}
+// macOS 系统下读取软连接的绝对路径
+function getAbsoluteLinkTarget(linkPath = "") {
+  try {
+    const relativeTarget = fs.readlinkSync(linkPath);
+    const absoluteTarget = path.resolve(path.dirname(linkPath), relativeTarget);
+    return absoluteTarget;
+  } catch (error) {
+    throw new Error("Error reading or resolving symlink: " + error.message);
+  }
 }
