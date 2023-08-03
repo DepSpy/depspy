@@ -18,17 +18,16 @@ export default async function getModuleInfo(
   info: string = "",
   config: CONFIG,
 ): Promise<MODULE_INFO_TYPE> {
-  const { online = false, baseDir, paths } = config;
-  const [name] = info.split("!");
+  const { online = false, baseDir } = config;
   let pak: Package_TYPE;
-  switch (transformInfo(name)) {
+  switch (transformInfo(info)) {
     case INFO_TYPES.GITHUB:
     case INFO_TYPES.NPM: {
       pak = inBrowser
-        ? await getNpmOnlineInfo(name!)
+        ? await getNpmOnlineInfo(info!)
         : online
-        ? await getNpmOnlineInfo(name!)
-        : await getNpmLocalInfo(info!, baseDir, paths);
+        ? await getNpmOnlineInfo(info!)
+        : await getNpmLocalInfo(info!, baseDir);
       break;
     }
     case INFO_TYPES.JSON:
@@ -54,11 +53,11 @@ async function getNpmOnlineInfo(packageName: string) {
   return await axios.get(url).then((res) => res.data);
 }
 //获取本地某模块的package.json信息💻
-async function getNpmLocalInfo(info: string, baseDir: string, paths: string[]) {
-  const pkgResolvePath = getPkgResolvePath(info, baseDir, paths);
-  const pkg = getPkgByPath(pkgResolvePath);
-  pkg.size = getDirSize(pkgResolvePath, ["node_modules"]);
-  pkg.resolvePath = path.dirname(pkgResolvePath);
+async function getNpmLocalInfo(info: string, baseDir: string) {
+  const [actualPath, baseNext] = getPkgResolvePath(info, baseDir);
+  const pkg = getPkgByPath(actualPath);
+  pkg.size = getDirSize(actualPath, ["node_modules"]);
+  pkg.resolvePath = baseNext;
   return pkg;
 }
 //读取文件夹的总大小
@@ -80,15 +79,32 @@ function getDirSize(directory: string, ignoreFiles: string[] = []): number {
   return totalSize;
 }
 //找到info的绝对路径,返回其package.json路径
-function getPkgResolvePath(info: string, baseDir: string, paths: string[]) {
+function getPkgResolvePath(info: string, baseDir: string) {
   let actualPath = "";
-  const [name, version] = info.split("!");
+  let baseNext = "";
   if (isPnpm()) {
-    console.log(name, version, paths); //这个就是模块的名称和版本号和树的路径
+    const linkPath = fs.readlinkSync(
+      path.resolve(baseDir, "node_modules", info),
+    );
+    actualPath = path.resolve(linkPath, "package.json");
+    baseNext = transformLinkToBase(linkPath);
   } else {
-    actualPath = resolve(name, baseDir);
+    actualPath = resolve(info, baseDir);
+    baseNext = path.dirname(actualPath);
   }
-  return actualPath;
+  return [actualPath, baseNext];
+}
+//处理linkPath到最近的node_modules
+function transformLinkToBase(linkPath: string) {
+  const splitPath = linkPath.split(path.sep);
+  for (let i = splitPath.length - 1; i >= 0; i--) {
+    if (splitPath[i] === "node_modules") {
+      splitPath.pop();
+      break;
+    }
+    splitPath.pop();
+  }
+  return splitPath.join(path.sep);
 }
 //实现npm依赖冒泡查找机制，但是只查找package.json
 function resolve(name: string, baseDir: string) {

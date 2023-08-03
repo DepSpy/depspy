@@ -39,5 +39,4 @@ export type Package_TYPE = MODULE_INFO_TYPE & Record<string, unknown>;
 export interface CONFIG {
   baseDir: string;
   online: boolean;
-  paths: string[];
 }

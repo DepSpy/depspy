@@ -20,9 +20,8 @@ export class Graph {
       await getModuleInfo(info, {
         baseDir: this.resolvePaths.slice(-1)[0], //指定解析的根目录
         online: this.config.online,
-        paths: [...this.paths],
       });
-    const id = name + "!" + version;
+    const id = name + version;
     //直接返回缓存
     if (this.cache.has(id)) {
       this.cache.get(id).cache = id;
@@ -49,7 +48,7 @@ export class Graph {
     const curNode = new GraphNode(name, version, children, {
       description,
     });
-    const dependenceEntries = Object.entries(dependencies);
+    const dependenceEntries = Object.keys(dependencies);
     //加入当前依赖路径
     this.paths.push(id);
     //加入当前节点的绝对路径
@@ -63,11 +62,11 @@ export class Graph {
         break;
       }
       //核心递归
-      const child = await this.initGraph(dependenceEntries[i].join("!"));
+      const child = await this.initGraph(dependenceEntries[i]);
       //累加size
       totalSize += child.size;
       //子模块唯一id
-      const childId = child.name + "!" + child.version;
+      const childId = child.name + child.version;
       //缓存节点
       this.cache.set(childId, child!);
       //将子节点加入父节点（注意是children是引入类型，所以可以直接加）
