@@ -18,11 +18,9 @@ export async function generateGraph(
   //实现各种重载
   if (!info) {
     result = await new Graph("").output();
-  }
-  if (typeof info == "object") {
+  } else if (typeof info == "object") {
     result = await new Graph("", info).output();
-  }
-  if (typeof info == "string") {
+  } else if (typeof info == "string") {
     result = await new Graph(info, config).output();
   }
   //是否写入文件

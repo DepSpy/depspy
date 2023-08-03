@@ -7,6 +7,7 @@ import {
   MODULE_INFO,
   // JSDELIVR_API,
   NPM_DOMAIN,
+  CONFIG,
 } from "./constant";
 import * as fs from "fs";
 import * as path from "path";
@@ -15,9 +16,9 @@ const inBrowser = typeof window !== "undefined";
 //给定想要获取模块的info，输出指定模块的详情
 export default async function getModuleInfo(
   info: string = "",
-  baseDir: string,
-  online: boolean = false,
+  config: CONFIG,
 ): Promise<MODULE_INFO_TYPE> {
+  const { online = false, baseDir, paths } = config;
   const [name] = info.split("!");
   let pak: Package_TYPE;
   switch (transformInfo(name)) {
@@ -27,7 +28,7 @@ export default async function getModuleInfo(
         ? await getNpmOnlineInfo(name!)
         : online
         ? await getNpmOnlineInfo(name!)
-        : await getNpmLocalInfo(info!, baseDir);
+        : await getNpmLocalInfo(info!, baseDir, paths);
       break;
     }
     case INFO_TYPES.JSON:
@@ -53,8 +54,8 @@ async function getNpmOnlineInfo(packageName: string) {
   return await axios.get(url).then((res) => res.data);
 }
 //获取本地某模块的package.json信息💻
-async function getNpmLocalInfo(info: string, baseDir: string) {
-  const pkgResolvePath = getPkgResolvePath(info, baseDir);
+async function getNpmLocalInfo(info: string, baseDir: string, paths: string[]) {
+  const pkgResolvePath = getPkgResolvePath(info, baseDir, paths);
   const pkg = getPkgByPath(pkgResolvePath);
   pkg.size = getDirSize(pkgResolvePath, ["node_modules"]);
   pkg.resolvePath = path.dirname(pkgResolvePath);
@@ -79,11 +80,11 @@ function getDirSize(directory: string, ignoreFiles: string[] = []): number {
   return totalSize;
 }
 //找到info的绝对路径,返回其package.json路径
-function getPkgResolvePath(info: string, baseDir: string) {
+function getPkgResolvePath(info: string, baseDir: string, paths: string[]) {
   let actualPath = "";
   const [name, version] = info.split("!");
   if (isPnpm()) {
-    console.log(name, version); //这个就是模块的名称和版本号🤗
+    console.log(name, version, paths); //这个就是模块的名称和版本号和树的路径
   } else {
     actualPath = resolve(name, baseDir);
   }
