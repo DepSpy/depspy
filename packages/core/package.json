@@ -1,6 +1,6 @@
 {
   "name": "@dep-spy/core",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "",
   "main": "dist/index.js",
   "exports": {
@@ -24,7 +24,7 @@
     "tsup": "^7.1.0"
   },
   "dependencies": {
-    "@dep-spy/utils": "^1.2.1"
+    "@dep-spy/utils": "^1.4.0"
   },
   "gitHead": "50c073c23fc0eed9ed09baaa47244288326bc3d8"
 }
