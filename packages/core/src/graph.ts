@@ -7,11 +7,7 @@ export class Graph {
   private resolvePaths: string[] = [];
   constructor(
     private readonly info: string,
-    private readonly config: Config = {
-      depth: Infinity,
-      online: false,
-      // actual: true,
-    },
+    private readonly config: Config = {},
   ) {
     if (!inBrowser) this.resolvePaths.push(process.cwd());
   }

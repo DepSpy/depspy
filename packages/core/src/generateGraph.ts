@@ -17,7 +17,7 @@ export async function generateGraph(
   let result: Node | null = null;
   //实现各种重载
   if (!info) {
-    result = await new Graph("").output();
+    result = await new Graph("", config).output();
   } else if (typeof info == "object") {
     result = await new Graph("", info).output();
   } else if (typeof info == "string") {

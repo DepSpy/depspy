@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 import { pathToFileURL } from "url";
-import { CONFIG_FILE } from "./constants";
+import { CONFIG_FILE, defaultConfig } from "./constants";
 async function getLocalConfig() {
   const resolvePath = path.join(process.cwd(), CONFIG_FILE);
   if (fs.existsSync(resolvePath)) {
@@ -16,7 +16,7 @@ async function getLocalConfig() {
 export async function conformConfig(options) {
   filterDuplicateOptions(options);
   const localConfig = await getLocalConfig();
-  return { ...localConfig, ...options };
+  return { ...defaultConfig, ...localConfig, ...options };
 }
 
 export const filterDuplicateOptions = <T extends object>(options: T) => {

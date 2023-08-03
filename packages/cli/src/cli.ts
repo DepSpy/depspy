@@ -8,11 +8,9 @@ cli
   .command("[analysis,ana]", "解析本地项目依赖关系图")
   .option("--depth <depth>", "依赖图最大深度", {
     type: ["number"],
-    default: Infinity,
   })
   .option("--outDir <outDir>", "输出依赖图路径", {
     type: ["string"],
-    default: "dep-spy.json",
   })
   .option("--online [online]", "是否在线分析", {
     type: ["boolean"],
