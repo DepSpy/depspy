@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 import { pathToFileURL } from "url";
-import { CONFIG_FILE, defaultConfig } from "./constants";
+import { CONFIG_FILE, defaultConfig, Config } from "./constants";
 async function getLocalConfig() {
   const resolvePath = path.join(process.cwd(), CONFIG_FILE);
   if (fs.existsSync(resolvePath)) {
@@ -14,15 +14,26 @@ async function getLocalConfig() {
 }
 
 export async function conformConfig(options) {
-  filterDuplicateOptions(options);
+  const argsConfig = transformArgs(options);
   const localConfig = await getLocalConfig();
-  return { ...defaultConfig, ...localConfig, ...options };
+  return { ...defaultConfig, ...localConfig, ...argsConfig };
 }
 
-export const filterDuplicateOptions = <T extends object>(options: T) => {
+function transformArgs(options: Record<string, unknown[]>) {
+  const overrideOptions: Config = {};
   for (const [key, value] of Object.entries(options)) {
-    if (Array.isArray(value)) {
-      options[key as keyof T] = value[value.length - 1];
+    if (Array.isArray(value) && value[value.length - 1]) {
+      const overrideValue = value[value.length - 1];
+      if (Object.keys(defaultConfig.output).includes(key)) {
+        if (options.output) {
+          options.output[key] = overrideValue;
+        } else {
+          overrideOptions.output = { [key]: overrideValue };
+        }
+        continue;
+      }
+      overrideOptions[key] = overrideValue;
     }
   }
-};
+  return overrideOptions;
+}

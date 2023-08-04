@@ -24,7 +24,7 @@
     "tsup": "^7.1.0"
   },
   "dependencies": {
-    "@dep-spy/utils": "^1.4.1"
+    "@dep-spy/utils": "workspace:^"
   },
   "gitHead": "50c073c23fc0eed9ed09baaa47244288326bc3d8"
 }

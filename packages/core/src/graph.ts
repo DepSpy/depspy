@@ -1,10 +1,15 @@
 import { getModuleInfo } from "@dep-spy/utils";
 import { Node, Config } from "./constant";
 const inBrowser = typeof window !== "undefined";
+import * as fs from "fs";
+import * as path from "path";
 export class Graph {
+  private graph: Node;
   private cache: Map<string, Node> = new Map();
   private paths: string[] = [];
   private resolvePaths: string[] = [];
+  private codependency: Set<Node> = new Set();
+  private circularDependency: Set<Node> = new Set();
   constructor(
     private readonly info: string,
     private readonly config: Config = {},
@@ -16,11 +21,16 @@ export class Graph {
       await getModuleInfo(info, {
         baseDir: this.resolvePaths.slice(-1)[0], //指定解析的根目录
         online: this.config.online,
+        size: this.config.size,
       });
     const id = name + version;
     //直接返回缓存
     if (this.cache.has(id)) {
-      this.cache.get(id).cache = id;
+      const cacheNode = this.cache.get(id);
+      //标记相同依赖
+      cacheNode.cache = id;
+      //收集相同依赖
+      this.codependency.add(cacheNode);
       return this.cache.get(id)!;
     }
     //没有子依赖直接返回
@@ -29,14 +39,19 @@ export class Graph {
     }
     //循环依赖
     if (this.paths.includes(id)) {
+      //生成循环路径
       const circlePath = Array.from(this.paths.values());
+      //完成循环节点，包括其本身
       circlePath.push(id);
-      return new GraphNode(
+      //直接截断返回循环依赖
+      const circularNode = new GraphNode(
         name,
         version,
         {},
         { description, circlePath, size },
       );
+      this.circularDependency.add(circularNode);
+      return circularNode;
     }
     //生成父节点（初始化一系列等下要用的变量）
     const children: Record<string, Node> = {};
@@ -44,7 +59,7 @@ export class Graph {
     const curNode = new GraphNode(name, version, children, {
       description,
     });
-    const dependenceEntries = Object.keys(dependencies);
+    const dependenceEntries = Object.entries(dependencies);
     //加入当前依赖路径
     this.paths.push(id);
     //加入当前节点的绝对路径
@@ -57,8 +72,11 @@ export class Graph {
       if (this.config.depth && this.paths.length == this.config.depth) {
         break;
       }
+      const [childName, childVersion] = dependenceEntries[i];
       //核心递归
-      const child = await this.initGraph(dependenceEntries[i]);
+      const child = await this.initGraph(childName);
+      //添加实际声明的依赖
+      child.declarationVersion = childVersion;
       //累加size
       totalSize += child.size;
       //子模块唯一id
@@ -79,12 +97,45 @@ export class Graph {
     curNode.size = totalSize;
     return curNode;
   }
-  async output() {
-    return await this.initGraph(this.info);
+  async getGraph() {
+    await this.ensureGraph();
+    return this.graph;
+  }
+  async getCodependency() {
+    await this.ensureGraph();
+    return Array.from(this.codependency.values());
+  }
+  async getCircularDependency() {
+    await this.ensureGraph();
+    return Array.from(this.circularDependency);
+  }
+  async outputToFile() {
+    await this.ensureGraph();
+    const { graph, circularDependency, codependency } = this.config.output;
+    if (graph) {
+      this.writeJson(await this.getGraph(), graph);
+    }
+    if (circularDependency) {
+      this.writeJson(await this.getCircularDependency(), circularDependency);
+    }
+    if (codependency) {
+      this.writeJson(await this.getCodependency(), codependency);
+    }
+  }
+  private async ensureGraph() {
+    if (!this.graph) {
+      this.graph = await this.initGraph(this.info);
+    }
+  }
+  private writeJson(result: Node[] | Node, outDir: string) {
+    fs.writeFileSync(path.join(process.cwd(), outDir), JSON.stringify(result), {
+      flag: "w",
+    });
   }
 }
 
 class GraphNode implements Node {
+  declarationVersion: string;
   size?: number;
   description?: string;
   circlePath?: string[];
@@ -97,6 +148,7 @@ class GraphNode implements Node {
     Object.entries(otherFields).forEach(([key, value]) => {
       this[key] = value;
     });
+    //拦截set，剔除无效属性
     return new Proxy(this, {
       set: function (target, property, value, receiver) {
         if (value) return Reflect.set(target, property, value, receiver);

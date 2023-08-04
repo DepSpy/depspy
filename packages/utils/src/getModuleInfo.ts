@@ -18,7 +18,7 @@ export default async function getModuleInfo(
   info: string = "",
   config: CONFIG,
 ): Promise<MODULE_INFO_TYPE> {
-  const { online = false, baseDir } = config;
+  const { online, size, baseDir } = config;
   let pak: Package_TYPE;
   switch (transformInfo(info)) {
     case INFO_TYPES.GITHUB:
@@ -27,7 +27,7 @@ export default async function getModuleInfo(
         ? await getNpmOnlineInfo(info!)
         : online
         ? await getNpmOnlineInfo(info!)
-        : await getNpmLocalInfo(info!, baseDir);
+        : await getNpmLocalInfo(info!, baseDir, size);
       break;
     }
     case INFO_TYPES.JSON:
@@ -53,10 +53,10 @@ async function getNpmOnlineInfo(packageName: string) {
   return await axios.get(url).then((res) => res.data);
 }
 //获取本地某模块的package.json信息💻
-async function getNpmLocalInfo(info: string, baseDir: string) {
+async function getNpmLocalInfo(info: string, baseDir: string, size: boolean) {
   const [actualPath, baseNext] = getPkgResolvePath(info, baseDir);
   const pkg = getPkgByPath(actualPath);
-  pkg.size = getDirSize(actualPath, ["node_modules"]);
+  if (size) pkg.size = getDirSize(actualPath, ["node_modules"]);
   pkg.resolvePath = baseNext;
   return pkg;
 }
