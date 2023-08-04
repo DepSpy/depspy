@@ -1,4 +1,4 @@
-import { Config } from "@dep-spy/core";
+import { Config } from "./constants";
 export function defineConfig(config: Config) {
   return config;
 }
