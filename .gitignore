@@ -1,4 +1,6 @@
 node_modules
 dist
 .vscode
-dep-spy.json
+ds.circular.json
+ds.co.json
+ds.graph.json
