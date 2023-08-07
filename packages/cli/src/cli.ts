@@ -32,14 +32,14 @@ cli
     const spinner = ora(blue(" 🕵️  <<<正在潜入🚀>>>")).start();
     const startTime = Date.now();
     options = await conformConfig(options);
-    generateGraph("", options).then((data) => {
-      spinner.stop();
-      // 如果开启 ui，则启动可视化界面
-      if (options.ui) {
-        createServer(data);
-      }
-      console.log(green(`破解完成,耗时 ${yellow(Date.now() - startTime)} ms`));
-    });
+    const graph = await generateGraph("", options);
+    await graph.outputToFile();
+    spinner.stop();
+    console.log(green(`破解完成,耗时 ${yellow(Date.now() - startTime)} ms`));
+    // 如果开启 ui，则启动可视化界面
+    if (options.ui) {
+      createServer(await graph.getGraph());
+    }
   });
 
 cli.help();
