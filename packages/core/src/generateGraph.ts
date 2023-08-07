@@ -1,16 +1,21 @@
 import { Node, Config } from "./constant";
 import { Graph } from "./graph";
-export async function generateGraph(): Promise<Node>;
-export async function generateGraph(info: string): Promise<Node>;
-export async function generateGraph(config: Config): Promise<Node>;
+interface generateGraphRes {
+  root: Node;
+  codependency: Node[];
+  circularDependency: Node[];
+}
+export async function generateGraph(): Promise<generateGraphRes>;
+export async function generateGraph(info: string): Promise<generateGraphRes>;
+export async function generateGraph(config: Config): Promise<generateGraphRes>;
 export async function generateGraph(
   info: string,
   config: Config,
-): Promise<Node>;
+): Promise<generateGraphRes>;
 export async function generateGraph(
   info?: string | Config,
   config: Config = {},
-): Promise<Node> {
+): Promise<generateGraphRes> {
   let graph: Graph | null = null;
   //实现各种重载
   if (!info) {
@@ -22,7 +27,9 @@ export async function generateGraph(
   } else {
     throw new Error(`Invalid parameters ${info}-${config}`);
   }
-  const Root = await graph.getGraph();
+  const root = await graph.getGraph();
+  const codependency = await graph.getCodependency();
+  const circularDependency = await graph.getCircularDependency();
   await graph.outputToFile();
-  return Root;
+  return { root, codependency, circularDependency };
 }
