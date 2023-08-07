@@ -38,5 +38,15 @@ function transformArgs(options: Record<string, unknown[]>) {
 export async function conformConfig(options: Record<string, unknown[]>) {
   const argsConfig = transformArgs(options);
   const localConfig = await getLocalConfig();
-  return { ...defaultConfig, ...localConfig, ...argsConfig };
+  // output 属性需要特殊处理，引用类型，把所有的 output 里的属性也要合并
+  return {
+    ...defaultConfig,
+    ...localConfig,
+    ...argsConfig,
+    output: {
+      ...defaultConfig.output,
+      ...localConfig.output,
+      ...argsConfig.output,
+    },
+  };
 }

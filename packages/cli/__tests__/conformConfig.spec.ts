@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { conformConfig } from "../src/conformConfig";
 import path from "path";
-import { CONFIG_FILE } from "../src/constants";
+import { CONFIG_FILE, defaultConfig } from "../src/constants";
 import { pathToFileURL } from "url";
 describe("处理 cli 输入参数,调用 core 包输出", () => {
   test("默认情况", async () => {
@@ -50,13 +50,20 @@ describe("处理 cli 输入参数,调用 core 包输出", () => {
         pathToFileURL(path.join("__tests__", CONFIG_FILE)).toString()
       )
     ).default;
-    expect(localConfig).toMatchInlineSnapshot(`
+    expect({
+      ...defaultConfig,
+      ...localConfig,
+      output: {
+        ...defaultConfig.output,
+        ...localConfig.output,
+      },
+    }).toMatchInlineSnapshot(`
       {
         "depth": 100,
         "online": false,
         "output": {
           "circularDependency": "circular.json",
-          "codependency": "co.json",
+          "codependency": "ds.co.json",
           "graph": "graph.json",
         },
         "size": true,

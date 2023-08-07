@@ -6,7 +6,6 @@ export default defineConfig({
   output: {
     graph: "graph.json",
     circularDependency: "circular.json",
-    codependency: "co.json",
   },
   online: false,
 });
