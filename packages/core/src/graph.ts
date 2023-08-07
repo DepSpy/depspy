@@ -4,12 +4,13 @@ const inBrowser = typeof window !== "undefined";
 import * as fs from "fs";
 import * as path from "path";
 export class Graph {
-  private graph: Node;
-  private cache: Map<string, Node> = new Map();
-  private paths: string[] = [];
-  private resolvePaths: string[] = [];
-  private codependency: Set<Node> = new Set();
-  private circularDependency: Set<Node> = new Set();
+  private graph: Node; //整个图
+  private cache: Map<string, Node> = new Map(); //用来缓存计算过的节点
+  private paths: string[] = []; //记录根节点到当前节点的经过的每一个节点（数组元素有序，真实路径）
+  private pathsSet: Set<string> = new Set(); //记录根节点到当前节点的经过的每一个节点（优化循环判断）
+  private resolvePaths: string[] = []; //记录根节点到当前节点每一个节点的绝对路径
+  private codependency: Set<Node> = new Set(); //记录相同的节点
+  private circularDependency: Set<Node> = new Set(); //记录存在循环引用的节点
   constructor(
     private readonly info: string,
     private readonly config: Config = {},
@@ -38,17 +39,13 @@ export class Graph {
       return new GraphNode(name, version, {}, { description, size });
     }
     //循环依赖
-    if (this.paths.includes(id)) {
-      //生成循环路径
-      const circlePath = Array.from(this.paths.values());
-      //完成循环节点，包括其本身
-      circlePath.push(id);
+    if (this.pathsSet.has(name)) {
       //直接截断返回循环依赖
       const circularNode = new GraphNode(
         name,
         version,
         {},
-        { description, circlePath, size },
+        { description, circlePath: [...this.paths, name], size },
       );
       this.circularDependency.add(circularNode);
       return circularNode;
@@ -61,7 +58,8 @@ export class Graph {
     });
     const dependenceEntries = Object.entries(dependencies);
     //加入当前依赖路径
-    this.paths.push(id);
+    this.paths.push(name);
+    this.pathsSet.add(name);
     //加入当前节点的绝对路径
     this.resolvePaths.push(resolvePath);
 
@@ -91,6 +89,7 @@ export class Graph {
 
     //删除当前依赖路径
     this.paths.pop();
+    this.pathsSet.delete(name);
     //删除当前绝对路径
     this.resolvePaths.pop();
     //将当前节点的size设置为所有子节点的size之和
