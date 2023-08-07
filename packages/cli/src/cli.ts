@@ -3,6 +3,7 @@ import ora from "ora";
 import { blue, green, yellow } from "chalk";
 import { generateGraph } from "@dep-spy/core";
 import { conformConfig } from "./conformConfig";
+import { createServer } from "@dep-spy/view";
 const cli = cac();
 cli
   .command("[analysis,ana]", "解析本地项目依赖关系图")
@@ -24,6 +25,9 @@ cli
   .option("--size [size]", "是否计算文件大小", {
     type: ["boolean"],
   })
+  .option("--ui", "是否启动可视化界面", {
+    type: ["boolean"],
+  })
   .action(async (_, options) => {
     const spinner = ora(blue(" 🕵️  <<<正在潜入🚀>>>")).start();
     const startTime = Date.now();
@@ -32,6 +36,10 @@ cli
     await graph.outputToFile();
     spinner.stop();
     console.log(green(`破解完成,耗时 ${yellow(Date.now() - startTime)} ms`));
+    // 如果开启 ui，则启动可视化界面
+    if (options.ui) {
+      createServer(await graph.getGraph());
+    }
   });
 
 cli.help();
