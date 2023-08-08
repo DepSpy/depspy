@@ -145,7 +145,7 @@ class GraphNode implements Node {
     otherFields: { description?: string; circlePath?: string[]; size?: number },
   ) {
     Object.entries(otherFields).forEach(([key, value]) => {
-      this[key] = value;
+      if (value) this[key] = value;
     });
     //拦截set，剔除无效属性
     return new Proxy(this, {
