@@ -9,7 +9,7 @@
   "scripts": {
     "prepare": "husky install",
     "publish": "lerna publish",
-    "test": "vitest",
+    "test": "vitest --no-threads",
     "build": "pnpm -r exec pnpm run build "
   },
   "keywords": [],
