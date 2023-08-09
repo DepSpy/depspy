@@ -30,13 +30,22 @@ export class Graph {
       const cacheNode = this.cache.get(id);
       //标记相同依赖
       cacheNode.cache = id;
+      //相同依赖的副本（为了解决path字段cache不一致问题）
+      const cloneCacheNode = this.cloneCache(
+        this.cache.get(id),
+        [...this.paths],
+        [...this.paths],
+      );
       //收集相同依赖
-      this.codependency.add(cacheNode);
-      return this.cache.get(id)!;
+      this.codependency.add(cloneCacheNode);
+      return cloneCacheNode;
     }
     //没有子依赖直接返回
     if (!dependencies) {
-      return new GraphNode(name, version, {}, { description, size });
+      return new GraphNode(name, version, {}, [...this.paths, name], {
+        description,
+        size,
+      });
     }
     //循环依赖
     if (this.pathsSet.has(name)) {
@@ -45,7 +54,12 @@ export class Graph {
         name,
         version,
         {},
-        { description, circlePath: [...this.paths, name], size },
+        [...this.paths, name],
+        {
+          description,
+          circlePath: [...this.paths, name],
+          size,
+        },
       );
       this.circularDependency.add(circularNode);
       return circularNode;
@@ -53,12 +67,19 @@ export class Graph {
     //生成父节点（初始化一系列等下要用的变量）
     const children: Record<string, Node> = {};
     let totalSize = size;
-    const curNode = new GraphNode(name, version, children, {
-      description,
-    });
+    const curNode = new GraphNode(
+      name,
+      version,
+      children,
+      [...this.paths, name],
+      {
+        description,
+      },
+    );
     const dependenceEntries = Object.entries(dependencies);
     //加入当前依赖路径
     this.paths.push(name);
+    //等循环依赖判断完成后再加入当前路径
     this.pathsSet.add(name);
     //加入当前节点的绝对路径
     this.resolvePaths.push(resolvePath);
@@ -80,7 +101,7 @@ export class Graph {
       //子模块唯一id
       const childId = child.name + child.version;
       //缓存节点
-      this.cache.set(childId, child!);
+      if (!child.circlePath) this.cache.set(childId, child!);
       //将子节点加入父节点（注意是children是引入类型，所以可以直接加）
       children[child.name] = child;
     }
@@ -95,6 +116,17 @@ export class Graph {
     //将当前节点的size设置为所有子节点的size之和
     curNode.size = totalSize;
     return curNode;
+  }
+  cloneCache(cache: Node, path: string[], cacheParentPath: string[]) {
+    const clonedNode = { ...cache, path, cacheParentPath, dependencies: {} };
+    Object.entries(cache.dependencies).forEach(([name, node]) => {
+      clonedNode.dependencies[name] = this.cloneCache(
+        node,
+        [...path, cache.name],
+        cacheParentPath,
+      );
+    });
+    return clonedNode;
   }
   async getGraph() {
     await this.ensureGraph();
@@ -142,10 +174,15 @@ class GraphNode implements Node {
     public name: string,
     public version: string,
     public dependencies: Record<string, Node>,
-    otherFields: { description?: string; circlePath?: string[]; size?: number },
+    public path: string[],
+    otherFields: {
+      description?: string;
+      circlePath?: string[];
+      size?: number;
+    },
   ) {
     Object.entries(otherFields).forEach(([key, value]) => {
-      this[key] = value;
+      if (value) this[key] = value;
     });
     //拦截set，剔除无效属性
     return new Proxy(this, {

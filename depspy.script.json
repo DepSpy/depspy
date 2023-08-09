@@ -1,0 +1,14 @@
+{
+  "dev": {
+    "utils": ["pnpm run dev"],
+    "core": ["pnpm run dev"],
+    "cli": ["pnpm run dev"],
+    "view": ["pnpm run tsup-build", "pnpm run vite-build"]
+  },
+  "build": {
+    "utils": ["pnpm run build"],
+    "core": ["pnpm run build"],
+    "cli": ["pnpm run build"],
+    "view": ["pnpm run tsup-build", "pnpm run vite-build"]
+  }
+}

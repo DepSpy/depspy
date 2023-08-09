@@ -10,7 +10,8 @@
     "prepare": "husky install",
     "publish": "lerna publish",
     "test": "vitest --no-threads",
-    "build": "pnpm -r exec pnpm run build "
+    "dev": "node ./scripts/index.mjs dev",
+    "build": "node ./scripts/index.mjs build "
   },
   "keywords": [],
   "author": "",
