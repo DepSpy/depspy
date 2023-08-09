@@ -33,11 +33,11 @@ export class Graph {
       //相同依赖的副本（为了解决path字段cache不一致问题）
       const cloneCacheNode = this.cloneCache(
         this.cache.get(id),
-        [...this.paths],
-        [...this.paths],
+        [...this.paths, name],
+        [...this.paths, name],
       );
       //收集相同依赖
-      this.codependency.add(cloneCacheNode);
+      this.codependency.add(cacheNode);
       return cloneCacheNode;
     }
     //没有子依赖直接返回
@@ -122,7 +122,7 @@ export class Graph {
     Object.entries(cache.dependencies).forEach(([name, node]) => {
       clonedNode.dependencies[name] = this.cloneCache(
         node,
-        [...path, cache.name],
+        [...path, name],
         cacheParentPath,
       );
     });
