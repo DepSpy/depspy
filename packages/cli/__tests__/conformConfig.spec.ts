@@ -45,6 +45,7 @@ describe("处理 cli 输入参数,调用 core 包输出", () => {
     `);
   });
   test("读取配置文件", async () => {
+    process.chdir(path.join(__dirname, ".."));
     const localConfig = (
       await import(
         pathToFileURL(path.join("__tests__", CONFIG_FILE)).toString()

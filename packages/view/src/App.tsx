@@ -1,29 +1,21 @@
-import { useEffect, useState } from "react";
-import { graph } from "virtual:graph-data";
+import {
+  Navigate,
+  RouterProvider,
+  createBrowserRouter,
+} from "react-router-dom";
+import SearchPage from "./pages/SearchPage";
+import AnalyzePage from "./pages/AnalyzePage";
+import { isStatic } from "./utils/isStatic";
 
 function App() {
-  const [count, setCount] = useState(0);
+  const routeElement = [
+    { path: "search", element: <SearchPage /> },
+    { path: "analyze", element: <AnalyzePage /> },
+    { path: "*", element: <Navigate to={isStatic ? "/search" : "/analyze"} /> },
+  ];
 
-  useEffect(() => {
-    console.log(graph);
-  }, []);
-
-  return (
-    <>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  );
+  const router = createBrowserRouter(routeElement);
+  return <RouterProvider router={router} />;
 }
 
 export default App;

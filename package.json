@@ -9,7 +9,7 @@
   "scripts": {
     "prepare": "husky install",
     "publish": "lerna publish",
-    "test": "vitest",
+    "test": "vitest --no-threads",
     "dev": "node ./scripts/index.mjs dev",
     "build": "node ./scripts/index.mjs build "
   },
