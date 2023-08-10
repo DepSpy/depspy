@@ -1,7 +1,6 @@
 import bump from "./bump";
 import * as d3 from "d3";
 import { useEffect, useState, useRef } from "react";
-import "./index.scss";
 export function Tree({ originalData, width = window.innerWidth }) {
   const [data, setData] = useState(() => filterCache(originalData));
   const [offsetY, setOffsetY] = useState([]);
