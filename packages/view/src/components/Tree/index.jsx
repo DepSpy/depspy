@@ -1,8 +1,10 @@
 import bump from "./bump";
 import * as d3 from "d3";
 import { useEffect, useState, useRef } from "react";
-
-export function Tree({ data, width = window.innerWidth }) {
+export function Tree({ originalData, width = window.innerWidth }) {
+  const [data, setData] = useState(() => filterCache(originalData));
+  const [offsetY, setOffsetY] = useState([]);
+  const [links, setLinks] = useState([]);
   const [height, setHeight] = useState(0);
   //用来记录不影响重渲染的值
   let { current } = useRef({
@@ -10,8 +12,6 @@ export function Tree({ data, width = window.innerWidth }) {
     x0: 99999,
     x1: -99999,
     dy: 10,
-    links: [],
-    offsetXY: [],
   });
   useEffect(() => {
     //形成d3的分层结构
@@ -21,7 +21,7 @@ export function Tree({ data, width = window.innerWidth }) {
     current.dx = 10;
     current.dy = width / (root.height + 1);
     //形成树结构
-    const tree = d3.tree().nodeSize([25, 90]);
+    const tree = d3.tree().nodeSize([30, 150]);
     tree(root);
     //动态计算偏移量
     root.eachBefore((d) => {
@@ -34,8 +34,8 @@ export function Tree({ data, width = window.innerWidth }) {
       if (d.x > current.x1) current.x1 = d.x;
       if (d.x < current.x0) current.x0 = d.x;
     });
-    current.offsetXY = [];
-    current.links = [];
+    const offsetY = [];
+    const links = [];
     const rootLinks = root.links();
     //将单一引用改为两个，便于始末节点的分离
     for (let i = 0; i < rootLinks.length; i++) {
@@ -43,22 +43,23 @@ export function Tree({ data, width = window.innerWidth }) {
       if (d.source.depth) {
         const sourceOffsetY = d.source.y + d.source.offset;
         const targetOffsetY = d.target.y + d.source.offset;
-        current.offsetXY.push({ ...d.target, x: d.target.x, y: targetOffsetY });
+        offsetY.push({ ...d.target, y: targetOffsetY });
         d.source = { ...d.source, y: sourceOffsetY };
         d.target = { ...d.target, y: targetOffsetY };
       } else {
-        current.offsetXY.push({
+        offsetY.push({
           ...d.source,
-          x: d.source.x,
           y: d.source.y - d.source.offset,
         });
-        current.offsetXY.push({ ...d.target, x: d.target.x, y: d.target.y });
+        offsetY.push({ ...d.target, y: d.target.y });
       }
-      current.links.push(d);
+      links.push(d);
     }
+    setOffsetY(offsetY);
+    setLinks(links);
     //计算svg的高度
     setHeight(current.x1 - current.x0 + current.dx * 2);
-  }, [width]);
+  }, [width, data]);
 
   return (
     <svg
@@ -70,7 +71,7 @@ export function Tree({ data, width = window.innerWidth }) {
       }, ${width}, ${height}`}
     >
       <g fill="none" stroke="rgb(167,167,167)" stroke-width={1.5}>
-        {current.links.map((d) => {
+        {links.map((d) => {
           return (
             <path
               markerEnd="url(#triangle)"
@@ -83,7 +84,7 @@ export function Tree({ data, width = window.innerWidth }) {
         })}
       </g>
       <g strokeLinejoin="round" strokeWidth={3}>
-        {current.offsetXY.map((d) => {
+        {offsetY.map((d) => {
           return (
             <g transform={`translate(${d.y + d.width / 2},${d.x})`}>
               <rect
@@ -106,10 +107,68 @@ export function Tree({ data, width = window.innerWidth }) {
               <text transform={`translate(${0},${4})`} text-anchor="middle">
                 {d.data.name}
               </text>
+              {d.data.collapseFlag && (
+                <text
+                  fill="rgb(167,167,167)"
+                  fontSize={25}
+                  fontWeight={400}
+                  cursor={"pointer"}
+                  transform={`translate(${d.width / 2},${-4})`}
+                  onClick={() => {
+                    const currentNode = findDepBypath(d.data.path, data);
+                    if (d.data.collapseFlag == "+") {
+                      currentNode.dependencies = d.data.originDeps;
+                      currentNode.collapseFlag = "-";
+                    } else {
+                      currentNode.dependencies = {};
+                      currentNode.collapseFlag = "+";
+                    }
+                    setData({ ...data });
+                  }}
+                >
+                  {d.data.collapseFlag}
+                </text>
+              )}
             </g>
           );
         })}
       </g>
     </svg>
   );
+}
+function findDepBypath(paths, data) {
+  let parent = data;
+  let dep;
+  paths.slice(1).forEach((path) => {
+    dep = parent.dependencies[path];
+    parent = dep;
+  });
+  return dep;
+}
+function filterCache(data) {
+  const cacheSet = new Set();
+  function traverse(data) {
+    const newData = {
+      ...data,
+      originDeps: { ...data.dependencies },
+      dependencies: { ...data.dependencies },
+    };
+    if (cacheSet.has(newData.cache)) {
+      return {
+        ...newData,
+        dependencies: {},
+        collapseFlag: "+",
+      };
+    } else if (newData.cache) {
+      newData.collapseFlag = "-";
+      cacheSet.add(newData.cache);
+    }
+    const entries = Object.entries(newData.dependencies);
+    for (let i = 0; i < entries.length; i++) {
+      const [name, dependency] = entries[i];
+      newData.dependencies[name] = traverse(dependency);
+    }
+    return newData;
+  }
+  return traverse(data);
 }
