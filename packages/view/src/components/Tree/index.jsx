@@ -1,11 +1,18 @@
 import bump from "./bump";
 import * as d3 from "d3";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useReducer } from "react";
 export function Tree({ originalData, width = window.innerWidth }) {
   const [data, setData] = useState(() => filterCache(originalData));
   const [offsetY, setOffsetY] = useState([]);
   const [links, setLinks] = useState([]);
   const [height, setHeight] = useState(0);
+  const [, setCurrentHighlight] = useReducer((cur, nextPath) => {
+    cur.highlight = false;
+    const nextHighLight = findDepBypath(nextPath, data);
+    nextHighLight.highlight = true;
+    setData({ ...data });
+    return nextHighLight;
+  }, {});
   //用来记录不影响重渲染的值
   let { current } = useRef({
     dx: 10,
@@ -70,11 +77,13 @@ export function Tree({ originalData, width = window.innerWidth }) {
         current.x0 - current.dx
       }, ${width}, ${height}`}
     >
-      <g fill="none" stroke="rgb(167,167,167)" stroke-width={1.5}>
+      <g fill="none" stroke-width={1.5}>
         {links.map((d) => {
+          const highlight = d.source.data.highlight || d.target.data.highlight;
           return (
             <path
-              markerEnd="url(#triangle)"
+              markerEnd={highlight ? "url(#triangleBlue)" : "url(#triangle)"}
+              stroke={highlight ? "#1890ff" : "rgb(167,167,167)"}
               d={d3
                 .link(bump)
                 .x((d) => d.y)
@@ -86,10 +95,16 @@ export function Tree({ originalData, width = window.innerWidth }) {
       <g strokeLinejoin="round" strokeWidth={3}>
         {offsetY.map((d) => {
           return (
-            <g transform={`translate(${d.y + d.width / 2},${d.x})`}>
+            <g
+              cursor={"pointer"}
+              onClick={() => {
+                setCurrentHighlight(d.data.path);
+              }}
+              transform={`translate(${d.y + d.width / 2},${d.x})`}
+            >
               <rect
                 fill="none"
-                stroke="rgb(167,167,167)"
+                stroke={d.data.highlight ? "#1890ff" : "rgb(167,167,167)"}
                 strokeWidth={2}
                 width={Math.max(d.data.name.length * 8, 50)}
                 height={18}
@@ -112,7 +127,6 @@ export function Tree({ originalData, width = window.innerWidth }) {
                   fill="rgb(167,167,167)"
                   fontSize={25}
                   fontWeight={400}
-                  cursor={"pointer"}
                   transform={`translate(${d.width / 2},${-4})`}
                   onClick={() => {
                     const currentNode = findDepBypath(d.data.path, data);
