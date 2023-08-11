@@ -1,5 +1,10 @@
 import { Tree } from "../../components/Tree";
-import { graph } from "virtual:graph-data";
+import { useStore } from "../../contexts";
 export default function AnalyzePage() {
-  return <Tree originalData={graph.root}></Tree>;
+  // const root = useStore((state) => {
+  //   console.log(state);
+  //   return state.root;
+  // });
+  const root = useStore((state) => state.root);
+  return <Tree originalData={root}></Tree>;
 }
