@@ -1,12 +1,12 @@
 import { SetStateAction, useCallback, useEffect, useState } from "react";
 import * as d3 from "d3";
 import { SwitchTransition, CSSTransition } from "react-transition-group";
-import "../App.css";
 import DrawRect from "./DrawRect";
 import { Data, DrawSVGProps } from "./types";
 import { Node } from "../../../types/types";
 import DrawStore from "./store";
 import React from "react";
+import "./index.css";
 /*
  @return {
     name: string;
@@ -41,7 +41,7 @@ function changeData(data: Node): Data | undefined {
   //   }
   // }
 
-  newdata.name = `${data.name}${data.version}`;
+  newdata.name = `${data.name}@${data.version}`;
   newdata.size = data.size ? data.size : 0;
   if (isEmpty) {
     return newdata;
@@ -53,7 +53,7 @@ const FirstTreeMap = ({
   jsonData,
   width = 500,
   height = 500,
-  margin = 30,
+  margin = 10,
 }: DrawSVGProps) => {
   const [state, setState] = useState<number>(0); // control transition
   const [data, setData] = useState<Data>();
