@@ -1,5 +1,5 @@
 declare module "virtual:graph-data" {
-  interface node {
+  interface Node {
     name: string;
     version: string;
     declarationVersion: string;
@@ -10,9 +10,9 @@ declare module "virtual:graph-data" {
     size?: number;
   }
   const graph: {
-    root?: node;
-    codependency?: node[];
-    circularDependency?: node[];
+    root?: Node;
+    codependency?: Node[];
+    circularDependency?: Node[];
   };
   export { graph };
 }

@@ -1,0 +1,11 @@
+$base-color: #f5f5f5;
+
+.select-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 20vw;
+  height: 3vh;
+  user-select: none;
+  border: 1px solid #dcdcdc;
+}
