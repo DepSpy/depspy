@@ -87,7 +87,7 @@ export function Tree({ originalData, width = window.innerWidth }) {
               <g
                 cursor={"pointer"}
                 onClick={() => {
-                  setSelectNode(d.data);
+                  setSelectNode(findDepBypath(d.data.path, originalData));
                 }}
                 transform={`translate(${y + width / 2},${x})`}
               >
