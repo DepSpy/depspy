@@ -1,9 +1,14 @@
 import bump from "./bump";
 import * as d3 from "d3";
 import { useEffect, useState, useRef, useReducer } from "react";
+import { useStore } from "../../contexts";
 export function Tree({ originalData, width = window.innerWidth }) {
+  const { setSelectNode, selectedNode } = useStore((state) => ({
+    setSelectNode: state.setSelectNode,
+    selectedNode: state.selectedNode,
+  }));
   const [data, setData] = useState(() => [filterCache(originalData)]);
-  const [offsetY, setOffsetY] = useState([]);
+  const [offsetY, setOffsetY] = useState({});
   const [links, setLinks] = useState([]);
   //用来记录不影响重渲染的值
   let { current } = useRef({
@@ -17,22 +22,18 @@ export function Tree({ originalData, width = window.innerWidth }) {
   }, [width, data]);
 
   const svg = useRef(null);
-  const [curHighlight, setCurHighlight] = useReducer(
-    (cur, [nextPath, x, y]) => {
-      const nextHighLight = findDepBypath(nextPath, data[0]);
-      cur.highlight = false;
-      nextHighLight.highlight = true;
-      setData([...data]);
-      d3.select(svg.current)
-        .transition(1000)
-        .attr(
-          "viewBox",
-          `${x - width / 2}, ${y - innerHeight / 2}, ${width}, ${innerHeight}`,
-        );
-      return nextHighLight;
-    },
-    data[0],
-  );
+  const [curHighlight, setCurHighlight] = useReducer((cur, nextPath) => {
+    const nextHighLight = findDepBypath(nextPath, data[0]);
+    cur.highlight = false;
+    nextHighLight.highlight = true;
+    setData([...data]);
+    return nextHighLight;
+  }, {});
+  useEffect(() => {
+    const nextPath = selectedNode.path;
+    setCurHighlight(nextPath);
+  }, [selectedNode]);
+
   useEffect(() => {
     const zoom = d3.zoom().scaleExtent([0.1, 5]).on("zoom", zoomed);
     function zoomed(e) {
@@ -66,18 +67,28 @@ export function Tree({ originalData, width = window.innerWidth }) {
           })}
         </g>
         <g id="resizing" strokeLinejoin="round" strokeWidth={3}>
-          {offsetY.map((d) => {
+          {Object.values(offsetY).map((d) => {
             const {
               width,
               x,
               y,
               data: { highlight },
             } = d;
+            if (highlight) {
+              d3.select(svg.current)
+                .transition(1000)
+                .attr(
+                  "viewBox",
+                  `${y + width / 2 - innerWidth / 2}, ${
+                    x - innerHeight / 2
+                  }, ${innerWidth}, ${innerHeight}`,
+                );
+            }
             return (
               <g
                 cursor={"pointer"}
                 onClick={() => {
-                  setCurHighlight([d.data.path, y + width / 2, x]);
+                  setSelectNode(findDepBypath(d.data.path, originalData));
                 }}
                 transform={`translate(${y + width / 2},${x})`}
               >
@@ -262,6 +273,5 @@ function filterCache(data) {
     return newData;
   }
   const root = traverse(data);
-  root.highlight = true;
   return root;
 }
