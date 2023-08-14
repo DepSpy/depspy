@@ -33,6 +33,7 @@ export function Tree({ originalData, width = window.innerWidth }) {
     const nextPath = selectedNode.path;
     setCurHighlight(nextPath);
   }, [selectedNode]);
+
   useEffect(() => {
     const zoom = d3.zoom().scaleExtent([0.1, 5]).on("zoom", zoomed);
     function zoomed(e) {
@@ -214,7 +215,7 @@ function generateTree(data) {
     }
     d.width = nodeWidth;
   });
-  const offsetY = {};
+  const offsetY = [];
   const links = [];
   const rootLinks = root.links();
   //将单一引用改为两个，便于始末节点的分离
@@ -223,15 +224,15 @@ function generateTree(data) {
     if (d.source.depth) {
       const sourceOffsetY = d.source.y + d.source.offset;
       const targetOffsetY = d.target.y + d.source.offset;
-      offsetY[d.target.data.path.join()] = { ...d.target, y: targetOffsetY };
+      offsetY.push({ ...d.target, y: targetOffsetY });
       d.source = { ...d.source, y: sourceOffsetY };
       d.target = { ...d.target, y: targetOffsetY };
     } else {
-      offsetY[d.source.data.path.join()] = {
+      offsetY.push({
         ...d.source,
         y: d.source.y - d.source.offset,
-      };
-      offsetY[d.target.data.path.join()] = { ...d.target, y: d.target.y };
+      });
+      offsetY.push({ ...d.target, y: d.target.y });
     }
     links.push(d);
   }
