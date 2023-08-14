@@ -15,6 +15,7 @@
     }
   },
   "scripts": {
+    "build": "tsup && vite build",
     "tsup-build": "tsup --watch",
     "vite-build": "vite build --watch",
     "vite-static": "VITE_STATIC=static vite build"

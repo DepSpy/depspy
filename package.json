@@ -11,7 +11,8 @@
     "publish": "lerna publish",
     "test": "vitest --no-threads",
     "dev": "node ./scripts/index.mjs dev",
-    "build": "node ./scripts/index.mjs build "
+    "build": "node ./scripts/index.mjs build ",
+    "build:pkg": "pnpm -r --filter=\"./packages/*\" run build"
   },
   "keywords": [],
   "author": "",
