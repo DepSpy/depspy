@@ -1,9 +1,14 @@
 import bump from "./bump";
 import * as d3 from "d3";
 import { useEffect, useState, useRef, useReducer } from "react";
+import { useStore } from "../../contexts";
 export function Tree({ originalData, width = window.innerWidth }) {
+  const { setSelectNode, selectedNode } = useStore((state) => ({
+    setSelectNode: state.setSelectNode,
+    selectedNode: state.selectedNode,
+  }));
   const [data, setData] = useState(() => [filterCache(originalData)]);
-  const [offsetY, setOffsetY] = useState([]);
+  const [offsetY, setOffsetY] = useState({});
   const [links, setLinks] = useState([]);
   //用来记录不影响重渲染的值
   let { current } = useRef({
@@ -17,22 +22,17 @@ export function Tree({ originalData, width = window.innerWidth }) {
   }, [width, data]);
 
   const svg = useRef(null);
-  const [curHighlight, setCurHighlight] = useReducer(
-    (cur, [nextPath, x, y]) => {
-      const nextHighLight = findDepBypath(nextPath, data[0]);
-      cur.highlight = false;
-      nextHighLight.highlight = true;
-      setData([...data]);
-      d3.select(svg.current)
-        .transition(1000)
-        .attr(
-          "viewBox",
-          `${x - width / 2}, ${y - innerHeight / 2}, ${width}, ${innerHeight}`,
-        );
-      return nextHighLight;
-    },
-    data[0],
-  );
+  const [curHighlight, setCurHighlight] = useReducer((cur, nextPath) => {
+    const nextHighLight = findDepBypath(nextPath, data[0]);
+    cur.highlight = false;
+    nextHighLight.highlight = true;
+    setData([...data]);
+    return nextHighLight;
+  }, {});
+  useEffect(() => {
+    const nextPath = selectedNode.path;
+    setCurHighlight(nextPath);
+  }, [selectedNode]);
   useEffect(() => {
     const zoom = d3.zoom().scaleExtent([0.1, 5]).on("zoom", zoomed);
     function zoomed(e) {
@@ -66,18 +66,28 @@ export function Tree({ originalData, width = window.innerWidth }) {
           })}
         </g>
         <g id="resizing" strokeLinejoin="round" strokeWidth={3}>
-          {offsetY.map((d) => {
+          {Object.values(offsetY).map((d) => {
             const {
               width,
               x,
               y,
               data: { highlight },
             } = d;
+            if (highlight) {
+              d3.select(svg.current)
+                .transition(1000)
+                .attr(
+                  "viewBox",
+                  `${y + width / 2 - innerWidth / 2}, ${
+                    x - innerHeight / 2
+                  }, ${innerWidth}, ${innerHeight}`,
+                );
+            }
             return (
               <g
                 cursor={"pointer"}
                 onClick={() => {
-                  setCurHighlight([d.data.path, y + width / 2, x]);
+                  setSelectNode(d.data);
                 }}
                 transform={`translate(${y + width / 2},${x})`}
               >
@@ -204,7 +214,7 @@ function generateTree(data) {
     }
     d.width = nodeWidth;
   });
-  const offsetY = [];
+  const offsetY = {};
   const links = [];
   const rootLinks = root.links();
   //将单一引用改为两个，便于始末节点的分离
@@ -213,15 +223,15 @@ function generateTree(data) {
     if (d.source.depth) {
       const sourceOffsetY = d.source.y + d.source.offset;
       const targetOffsetY = d.target.y + d.source.offset;
-      offsetY.push({ ...d.target, y: targetOffsetY });
+      offsetY[d.target.data.path.join()] = { ...d.target, y: targetOffsetY };
       d.source = { ...d.source, y: sourceOffsetY };
       d.target = { ...d.target, y: targetOffsetY };
     } else {
-      offsetY.push({
+      offsetY[d.source.data.path.join()] = {
         ...d.source,
         y: d.source.y - d.source.offset,
-      });
-      offsetY.push({ ...d.target, y: d.target.y });
+      };
+      offsetY[d.target.data.path.join()] = { ...d.target, y: d.target.y };
     }
     links.push(d);
   }
@@ -262,6 +272,5 @@ function filterCache(data) {
     return newData;
   }
   const root = traverse(data);
-  root.highlight = true;
   return root;
 }
