@@ -13,7 +13,7 @@ export default function Side() {
   };
   const typeName = Object.keys(typeList);
 
-  const [showName, setShowName] = useState(typeName[0]);
+  const [showName, setShowName] = useState(typeName[2]);
   const [showSide, setShowSide] = useState(typeList[showName]);
 
   useEffect(() => {

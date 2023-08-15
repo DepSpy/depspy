@@ -1,13 +1,16 @@
-import { Node } from "../../../../types/types";
+// import { Node } from "../../../../types/types";
 export interface Data {
   name: string;
-  children?: Data[] | Record<string, never>;
-  _children?: Data[] | Record<string, never>;
+  children?: Data[] | Record<string, Data[]>;
+  _children?: Data[] | Record<string, Data[]>;
   size?: number;
   _size?: number;
+  [x: string]: string | Data[] | Record<string, Data[]> | number;
 }
 export interface DrawSVGProps {
-  jsonData: Node;
+  // jsonData: Node;
+  hiddenWidthMultiplier?: number;
+  hiddenHeightMultiplier?: number;
   width?: number;
   height?: number;
   margin?: number;
