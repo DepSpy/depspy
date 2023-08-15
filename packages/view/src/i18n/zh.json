@@ -1,0 +1,39 @@
+{
+    "mode": {
+        "language": "中文",
+        "theme": {
+            "light": "明亮模式",
+            "dark": "暗黑模式"
+        }
+    },
+    "search": {
+        "history": "历史记录",
+        "find": "搜索包文件",
+        "upload": "下载包文件"
+    },
+    "section": {
+        "title": "依赖间谍",
+        "zoom": "放大/缩小",
+        "depth": "深度:{{num}}"
+    },
+    "aside": {
+        "search": {
+            "title": "搜索",
+            "find": "搜索包",
+            "results": "所有类似搜索结果"
+        },
+        "graph": {
+            "title": "图表",
+            "management": "展示管理",
+            "devDep": "包括开发环境依赖",
+            "display": "展示方式",
+            "structure": "模块结构",
+            "circular": "循环依赖",
+            "duplicated": "重复依赖"
+        },
+        "module": {
+            "information": "模块信息",
+            "size": "包大小"
+        }
+    }
+}
