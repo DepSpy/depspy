@@ -20,3 +20,14 @@ export interface Config {
   size?: boolean;
   online?: boolean;
 }
+
+export const defaultConfig = {
+  depth: 3,
+  size: false,
+  output: {
+    graph: "ds.graph.json",
+    circularDependency: "ds.circular.json",
+    codependency: "ds.co.json",
+  },
+  online: typeof window !== "undefined" ? true : false,
+};
