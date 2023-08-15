@@ -2,6 +2,7 @@ export interface Node {
   name: string;
   version: string;
   declarationVersion: string;
+  path?: string[];
   description?: string;
   cache?: string;
   circlePath?: string[];
