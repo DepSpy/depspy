@@ -1,33 +1,43 @@
 import { useNavigate } from "react-router-dom";
 import { useStore } from "@/contexts";
-import { searchNode } from "./utils";
-import { useReducer } from "react";
-import { StateType, ActionType } from "./types";
+import { useEffect, useReducer } from "react";
+import { Node } from "~/types";
+import { ReducerType } from "~/searchSide";
 
-function reducer(state: StateType, action: ActionType) {
-  switch (action.type) {
-    case "keywords":
-      return { ...state, keywords: action.value };
-    default:
-      break;
+const reducer: ReducerType = (state, action) => {
+  const newState = { ...state };
+  if (action instanceof Array)
+    action.forEach((v) => (newState[v.type] = v.value as never));
+  else {
+    newState[action.type] = action.value as never;
   }
-  return state;
-}
+  return newState;
+};
 
 export default function SideSearch() {
-  const { root, setSelectNode } = useStore();
-  const [state, dispatch] = useReducer<
-    (state: StateType, action: ActionType) => StateType
-  >(reducer, { keywords: "" });
+  const { root, setSelectNode, searchNode } = useStore();
+  const [state, dispatch] = useReducer<ReducerType>(reducer, {
+    keywords: "",
+    loading: true,
+    nodes: [],
+  });
   const navigate = useNavigate();
   const handleClick = () => {
     navigate("/search");
   };
-  const searchHandler = () => {
-    const node = searchNode(root, state.keywords);
+  const searchHandler = (node: Node) => {
     if (node !== null) setSelectNode(node);
-    dispatch({ type: "keywords", value: "" });
+    dispatch([
+      { type: "keywords", value: "" },
+      { type: "nodes", value: [] },
+    ]);
   };
+  useEffect(() => {
+    if (state.keywords) {
+      const suggestions = searchNode(root, state.keywords);
+      dispatch({ type: "nodes", value: suggestions });
+    } else dispatch({ type: "loading", value: false });
+  }, [state.keywords]);
   return (
     <div>
       <div>
@@ -40,7 +50,13 @@ export default function SideSearch() {
           name="search"
           autoComplete="off"
         />
-        <button onClick={searchHandler}>search</button>
+        <ul>
+          {state.nodes.map((v, i) => (
+            <li key={i} onClick={() => searchHandler(v)}>
+              {v.name}
+            </li>
+          ))}
+        </ul>
       </div>
       <div onClick={() => handleClick()}>back to SearchPage</div>
     </div>
