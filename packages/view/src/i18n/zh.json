@@ -8,13 +8,18 @@
     },
     "search": {
         "history": "历史记录",
-        "find": "搜索包文件",
-        "upload": "下载包文件"
+        "searchHis": "搜索历史记录",
+        "searchPkg": "搜素包文件",
+        "search": "搜索",
+        "upload": "上传包文件",
+        "drag": "点击或拖动文件到此处进行上传",
+        "format": "只接受*.json文件"
     },
     "section": {
         "title": "依赖间谍",
-        "zoom": "放大/缩小",
-        "depth": "深度:{{num}}"
+        "depth": "深度",
+        "export": "导出",
+        "select": "选择"
     },
     "aside": {
         "search": {
@@ -33,7 +38,8 @@
         },
         "module": {
             "information": "模块信息",
-            "size": "包大小"
+            "size": "包大小",
+            "source": "数据源"
         }
     }
 }

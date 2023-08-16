@@ -10,7 +10,7 @@ export default function AnalyzePage() {
   return (
     <div className="h-screen overflow-hidden">
       <button onClick={toggleLanguage}>切换语言</button>
-      <div>{t("section.depth", { num: 1 })}</div>
+      <div>{t("section.depth")}</div>
       <Tree originalData={root}></Tree>
       <Sidebar />
     </div>

@@ -8,13 +8,18 @@
     },
     "search": {
         "history": "HISTORY",
-        "find": "Find Package",
-        "upload": "Upload package.json File"
+        "searchHis": "Search History",
+        "searchPkg": "Search Package",
+        "search": "Search",
+        "upload": "Upload package.json File",
+        "drag": "Click or drag file to this area to upload",
+        "format": "Only *.json file will be accepted"
     },
     "section": {
         "title": "DepSpy",
-        "zoom": "zoom",
-        "depth": "depth:{{num}}"
+        "depth": "depth",
+        "export": "Export",
+        "select": "Select"
     },
     "aside": {
         "search": {
@@ -33,7 +38,8 @@
         },
         "module": {
             "information": "MODULE INFORMATION",
-            "size": "BUNDLE SIZE"
+            "size": "BUNDLE SIZE",
+            "source": "Data source"
         }
     }
 }
