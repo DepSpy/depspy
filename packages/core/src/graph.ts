@@ -91,11 +91,21 @@ export class Graph {
       if (this.config.depth && this.paths.length == this.config.depth) {
         break;
       }
-      const [childName, childVersion] = dependenceEntries[i];
+      // 将类型 [string, unknown] 转换为 [string, string]
+      const [childName, childVersion] = dependenceEntries[i] as [
+        string,
+        string,
+      ];
       //核心递归
       const child = await this.initGraph(childName);
       //添加实际声明的依赖
-      child.declarationVersion = childVersion;
+      // 如果 childVersion 以 $ 结尾，表明需要特殊处理
+      let childVersionPure: string | undefined;
+      if (childVersion.endsWith("$")) {
+        const index = childVersion.indexOf("$");
+        childVersionPure = childVersion.slice(index + 1, -1);
+      }
+      child.declarationVersion = childVersionPure || childVersion;
       //累加size
       totalSize += child.size;
       //子模块唯一id

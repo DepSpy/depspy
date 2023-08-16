@@ -25,8 +25,6 @@ export default async function getModuleInfo(
     case INFO_TYPES.NPM: {
       pak = inBrowser
         ? await getNpmOnlineInfo(info!)
-        : online
-        ? await getNpmOnlineInfo(info!)
         : await getNpmLocalInfo(info!, baseDir, size);
       break;
     }
@@ -37,7 +35,7 @@ export default async function getModuleInfo(
       if (inBrowser) throw new Error("invalid parameter");
       pak = getRootInfo();
   }
-  return transformPackage(pak);
+  return transformPackage(pak, online);
 }
 //获取根目录的package.json信息🌳
 function getRootInfo() {
@@ -47,9 +45,14 @@ function getRootInfo() {
 }
 //获取npm提供的package.json信息🌐
 async function getNpmOnlineInfo(packageName: string) {
-  // const url = `${JSDELIVR_API}/${packageName}/package.json`;
-  // return await axios.get(url).then((res) => res.data);
-  const url = `${NPM_DOMAIN}/${packageName}/latest`;
+  let url: string;
+  if (packageName.endsWith("$")) {
+    // 去掉所有的 $ 符号
+    packageName = packageName.replace(/\$/g, "");
+    url = `${NPM_DOMAIN}/${packageName}`;
+  } else {
+    url = `${NPM_DOMAIN}/${packageName}/latest`;
+  }
   return await axios.get(url).then((res) => res.data);
 }
 //获取本地某模块的package.json信息💻
@@ -136,10 +139,27 @@ function isPnpm(): boolean {
   return fs.existsSync(pnpmCachePath);
 }
 // 选出需要的数据
-function transformPackage(pkg: Package_TYPE): MODULE_INFO_TYPE {
+function transformPackage(
+  pkg: Package_TYPE,
+  online: boolean,
+): MODULE_INFO_TYPE {
   const result = {};
   MODULE_INFO.forEach((key) => {
-    if (pkg[key]) result[key] = pkg[key];
+    // 对于本地命令行在线模式，当前项目本身没有 dist 属性
+    if (online && pkg.dist && key === "size") {
+      result[key] = pkg.dist[key];
+    } else if (online && pkg[key] && key === "dependencies") {
+      // 给 dependencies 里的包的键值设置为 name/version$
+      const dependencies = pkg[key];
+      const dependenciesWithVersion = {};
+      for (const name in dependencies) {
+        // eg: vue: vue/^2.6.12$
+        dependenciesWithVersion[name] = `${name}/$${dependencies[name]}$`;
+      }
+      result[key] = dependenciesWithVersion;
+    } else if (pkg[key]) {
+      result[key] = pkg[key];
+    }
   });
   return result as MODULE_INFO_TYPE;
 }
