@@ -1,18 +1,15 @@
 import bump from "./bump";
 import * as d3 from "d3";
 import { useEffect, useState, useRef, useReducer } from "react";
+import { useStore } from "../../contexts";
 export function Tree({ originalData, width = window.innerWidth }) {
+  const { setSelectNode, selectedNode } = useStore((state) => ({
+    setSelectNode: state.setSelectNode,
+    selectedNode: state.selectedNode,
+  }));
   const [data, setData] = useState(() => [filterCache(originalData)]);
-  const [offsetY, setOffsetY] = useState([]);
+  const [offsetY, setOffsetY] = useState({});
   const [links, setLinks] = useState([]);
-  const curHighlightRect = useRef(null);
-  const [, setCurHighlight] = useReducer((cur, nextPath) => {
-    const nextHighLight = findDepBypath(nextPath, data[0]);
-    cur.highlight = false;
-    nextHighLight.highlight = true;
-    setData([...data]);
-    return nextHighLight;
-  }, {});
   //用来记录不影响重渲染的值
   let { current } = useRef({
     rootLength: 0,
@@ -25,22 +22,32 @@ export function Tree({ originalData, width = window.innerWidth }) {
   }, [width, data]);
 
   const svg = useRef(null);
+  const [curHighlight, setCurHighlight] = useReducer((cur, nextPath) => {
+    const nextHighLight = findDepBypath(nextPath, data[0]);
+    cur.highlight = false;
+    nextHighLight.highlight = true;
+    setData([...data]);
+    return nextHighLight;
+  }, {});
+  useEffect(() => {
+    const nextPath = selectedNode.path;
+    setCurHighlight(nextPath);
+  }, [selectedNode]);
+
   useEffect(() => {
     const zoom = d3.zoom().scaleExtent([0.1, 5]).on("zoom", zoomed);
     function zoomed(e) {
       d3.selectAll("#resizing").attr("transform", e.transform);
     }
     d3.select(svg.current).call(zoom).call(zoom.transform, d3.zoomIdentity);
-  }, []);
+  }, [curHighlight]);
   return (
     <>
       <svg
         ref={svg}
         width={width}
         height={innerHeight}
-        viewBox={`${-current.rootLength}, ${
-          -width / 2
-        }, ${width}, ${innerHeight}`}
+        viewBox={`${-width / 2}, ${-innerHeight / 2}, ${width}, ${innerHeight}`}
       >
         <g id="resizing" fill="none">
           {links.map((d) => {
@@ -51,10 +58,6 @@ export function Tree({ originalData, width = window.innerWidth }) {
                 strokeWidth={2}
                 markerEnd={highlight ? "url(#triangleBlue)" : "url(#triangle)"}
                 stroke={highlight ? "#1890ff" : "rgb(167,167,167)"}
-                data-d={JSON.stringify({
-                  source: { x: d.source.x, y: d.source.y },
-                  target: { x: d.target.x, y: d.target.y },
-                })}
                 d={d3
                   .link(bump)
                   .x((d) => d.y)
@@ -64,20 +67,33 @@ export function Tree({ originalData, width = window.innerWidth }) {
           })}
         </g>
         <g id="resizing" strokeLinejoin="round" strokeWidth={3}>
-          {offsetY.map((d) => {
-            const { width, x, y } = d;
+          {Object.values(offsetY).map((d) => {
+            const {
+              width,
+              x,
+              y,
+              data: { highlight },
+            } = d;
+            if (highlight) {
+              d3.select(svg.current)
+                .transition(1000)
+                .attr(
+                  "viewBox",
+                  `${y + width / 2 - innerWidth / 2}, ${
+                    x - innerHeight / 2
+                  }, ${innerWidth}, ${innerHeight}`,
+                );
+            }
             return (
               <g
                 cursor={"pointer"}
                 onClick={() => {
-                  setCurHighlight(d.data.path);
+                  setSelectNode(findDepBypath(d.data.path, originalData));
                 }}
-                data-transform={`translate(${y + width / 2},${x})`}
                 transform={`translate(${y + width / 2},${x})`}
               >
                 <rect
                   fill="none"
-                  ref={d.data.highlight ? curHighlightRect : null}
                   stroke={d.data.highlight ? "#1890ff" : "rgb(167,167,167)"}
                   strokeWidth={2}
                   width={width}
@@ -103,7 +119,7 @@ export function Tree({ originalData, width = window.innerWidth }) {
                 </text>
                 {d.data.collapseFlag && (
                   <text
-                    fill="rgb(167,167,167)"
+                    fill={highlight ? "#1890ff" : "rgb(167,167,167)"}
                     fontSize={25}
                     fontWeight={400}
                     transform={`translate(${d.width / 2},${-4})`}
@@ -256,5 +272,6 @@ function filterCache(data) {
     }
     return newData;
   }
-  return traverse(data);
+  const root = traverse(data);
+  return root;
 }
