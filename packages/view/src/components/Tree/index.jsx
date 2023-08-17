@@ -164,7 +164,7 @@ export function Tree({ originalData, width = window.innerWidth }) {
                 }}
                 transform={`translate(${y + width / 2},${x})`}
               >
-                <title>{declarationVersion}</title>
+                <title>{version}</title>
                 <rect
                   fill={isCo ? "rgb(91, 46, 238)" : "none"}
                   stroke={

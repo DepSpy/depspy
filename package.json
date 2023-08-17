@@ -10,8 +10,7 @@
     "prepare": "husky install",
     "publish": "lerna publish",
     "test": "vitest --no-threads",
-    "dev": "node ./scripts/index.mjs dev",
-    "build": "node ./scripts/index.mjs build "
+    "dev": "node ./scripts/index.mjs"
   },
   "keywords": [],
   "author": "",
@@ -46,5 +45,8 @@
     "stylelint-config-standard": "^34.0.0",
     "stylelint-prettier": "^4.0.2",
     "vitest": "^0.33.0"
+  },
+  "devDependencies": {
+    "chokidar": "^3.5.3"
   }
 }
