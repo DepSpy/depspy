@@ -65,6 +65,10 @@ importers:
       vitest:
         specifier: ^0.33.0
         version: 0.33.0
+    devDependencies:
+      chokidar:
+        specifier: ^3.5.3
+        version: 3.5.3
 
   packages/cli:
     dependencies:
