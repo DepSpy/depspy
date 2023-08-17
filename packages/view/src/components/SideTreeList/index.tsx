@@ -2,6 +2,7 @@ import { useStore } from "../../contexts";
 import SelectItem from "./SelectItem";
 import { objSame } from "../../utils/objSame";
 import { Node } from "../../../types/types";
+import "./index.scss";
 
 export default function TreeSelectedList() {
   const { root, selectedNode, setSelectNode } = useStore((state) => state);
@@ -31,15 +32,23 @@ export default function TreeSelectedList() {
 
   return (
     <div>
-      <div>当前选中节点：{selectedNode.name}</div>
-      <SelectItem
-        node={root}
-        depth={1}
-        expandedHandleSet={expandedHandleSet}
-        handleNodeClick={handleNodeClick}
-        selectedNode={selectedNode}
-        nodeParents={nodeParents}
-      />
+      <div className="treelist-selected-title">
+        <div>SELECTED:</div>
+        <div>
+          {selectedNode.name}@
+          {selectedNode.declarationVersion || selectedNode.version}
+        </div>
+      </div>
+      <div className="pl-3 pr-3">
+        <SelectItem
+          node={root}
+          depth={1}
+          curExpandedHandleSet={expandedHandleSet}
+          handleNodeClick={handleNodeClick}
+          selectedNode={selectedNode}
+          nodeParents={nodeParents}
+        />
+      </div>
     </div>
   );
 }
