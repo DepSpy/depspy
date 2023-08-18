@@ -9,7 +9,7 @@ export default function Side() {
   const typeList = {
     Search: <SideSearch></SideSearch>,
     TreeList: <SideTreeList />,
-    SideMoudle: <SideModule></SideModule>,
+    SideModule: <SideModule></SideModule>,
   };
   const typeName = Object.keys(typeList);
 

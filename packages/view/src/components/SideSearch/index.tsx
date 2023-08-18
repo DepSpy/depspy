@@ -3,6 +3,7 @@ import { useStore } from "@/contexts";
 import { useEffect, useReducer } from "react";
 import { Node } from "~/types";
 import { ReducerType } from "~/searchSide";
+import styles from "./index.module.scss";
 
 const reducer: ReducerType = (state, action) => {
   const newState = { ...state };
@@ -36,20 +37,28 @@ export default function SideSearch() {
     if (state.keywords) {
       const suggestions = searchNode(root, state.keywords);
       dispatch({ type: "nodes", value: suggestions });
-    } else dispatch({ type: "loading", value: false });
+    } else if (!state.keywords) {
+      dispatch({ type: "nodes", value: [] });
+    } else dispatch({ type: "nodes", value: false });
   }, [state.keywords]);
   return (
-    <div>
-      <div>
-        <input
-          onChange={(e) =>
-            dispatch({ type: "keywords", value: e.currentTarget.value })
-          }
-          value={state.keywords}
-          type="text"
-          name="search"
-          autoComplete="off"
-        />
+    <div className={styles["side-search"]}>
+      <div className={styles["find"]}>
+        <h1>Find Modules</h1>
+        <div className={styles["search-bar"]}>
+          <input
+            onChange={(e) =>
+              dispatch({ type: "keywords", value: e.currentTarget.value })
+            }
+            value={state.keywords}
+            type="text"
+            name="search"
+            autoComplete="off"
+          />
+        </div>
+      </div>
+      <div className={styles["result"]}>
+        <h1>Similar Result</h1>
         <ul>
           {state.nodes.map((v, i) => (
             <li key={i} onClick={() => searchHandler(v)}>
