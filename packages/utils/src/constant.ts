@@ -37,7 +37,7 @@ export type MODULE_INFO_TYPE = {
 export type Package_TYPE = MODULE_INFO_TYPE & Record<string, unknown>;
 
 export interface CONFIG {
-  baseDir: string;
-  online: boolean;
-  size: boolean;
+  baseDir?: string;
+  online?: boolean;
+  size?: boolean;
 }
