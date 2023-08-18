@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Node } from "../../../../types/types";
-import { objSame } from "../../../utils/objSame";
+import { Node } from "~/types";
+import { objSame } from "@/utils/objSame";
 import "./index.scss";
 
 interface SelectItemProps {
