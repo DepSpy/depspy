@@ -15,6 +15,7 @@
     }
   },
   "scripts": {
+    "build": "pnpm run build:vite & pnpm run build:tsup",
     "build:vite": "vite build",
     "build:tsup": "tsup",
     "tsup-build": "tsup --watch",
