@@ -1,10 +1,19 @@
+import SelectedTitle from "./SelectedTitle/index";
 import { useStore } from "../../contexts";
 import SelectItem from "./SelectItem";
 import { objSame } from "../../utils/objSame";
 import { Node } from "../../../types/types";
+import CoDepList from "./CoDepList/index";
+import CircleDepList from "./CircleDepList/index";
 
 export default function TreeSelectedList() {
-  const { root, selectedNode, setSelectNode } = useStore((state) => state);
+  const {
+    root,
+    selectedNode,
+    setSelectNode,
+    codependency,
+    circularDependency,
+  } = useStore((state) => state);
   const expandedHandleSet = new Set<(flag: boolean) => void>();
   const nodeParents = new Set<Node>();
   nodeParents.add(root);
@@ -30,16 +39,32 @@ export default function TreeSelectedList() {
   };
 
   return (
-    <div>
-      <div>当前选中节点：{selectedNode.name}</div>
-      <SelectItem
-        node={root}
-        depth={1}
-        expandedHandleSet={expandedHandleSet}
-        handleNodeClick={handleNodeClick}
-        selectedNode={selectedNode}
-        nodeParents={nodeParents}
-      />
+    <div className="flex flex-col h-full w-100">
+      <SelectedTitle />
+      <div
+        className="pl-3 pr-3"
+        style={{
+          height: `${
+            100 -
+            (codependency && codependency.length ? 30 : 0) +
+            (circularDependency && circularDependency.length ? 10 : 0)
+          }vh`,
+          overflow: "auto",
+        }}
+      >
+        <SelectItem
+          node={root}
+          depth={1}
+          curExpandedHandleSet={expandedHandleSet}
+          handleNodeClick={handleNodeClick}
+          selectedNode={selectedNode}
+          nodeParents={nodeParents}
+        />
+      </div>
+      {codependency && codependency?.length ? <CoDepList /> : null}
+      {circularDependency && circularDependency?.length ? (
+        <CircleDepList />
+      ) : null}
     </div>
   );
 }

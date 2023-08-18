@@ -7,9 +7,9 @@ import "./index.scss";
 
 export default function Side() {
   const typeList = {
-    Search: <SideSearch></SideSearch>,
-    TreeList: <SideTreeList />,
-    SideMoudle: <SideModule></SideModule>,
+    SEARCH: <SideSearch></SideSearch>,
+    GRAPH: <SideTreeList />,
+    MODULE: <SideModule></SideModule>,
   };
   const typeName = Object.keys(typeList);
 
@@ -22,8 +22,12 @@ export default function Side() {
 
   return (
     <div className="sidebar">
-      <ChooseItem setShowName={setShowName} typeName={typeName} />
-      {showSide}
+      <ChooseItem
+        setShowName={setShowName}
+        typeName={typeName}
+        showName={showName}
+      />
+      <div className="sidebar-container">{showSide}</div>
     </div>
   );
 }
