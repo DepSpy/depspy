@@ -12,7 +12,7 @@ declare module "virtual:graph-data" {
   const graph: {
     root?: Node;
     codependency?: Node[];
-    circularDependency?: Node[];
+    circleDependency?: Node[];
   };
   export { graph };
 }
