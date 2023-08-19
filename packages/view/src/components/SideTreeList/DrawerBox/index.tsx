@@ -10,6 +10,10 @@ export default function DrawerBox({
   setFn,
 }) {
   function clickHandler(node) {
+    if (objSame(node, selectedNode || {})) {
+      setFn(null);
+      return;
+    }
     setFn(node);
   }
 
@@ -17,7 +21,7 @@ export default function DrawerBox({
     <div
       className="drawer-box"
       style={{
-        height: title === "Circular Dependency" ? "10vh" : "30vh",
+        height: title === "Circular Dependency" ? "15vh" : "25vh",
       }}
     >
       <div className="title">{title}</div>
@@ -25,7 +29,7 @@ export default function DrawerBox({
         className="content"
         style={{
           height: `calc(${
-            title === "Circular Dependency" ? "10vh" : "30vh"
+            title === "Circular Dependency" ? "15vh" : "25vh"
           } - 3rem)`,
         }}
       >
