@@ -9,7 +9,7 @@ export class Graph {
   private paths: string[] = []; //记录根节点到当前节点的经过的每一个节点（数组元素有序，真实路径）
   private pathsSet: Set<string> = new Set(); //记录根节点到当前节点的经过的每一个节点（优化循环判断）
   private resolvePaths: string[] = []; //记录根节点到当前节点每一个节点的绝对路径
-  private codependency: Set<Node> = new Set(); //记录相同的节点
+  private codependency: Map<string, Node[]> = new Map(); //记录相同的节点
   private circularDependency: Set<Node> = new Set(); //记录存在循环引用的节点
   constructor(
     private readonly info: string,
@@ -37,7 +37,12 @@ export class Graph {
         [...this.paths, name],
       );
       //收集相同依赖
-      this.codependency.add(cacheNode);
+      if (this.codependency.has(id)) {
+        this.codependency.get(id).push(cacheNode);
+      } else {
+        this.codependency.set(id, [this.cache.get(id), cacheNode]);
+      }
+
       return cloneCacheNode;
     }
     //没有子依赖直接返回
@@ -144,7 +149,7 @@ export class Graph {
   }
   async getCodependency() {
     await this.ensureGraph();
-    return Array.from(this.codependency.values());
+    return Object.fromEntries(this.codependency);
   }
   async getCircularDependency() {
     await this.ensureGraph();
@@ -168,7 +173,10 @@ export class Graph {
       this.graph = await this.initGraph(this.info);
     }
   }
-  private writeJson(result: Node[] | Node, outDir: string) {
+  private writeJson(
+    result: Node[] | Node | Record<string, Node[]>,
+    outDir: string,
+  ) {
     fs.writeFileSync(path.join(process.cwd(), outDir), JSON.stringify(result), {
       flag: "w",
     });
