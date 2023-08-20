@@ -1,3 +1,5 @@
+import FirstTreeMap from "../FirstTreeMap";
+
 export default function SideModule() {
-  return <div>SideModule</div>;
+  return <FirstTreeMap width={200} height={200}></FirstTreeMap>;
 }

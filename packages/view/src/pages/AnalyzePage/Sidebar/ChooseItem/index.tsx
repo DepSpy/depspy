@@ -1,6 +1,6 @@
 import "./index.scss";
 
-export default function Side({ setShowName, typeName }) {
+export default function Side({ setShowName, typeName, showName }) {
   function handleClick(name: string) {
     setShowName(name);
   }
@@ -10,7 +10,11 @@ export default function Side({ setShowName, typeName }) {
       {typeName.map((name: string) => (
         <div
           key={name}
-          className="sidebar-choose-item"
+          className={
+            showName === name
+              ? "sidebar-choose-item-active"
+              : "sidebar-choose-item"
+          }
           onClick={() => handleClick(name)}
         >
           {name}

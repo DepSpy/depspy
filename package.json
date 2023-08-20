@@ -18,12 +18,12 @@
   "author": "",
   "license": "MIT",
   "lint-staged": {
-    "**/*.{js,jsx,tsx,ts}": [
+    "packages/**/*.{js,jsx,tsx,ts}": [
       "eslint --fix",
       "git add ."
     ],
-    "**/*.{css,scss}": [
-      "stylelint --fix src/**/*.{css}",
+    "packages/**/*.{css,scss}": [
+      "stylelint --fix",
       "git add ."
     ]
   },
@@ -47,5 +47,10 @@
     "stylelint-config-standard": "^34.0.0",
     "stylelint-prettier": "^4.0.2",
     "vitest": "^0.33.0"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^0.34.2",
+    "chalk": "^4.1.2",
+    "chokidar": "^3.5.3"
   }
 }

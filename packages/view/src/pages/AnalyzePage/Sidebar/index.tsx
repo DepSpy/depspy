@@ -7,13 +7,13 @@ import "./index.scss";
 
 export default function Side() {
   const typeList = {
-    Search: <SideSearch></SideSearch>,
-    TreeList: <SideTreeList />,
-    SideModule: <SideModule></SideModule>,
+    SEARCH: <SideSearch></SideSearch>,
+    GRAPH: <SideTreeList />,
+    MODULE: <SideModule></SideModule>,
   };
   const typeName = Object.keys(typeList);
 
-  const [showName, setShowName] = useState(typeName[0]);
+  const [showName, setShowName] = useState(typeName[2]);
   const [showSide, setShowSide] = useState(typeList[showName]);
 
   useEffect(() => {
@@ -22,8 +22,12 @@ export default function Side() {
 
   return (
     <div className="sidebar">
-      <ChooseItem setShowName={setShowName} typeName={typeName} />
-      {showSide}
+      <ChooseItem
+        setShowName={setShowName}
+        typeName={typeName}
+        showName={showName}
+      />
+      <div className="sidebar-container">{showSide}</div>
     </div>
   );
 }
