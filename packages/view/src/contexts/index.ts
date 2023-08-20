@@ -16,7 +16,7 @@ interface Store {
   searchNode: (root: Node, target: string) => Node[];
 }
 
-const { root, codependency, circleDependency } = graph;
+const { root, codependency, circularDependency } = graph;
 
 const searchNode = (root: Node, target: string) => {
   const queue = [root];
@@ -43,7 +43,7 @@ const searchNode = (root: Node, target: string) => {
 export const useStore = create<Store>((set) => ({
   root,
   codependency,
-  circularDependency: circleDependency,
+  circularDependency: circularDependency,
   selectedNode: root, // 默认选中根节点
   selectedCodependency: [],
   selectedCircularDependency: null,
