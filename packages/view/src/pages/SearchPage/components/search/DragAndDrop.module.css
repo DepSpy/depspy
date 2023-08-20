@@ -1,0 +1,40 @@
+/* DropZone.css.module */
+.mainpage {
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+  z-index: 1;
+}
+
+.droparea {
+  position: relative;
+  padding: 90px 30px 30px 30px;
+  background-color: #a9a9a9;
+  z-index: 2;
+}
+
+.droparea .backbutton {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  z-index: 3;
+}
+
+.droparea .border {
+  cursor: pointer;
+  padding: 90px 90px 90px 90px;
+  border: 2px dashed #000000;
+  text-align: center;
+  background-color: #ffffff;
+  z-index: 3;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0);
+  z-index: 1;
+}

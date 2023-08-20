@@ -1,0 +1,45 @@
+.mainpage {
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 540px;
+}
+
+.input {
+  display: flex;
+  justify-content: center;
+  height: 30px;
+  padding: 3px;
+}
+
+.input input {
+  width: 100%;
+  font-size: 2rem;
+}
+
+.suggestionsContainer {
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  z-index: 1;
+  max-height: 450px;
+  overflow-y: auto;
+}
+
+.suggestion {
+  padding: 5px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.suggestion:hover {
+  background-color: #6d6d6d;
+}

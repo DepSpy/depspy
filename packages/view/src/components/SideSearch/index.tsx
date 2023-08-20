@@ -5,6 +5,7 @@ export default function SideSearch() {
   const handleClick = () => {
     navigate("/search");
   };
+
   return (
     <div>
       <div>SideSearch</div>
