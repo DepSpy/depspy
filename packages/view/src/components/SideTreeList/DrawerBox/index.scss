@@ -9,6 +9,8 @@
     height: 3rem;
     padding: 0 0.75rem;
     background-color: var(--color-bg-layout);
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
   }
 
   .content {

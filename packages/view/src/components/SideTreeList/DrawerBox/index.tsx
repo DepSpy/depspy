@@ -1,5 +1,5 @@
 import { Node } from "../../../../types/types";
-// import { objSame } from "../../../utils/objSame";
+import { objSame } from "../../../utils/objSame";
 import DrawerItem from "./DrawerItem";
 import "./index.scss";
 
@@ -10,14 +10,20 @@ export default function DrawerBox({
   setFn,
 }) {
   function clickHandler(node) {
-    setFn(node);
+    if (Array.isArray(node)) {
+      setFn(node[0]);
+    } else if (objSame(node, selectedNode || {})) {
+      setFn(null);
+    } else {
+      setFn(node);
+    }
   }
 
   return (
     <div
       className="drawer-box"
       style={{
-        height: title === "Circular Dependency" ? "10vh" : "30vh",
+        height: title === "Circular Dependency" ? "15vh" : "25vh",
       }}
     >
       <div className="title">{title}</div>
@@ -25,7 +31,7 @@ export default function DrawerBox({
         className="content"
         style={{
           height: `calc(${
-            title === "Circular Dependency" ? "10vh" : "30vh"
+            title === "Circular Dependency" ? "15vh" : "25vh"
           } - 3rem)`,
         }}
       >
