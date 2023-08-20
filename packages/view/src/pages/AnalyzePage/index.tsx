@@ -24,7 +24,7 @@ export default function AnalyzePage() {
         </p>
         <div>{t("section.depth")}</div>
       </div>
-      <div className="flex">
+      <div className="flex h-screen overflow-hidden">
         <Tree originalData={root}></Tree>
         <Sidebar />
       </div>
