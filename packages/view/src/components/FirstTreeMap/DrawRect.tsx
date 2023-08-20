@@ -7,8 +7,9 @@ import { context } from "./store/context";
 import { Tooltip } from "./Tooltip";
 interface DrawRectProps {
   treeMap: d3.HierarchyRectangularNode<Data>;
+  RectFontSize?: number;
 }
-function DrawRect({ treeMap }: DrawRectProps) {
+function DrawRect({ treeMap, RectFontSize }: DrawRectProps) {
   /*
     treeMap.leaves()
       [{  data:{name,size,children,_children},
@@ -38,45 +39,8 @@ function DrawRect({ treeMap }: DrawRectProps) {
               data={data}
               key={value || 0}
               color={colorScale(i)}
+              RectFontSize={RectFontSize}
             ></DrawChildrenRect>
-            // <React.Fragment key={value}>
-            //   <div
-            //     key={value}
-            //     style={{
-            //       position: "absolute",
-            //       backgroundColor: colorScale(i),
-            //       left: x0,
-            //       top: y0,
-            //       width: x1 - x0,
-            //       height: y1 - y0,
-            //       overflow: "auto",
-            //     }}
-            //     onClick={handle_rect_click(data as Data)}
-            //     onMouseMove={() => {
-            //       if (!enter) {
-            //         console.log("enter")
-            //         setEnter(data.name)
-            //       }
-            //     }}
-            //     onMouseLeave={(e) => {
-            //       console.log("exit")
-            //       setEnter("")
-            //     }}
-            //   >
-            //     <span
-            //       ref={ref}
-            //       style={{
-            //         display: "inline-block",
-            //         width: x1 - x0,
-            //         height: y1 - y0,
-            //       }}
-            //     >
-            //       name: {data.name}
-            //       <br />
-            //       size: {data.size}
-            //     </span>
-            //   </div>
-            // </React.Fragment>
           );
         },
       )}
@@ -92,6 +56,7 @@ interface DrawChildrenRectProps {
   data: Data;
   // handle_rect_click:(data: Data) => () => void;
   color: string;
+  RectFontSize: number;
 }
 export const DrawChildrenRect = ({
   x0,
@@ -100,6 +65,7 @@ export const DrawChildrenRect = ({
   y1,
   data,
   color,
+  RectFontSize,
 }: DrawChildrenRectProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [hidden, setHidden] = useState<string>("false");
@@ -151,6 +117,7 @@ export const DrawChildrenRect = ({
           width: x1 - x0,
           height: y1 - y0,
           overflow: "auto",
+          fontSize: RectFontSize,
         }}
         ref={ref}
         onClick={handle_rect_click ? handle_rect_click(data) : void 0}
