@@ -10,7 +10,11 @@ export default function DrawerBox({
   setFn,
 }) {
   function clickHandler(node) {
-    setFn(node);
+    if (Array.isArray(node)) {
+      setFn(node[0]);
+    } else {
+      setFn(node);
+    }
   }
 
   return (

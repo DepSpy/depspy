@@ -61,7 +61,9 @@ export default function TreeSelectedList() {
           nodeParents={nodeParents}
         />
       </div>
-      {codependency && codependency?.length ? <CoDepList /> : null}
+      {codependency && Object.values(codependency)?.length ? (
+        <CoDepList />
+      ) : null}
       {circularDependency && circularDependency?.length ? (
         <CircleDepList />
       ) : null}

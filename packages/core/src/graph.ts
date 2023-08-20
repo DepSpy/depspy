@@ -38,9 +38,9 @@ export class Graph {
       );
       //收集相同依赖
       if (this.codependency.has(id)) {
-        this.codependency.get(id).push(cacheNode);
+        this.codependency.get(id).push(cloneCacheNode);
       } else {
-        this.codependency.set(id, [this.cache.get(id), cacheNode]);
+        this.codependency.set(id, [this.cache.get(id), cloneCacheNode]);
       }
 
       return cloneCacheNode;

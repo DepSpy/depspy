@@ -85,8 +85,11 @@ export function Tree({ originalData, width = window.innerWidth }) {
   }, [selectedNode]);
   //高亮相同依赖
   useEffect(() => {
-    if (selectedCodependency) {
-      setSelectNode(findDepBypath(selectedCodependency.path, originalData));
+    if (selectedCodependency?.length) {
+      selectedCodependency.forEach((node) => {
+        findDepBypath(node.path, data[0]);
+      });
+      setSelectNode(selectedCodependency[0]);
     }
   }, [selectedCodependency]);
   //➡️
@@ -150,11 +153,8 @@ export function Tree({ originalData, width = window.innerWidth }) {
               },
             } = d;
             const declarationId = `${name}@${declarationVersion || version}`;
-            const id = `${name}@${version || declarationVersion}`;
-            const coId = `${selectedCodependency?.name}@${
-              selectedCodependency?.version ||
-              selectedCodependency?.declarationVersion
-            }`;
+            const id = `${name}@${version}`;
+            const coId = `${selectedCodependency[0]?.name}@${selectedCodependency[0]?.version}`;
             const isCo = coId == id;
             const collapseFlag = Object.values(originDeps).length
               ? Object.values(dependencies).length
