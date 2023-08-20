@@ -4,14 +4,14 @@ import { Node } from "../../types/types";
 
 interface Store {
   root: Node;
-  codependency: Node[];
+  codependency: Record<string, Node[]>;
   circularDependency: Node[];
   selectedNode: Node;
-  selectedCodependency: Node | null;
+  selectedCodependency: Node[] | [];
   selectedCircularDependency: Node | null;
   setRoot: (root: Node) => void;
   setSelectNode: (selectedNode: Node) => void;
-  setSelectCodependency: (selectedCodependency: Node) => void;
+  setSelectCodependency: (selectedCodependency: Node[]) => void;
   setSelectCircularDependency: (selectedCircularDependency: Node) => void;
 }
 
@@ -22,11 +22,11 @@ export const useStore = create<Store>((set) => ({
   codependency,
   circularDependency: circleDependency,
   selectedNode: root, // 默认选中根节点
-  selectedCodependency: null,
+  selectedCodependency: [],
   selectedCircularDependency: null,
   setRoot: (root: Node) => set({ root }),
   setSelectNode: (selectedNode: Node) => set({ selectedNode }),
-  setSelectCodependency: (selectedCodependency: Node) =>
+  setSelectCodependency: (selectedCodependency: Node[]) =>
     set({ selectedCodependency }),
   setSelectCircularDependency: (selectedCircularDependency: Node) =>
     set({ selectedCircularDependency }),

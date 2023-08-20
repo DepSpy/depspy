@@ -1,5 +1,5 @@
 import { Node } from "../../../../types/types";
-import { objSame } from "../../../utils/objSame";
+// import { objSame } from "../../../utils/objSame";
 import DrawerItem from "./DrawerItem";
 import "./index.scss";
 
@@ -10,11 +10,16 @@ export default function DrawerBox({
   setFn,
 }) {
   function clickHandler(node) {
-    if (objSame(node, selectedNode || {})) {
-      setFn(null);
-      return;
+    if (Array.isArray(node)) {
+      setFn(node[0]);
     }
-    setFn(node);
+    else if(objSame(node, selectedNode || {}))
+    {
+      setFn(null);
+    } 
+     else {
+      setFn(node);
+    }
   }
 
   return (

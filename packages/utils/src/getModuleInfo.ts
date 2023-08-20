@@ -16,7 +16,7 @@ const inBrowser = typeof window !== "undefined";
 //给定想要获取模块的info，输出指定模块的详情
 export default async function getModuleInfo(
   info: string = "",
-  config: CONFIG,
+  config: CONFIG = {},
 ): Promise<MODULE_INFO_TYPE> {
   const { online, size, baseDir } = config;
   let pak: Package_TYPE;
