@@ -15,15 +15,19 @@ export default function AnalyzePage() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <button onClick={toggleLanguage}>切换语言</button>
-      <button onClick={toggleMode}>切换模式</button>
-      <p className={`bg-${mode}-bg c-${mode}-text`}>
-        This is primary text-{mode}
-      </p>
-      <div>{t("section.depth")}</div>
-      <Tree originalData={root}></Tree>
-      <Sidebar />
-    </div>
+    <>
+      <div className="fixed">
+        <button onClick={toggleLanguage}>切换语言</button>
+        <button onClick={toggleMode}>切换模式</button>
+        <p className={`bg-${mode}-bg c-${mode}-text`}>
+          This is primary text-{mode}
+        </p>
+        <div>{t("section.depth")}</div>
+      </div>
+      <div className="flex">
+        <Tree originalData={root}></Tree>
+        <Sidebar />
+      </div>
+    </>
   );
 }
