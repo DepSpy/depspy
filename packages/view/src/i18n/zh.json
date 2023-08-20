@@ -38,9 +38,11 @@
             "duplicated": "重复依赖"
         },
         "module": {
-            "title": "模块",
-            "information": "模块信息",
-            "size": "包大小",
+            "title": "依赖",
+            "information": "依赖信息",
+            "description": "简介",
+            "size": "依赖大小",
+            "graph": "体积图表",
             "source": "数据源"
         }
     }

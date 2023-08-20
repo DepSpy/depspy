@@ -40,7 +40,9 @@
         "module": {
             "title": "MODULE",
             "information": "MODULE INFORMATION",
+            "description": "DESCRIPTION",
             "size": "BUNDLE SIZE",
+            "graph": "BUNDLE GRAPH",
             "source": "Data source"
         }
     }
