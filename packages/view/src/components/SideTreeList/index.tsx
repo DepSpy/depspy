@@ -46,8 +46,8 @@ export default function TreeSelectedList() {
         style={{
           height: `${
             100 -
-            (codependency && codependency.length ? 30 : 0) +
-            (circularDependency && circularDependency.length ? 10 : 0)
+            (codependency && codependency.length ? 25 : 0) +
+            (circularDependency && circularDependency.length ? 15 : 0)
           }vh`,
           overflow: "auto",
         }}
