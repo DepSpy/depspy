@@ -14,6 +14,8 @@ export interface DrawSVGProps {
   width?: number;
   height?: number;
   margin?: number;
+  padding?: number;
+  RectFontSize?: number;
 }
 // export interface JSONData {
 //   name: string;
