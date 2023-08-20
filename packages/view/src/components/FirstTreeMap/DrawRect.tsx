@@ -86,9 +86,8 @@ export const DrawChildrenRect = ({
       <Tooltip
         content={
           <>
-            name: {data.name}
-            <br />
-            size: {data.size}
+            <div>name: {data.name}</div>
+            <div>size: {data.size}</div>
           </>
         }
       >
@@ -118,13 +117,13 @@ export const DrawChildrenRect = ({
           height: y1 - y0,
           overflow: "auto",
           fontSize: RectFontSize,
+          padding: "0.3rem",
         }}
         ref={ref}
         onClick={handle_rect_click ? handle_rect_click(data) : void 0}
       >
-        name: {data.name}
-        <br />
-        size: {data.size}
+        <div>name: {data.name}</div>
+        <div>size: {data.size}</div>
       </div>
     ),
   };

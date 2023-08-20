@@ -195,7 +195,7 @@ const FirstTreeMap = ({
           position: "relative",
           width: width,
           height: height,
-          backgroundColor: "#1a3055",
+          backgroundColor: "var(--color-border)",
         }}
       >
         <SwitchTransition mode="out-in">
