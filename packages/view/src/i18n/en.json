@@ -27,8 +27,9 @@
             "find": "FIND MODULE",
             "results": "SIMILAR SEARCH RESULTS"
         },
-        "graph": {
-            "title": "GRAPH",
+        "list": {
+            "title": "LIST",
+            "selected": "SELECTED",
             "management": "DISPLAY MANAGEMENT",
             "devDep": "Include devDependencies",
             "display": "display by",
@@ -37,6 +38,7 @@
             "duplicated": "DUPLICATED DEPENDENCY"
         },
         "module": {
+            "title": "MODULE",
             "information": "MODULE INFORMATION",
             "description": "DESCRIPTION",
             "size": "BUNDLE SIZE",

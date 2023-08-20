@@ -2,6 +2,7 @@ import { Node } from "../../../../types/types";
 import { objSame } from "../../../utils/objSame";
 import DrawerItem from "./DrawerItem";
 import "./index.scss";
+import useLanguage from "../../../i18n/hooks/useLanguage";
 
 export default function DrawerBox({
   title,
@@ -19,6 +20,8 @@ export default function DrawerBox({
     }
   }
 
+  const { t } = useLanguage();
+
   return (
     <div
       className="drawer-box"
@@ -26,7 +29,11 @@ export default function DrawerBox({
         height: title === "Circular Dependency" ? "15vh" : "25vh",
       }}
     >
-      <div className="title">{title}</div>
+      <div className="title">
+        {title === "Circular Dependency"
+          ? t("aside.list.duplicated")
+          : t("aside.list.circular")}
+      </div>
       <div
         className="content"
         style={{
