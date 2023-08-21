@@ -1,21 +1,17 @@
 .buttonArea {
   display: flex;
   justify-content: center;
-}
-
-.buttonContainer {
-  width: 540px;
-  height: 60px;
-  padding-top: 30px;
-}
-
-.buttonCollection {
-  display: flex;
-  justify-content: center;
   align-items: center;
 }
 
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  width: 552px;
+  padding-top: 30px;
+}
+
 .button {
-  width: 12rem;
-  margin: 12px;
+  padding: 8px 16px 8px 16px;
+  margin: 14px;
 }

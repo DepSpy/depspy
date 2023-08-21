@@ -1,41 +1,85 @@
-/* HistoryPage.module.css */
-.historyPanel {
-  position: absolute;
+.panel {
   display: flex;
   flex-direction: column;
+
+  position: absolute;
   right: 0px;
   top: 30px;
   width: 300px;
   height: 450px;
-  background-color: #a9a9a9;
-  padding: 15px;
+  padding: 0px 11px 11px 11px;
+
+  background-color: #ffffff;
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
   z-index: 2;
   font-family: Arial, Helvetica, sans-serif;
+  font-size: 1em;
 
-  .buttonContainer {
-    margin-top: auto;
-    /* Push the button to the bottom */
+  .panelHeader {
     display: flex;
-    margin-right: -15px;
-    /* Adjust for padding */
+    height: 48px;
+    border-bottom: 2px solid var(--color-border);
+
+    .headerContent {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      align-items: center;
+
+      .headerTitle {
+        justify-content: start;
+        margin-right: auto;
+      }
+
+      .icon {
+        height: 24px;
+        width: 24px;
+        justify-content: end;
+      }
+    }
   }
 
-}
+  .historyPanel {
+    display: flex;
+    max-height: 402px;
+    max-width: 278px;
+    overflow-x: auto;
+    overflow-y: auto;
 
-.historyPanel ul {
-  flex-direction: column;
-  align-items: start;
-}
 
-.historyPanel li {
-  text-align: left;
-  margin-left: -15px;
-  color: white;
-  cursor: pointer;
-}
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
 
-.historyPanel button {
-  cursor: pointer;
+    &::-webkit-scrollbar-track {
+      width: 6px;
+      margin: 11px 3px 3px 3px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--color-border);
+      border-radius: 3px;
+    }
+  }
+
+  .historyPanel ul {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    justify-content: center;
+    list-style: none;
+    margin-left: -2rem;
+  }
+
+  .historyPanel li {
+    display: flex;
+    align-items: center;
+    min-height: 32px;
+    text-align: left;
+    color: var(--color-text);
+    cursor: pointer;
+  }
 }
 
 .overlay {

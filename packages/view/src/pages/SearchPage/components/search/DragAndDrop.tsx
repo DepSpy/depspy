@@ -52,18 +52,22 @@ const DragAndDrop: React.FC<DragAndDropProps> = ({
 
   return (
     <div className={"mainpage"}>
-      <section className={"droparea"}>
-        <button className={"backbutton"} onClick={onHideDragAndDrop}>
-          X
-        </button>
-        <div {...getRootProps({ className: "border" })}>
-          <input {...getInputProps()} />
-          <p>Drag 'n' drop some files here, or click to select files</p>
-          <em>(Only *.json file will be accepted)</em>
-        </div>
-      </section>
+      <div className={"contentArea"}>
+        <section className={"droparea"}>
+          <div className={"dragAndDropHeader"}>
+            <p className={"title"}>Upload package.json File</p>
+            <i className={"closeButton"} onClick={onHideDragAndDrop}>x</i>
+          </div>
+          <div {...getRootProps({ className: "border" })}>
+            <input {...getInputProps()} />
+            <i className={"icon"}>x</i>
+            <p className={"text"}>Drag 'n' drop some files here, or click to select files</p>
+            <em className={"textType"}>(Only *.json file will be accepted)</em>
+          </div>
+        </section>
+      </div>
       <div className={"overlay"} onClick={onHideDragAndDrop}></div>
-    </div>
+    </div >
   );
 };
 

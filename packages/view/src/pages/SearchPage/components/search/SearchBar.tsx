@@ -21,7 +21,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   const getSuggestions = async (inputValue: string): Promise<Array<{ name: string; description: string; version: string }>> => {
     const trimmedInputValue = inputValue.trim().toLowerCase();
-    const inputLength = trimmedInputValue.length;
     try {
       const suggestions = await fetchPackageNames(trimmedInputValue);
       return suggestions;
@@ -61,7 +60,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
       console.error('Error fetching suggestions:', error);
     }
   };
-
 
   const suggestionsClearRequestedHandler = () => {
     setSuggestions([]);
@@ -106,6 +104,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
     },
   };
 
+
+  const renderInputComponentHandler = (inputProps: any) => (
+    <div className={theme.inputLayout}>
+      <i className={theme.icon}></i>
+      <input {...inputProps} />
+    </div>
+  );
+
   return (
     <div className={theme.mainpage} ref={searchBarRef}>
       <Autosuggest
@@ -115,9 +121,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
         onSuggestionsClearRequested={suggestionsClearRequestedHandler}
         onSuggestionSelected={suggestionSelectedHandler}
         getSuggestionValue={getSuggestionValueHandler}
+        renderInputComponent={renderInputComponentHandler}
         renderSuggestion={renderSuggestionHandler}
         inputProps={inputProps}
-        highlightFirstSuggestion={false}
+        highlightFirstSuggestion={true}
       />
     </div>
   );

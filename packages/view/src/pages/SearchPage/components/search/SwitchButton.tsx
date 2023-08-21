@@ -24,14 +24,12 @@ const SwitchButton: React.FC<SwitchProps> = ({ onDisplayDragAndDrop }) => {
   return (
     <div className={"buttonArea"}>
       <div className={"buttonContainer"}>
-        <div className={"buttonCollection"}>
-          <button className={"button"} onClick={addHistoryHandler}>
-            Find Package
-          </button>
-          <button className={"button"} onClick={onDisplayDragAndDrop}>
-            Upload package.json File
-          </button>
-        </div>
+        <button className={"button"} onClick={addHistoryHandler}>
+          Find Package
+        </button>
+        <button className={"button"} onClick={onDisplayDragAndDrop}>
+          Upload package.json File
+        </button>
       </div>
     </div>
   );

@@ -20,16 +20,21 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ onDisplayHistory }) => {
 
   return (
     <>
-      <div className={"historyPanel"}>
-        <ul>
-          {historyArr.map((item) => (
-            <li onClick={() => loadHistoryHandler(item)} key={item}>
-              {item}
-            </li>
-          ))}
-        </ul>
-        <div className={"buttonContainer"}>
-          <button onClick={ctx.onClearHistory}>Clear History</button>
+      <div className="panel">
+        <div className={'panelHeader'}>
+          <div className={'headerContent'}>
+            <p className={'headerTitle'}>History</p>
+            <i onClick={ctx.onClearHistory} className={"icon"}>C</i>
+          </div>
+        </div>
+        <div className={'historyPanel'}>
+          <ul>
+            {historyArr.map((item) => (
+              <li onClick={() => loadHistoryHandler(item)} key={item}>
+                {item}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
       <div className={"overlay"} onClick={onDisplayHistory}></div>
