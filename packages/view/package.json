@@ -39,6 +39,8 @@
     "unocss": "^0.55.2"
   },
   "dependencies": {
+    "react-autosuggest": "^10.1.0",
+    "react-dropzone": "^14.2.3",
     "@dep-spy/core": "workspace:^",
     "@types/d3": "^7.4.0",
     "@vitejs/plugin-react": "^4.0.4",

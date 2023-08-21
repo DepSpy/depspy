@@ -23,9 +23,6 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^6.2.0
         version: 6.2.0(eslint@8.45.0)(typescript@5.1.6)
-      all-the-package-names:
-        specifier: ^2.0.968
-        version: 2.0.968
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
@@ -50,12 +47,6 @@ importers:
       prettier:
         specifier: ^3.0.0
         version: 3.0.0
-      react-autosuggest:
-        specifier: ^10.1.0
-        version: 10.1.0(react@18.2.0)
-      react-dropzone:
-        specifier: ^14.2.3
-        version: 14.2.3(react@18.2.0)
       stylelint:
         specifier: ^15.10.2
         version: 15.10.2
@@ -159,9 +150,15 @@ importers:
       react:
         specifier: ^18.2.0
         version: 18.2.0
+      react-autosuggest:
+        specifier: ^10.1.0
+        version: 10.1.0(react@18.2.0)
       react-dom:
         specifier: ^18.2.0
         version: 18.2.0(react@18.2.0)
+      react-dropzone:
+        specifier: ^14.2.3
+        version: 14.2.3(react@18.2.0)
       react-i18next:
         specifier: ^13.1.2
         version: 13.1.2(i18next@23.4.4)(react-dom@18.2.0)(react@18.2.0)
@@ -2220,11 +2217,6 @@ packages:
       json-schema-traverse: 1.0.0
       require-from-string: 2.0.2
       uri-js: 4.4.1
-    dev: false
-
-  /all-the-package-names@2.0.968:
-    resolution: {integrity: sha512-fegRYyz9RaG3NZTvA+c8t0ST7BFmFQGxp1g6dd5eUZyHzjFPlEzgz0nz2ZvPNsJhZKxNCtR0VDgf2y9yE6l8qg==}
-    hasBin: true
     dev: false
 
   /ansi-colors@4.1.3:
