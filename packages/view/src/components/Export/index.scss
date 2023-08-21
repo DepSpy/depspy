@@ -1,0 +1,25 @@
+.bottom-bar {
+  position: fixed;
+  bottom: 2rem;
+  left: 2rem;
+  width: 24rem;
+  display: flex;
+  justify-content: space-between;
+  .bottom-btn {
+    width: 120px;
+    height: 50px;
+    align-items: center;
+    padding: 0 0.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    user-select: none;
+    letter-spacing: 0.2rem;
+    border: rgb(82, 82, 82);
+    border-radius: 10px;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+
+    overflow-x: hidden;
+  }
+}
