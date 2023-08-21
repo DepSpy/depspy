@@ -19,15 +19,11 @@ export default function SearchPage() {
       <Header children={undefined} />
       <Logo children={undefined} />
       {!displayDragAndDrop && (
-        <SearchSection
-          onDisplayDragAndDrop={displayDragAndDropHandler}
-        />
+        <SearchSection onDisplayDragAndDrop={displayDragAndDropHandler} />
       )}
       {displayDragAndDrop && (
-        <DragAndDrop
-          onHideDragAndDrop={hideDragAndDropHandler}
-        />
+        <DragAndDrop onHideDragAndDrop={hideDragAndDropHandler} />
       )}
     </MainPageContextProvider>
-  );;
+  );
 }

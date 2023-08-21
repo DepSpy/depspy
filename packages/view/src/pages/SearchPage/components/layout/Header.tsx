@@ -9,8 +9,7 @@ interface HeaderProps {
 const Layout: React.FC<HeaderProps> = (props) => {
   return (
     <div>
-      <MainNavigation
-      />
+      <MainNavigation />
       <main className={"main"}>{props.children}</main>
     </div>
   );

@@ -1,6 +1,10 @@
-const fetchPackageNames = async (name: string): Promise<Array<{ name: string; description: string; version: string }>> => {
+const fetchPackageNames = async (
+  name: string,
+): Promise<Array<{ name: string; description: string; version: string }>> => {
   try {
-    const response = await fetch(`https://api.npms.io/v2/search/suggestions?q=${name}`);
+    const response = await fetch(
+      `https://api.npms.io/v2/search/suggestions?q=${name}`,
+    );
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
@@ -13,7 +17,7 @@ const fetchPackageNames = async (name: string): Promise<Array<{ name: string; de
     }));
     return searchResults;
   } catch (error) {
-    console.error('Error fetching package names:', error);
+    console.error("Error fetching package names:", error);
     return [];
   }
 };

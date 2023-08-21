@@ -1,23 +1,23 @@
 .mainpage {
+  box-sizing: border-box;
   display: flex;
   justify-content: center;
-  box-sizing: border-box;
 }
 
 .container {
-  border: 2px solid var(--color-border);
-  border-radius: 23px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   width: 552px;
+  border: 2px solid var(--color-border);
+  border-radius: 23px;
 }
 
-.inputLayout {
+.inputlayout {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   width: 100%;
   height: 46px;
 }
@@ -25,26 +25,27 @@
 .icon {
   width: 24px;
   height: 24px;
-  background-color: aqua;
   margin-left: 23px;
+  background-color: aqua;
 }
 
 .input {
   flex-grow: 1;
-  background-color: #ffffff00;
-  border-color: #ffffff00;
-  margin-left: auto;
   padding: 3px 3px 3px 15px;
+  margin-left: auto;
+  background-color: #fff0;
+  border-color: #fff0;
 }
 
 input.input:focus {
   outline-width: 0;
 }
 
+/* stylelint-disable-next-line selector-class-pattern */
 .suggestionsContainer {
-  background-color: #ffffff00;
   max-height: 205px;
   overflow-y: auto;
+  background-color: #fff0;
 
   &::-webkit-scrollbar {
     width: 6px;
@@ -52,7 +53,7 @@ input.input:focus {
 
   &::-webkit-scrollbar-track {
     width: 6px;
-    margin: 0px 3px 23px 3px;
+    margin: 0 3px 23px;
   }
 
   &::-webkit-scrollbar-thumb {
@@ -61,24 +62,25 @@ input.input:focus {
   }
 }
 
+/* stylelint-disable-next-line selector-class-pattern */
 .suggestionsList {
   margin-bottom: 23px;
 }
 
 .suggestion {
-  padding: 5px;
-  width: 100%;
   display: flex;
   justify-content: space-between;
-  cursor: pointer;
+  width: 100%;
+  padding: 5px;
   list-style: none;
+  cursor: pointer;
 
   &:hover {
-    background-color: #0000000a;
+    background-color: var(--control-item-bg-hover);
   }
 }
 
-.leftSection {
+.leftsection {
   display: flex;
   flex-direction: column;
 }

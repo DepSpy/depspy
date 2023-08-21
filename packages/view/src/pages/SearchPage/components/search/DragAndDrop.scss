@@ -1,21 +1,20 @@
-/* DropZone.css.module */
 .mainpage {
+  z-index: 1;
+  box-sizing: border-box;
   display: flex;
   justify-content: center;
-  box-sizing: border-box;
-  z-index: 1;
 }
 
-.contentArea {
+.content-area {
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 552px;
   height: 251px;
-  z-index: 2;
+  padding: 13px;
   border: 2px solid var(--color-border);
   border-radius: 23px;
-  padding: 13px;
 
   .droparea {
     display: flex;
@@ -23,73 +22,68 @@
     width: 100%;
     height: 100%;
 
-    .dragAndDropHeader {
+    .draganddrop-header {
       display: flex;
       align-items: center;
       margin-bottom: 11px;
 
       .title {
         z-index: 3;
-        text-align: center;
-        margin-right: auto;
         flex-grow: 1;
+        margin-right: auto;
+        text-align: center;
       }
 
-      .closeButton {
-        background-color: blueviolet;
+      .close-button {
+        z-index: 3;
         justify-content: end;
         width: 24px;
         height: 24px;
-        z-index: 3;
         text-align: center;
+        background-color: blueviolet;
       }
     }
 
     .border {
+      z-index: 3;
       display: flex;
       flex-direction: column;
+      flex-grow: 1;
       align-items: center;
       justify-content: center;
-
       width: 100%;
       margin-bottom: auto;
-      flex-grow: 1;
-
       cursor: pointer;
+      background-color: var(--control-item-bg-hover);
       border: 1px dashed var(--color-border);
-      background-color: #0000000a;
       border-radius: 8px;
 
-      z-index: 3;
-
       .icon {
-        background-color: blueviolet;
+        z-index: 3;
         width: 48px;
         height: 48px;
-        z-index: 3;
-        text-align: center;
         margin-bottom: 16px;
+        text-align: center;
+        background-color: blueviolet;
       }
 
       .text {
         text-align: center;
       }
 
-      .textType {
+      .text-type {
         text-align: center;
       }
     }
   }
 }
 
-
-
 .overlay {
   position: fixed;
   top: 0;
   left: 0;
+  z-index: 1;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0);
-  z-index: 1;
+  background-color: rgb(0 0 0 / 0%);
 }

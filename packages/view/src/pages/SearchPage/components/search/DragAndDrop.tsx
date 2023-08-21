@@ -8,23 +8,20 @@ interface DragAndDropProps {
   onHideDragAndDrop: () => void;
 }
 
-const DragAndDrop: React.FC<DragAndDropProps> = ({
-  onHideDragAndDrop,
-}) => {
+const DragAndDrop: React.FC<DragAndDropProps> = ({ onHideDragAndDrop }) => {
   const navigate = useNavigate();
 
-  const { acceptedFiles, fileRejections, getRootProps, getInputProps } =
-    useDropzone({
-      accept: { "application/json": ["json"] },
-      onDrop: (acceptedFiles) => {
-        if (acceptedFiles.length > 0) {
-          handleFileRead(acceptedFiles[0]);
-        }
-      },
-      useFsAccessApi: false
-    });
+  const { getRootProps, getInputProps } = useDropzone({
+    accept: { "application/json": ["json"] },
+    onDrop: (acceptedFiles) => {
+      if (acceptedFiles.length > 0) {
+        handleFileRead(acceptedFiles[0]);
+      }
+    },
+    useFsAccessApi: false,
+  });
 
-  const [parsedData, setParsedData] = useState<any | null>(null);
+  const [parsedData, setParsedData] = useState<unknown | null>(null);
 
   const handleFileRead = (file: File) => {
     const reader = new FileReader();
@@ -52,22 +49,26 @@ const DragAndDrop: React.FC<DragAndDropProps> = ({
 
   return (
     <div className={"mainpage"}>
-      <div className={"contentArea"}>
+      <div className={"content-area"}>
         <section className={"droparea"}>
-          <div className={"dragAndDropHeader"}>
+          <div className={"draganddrop-header"}>
             <p className={"title"}>Upload package.json File</p>
-            <i className={"closeButton"} onClick={onHideDragAndDrop}>x</i>
+            <i className={"close-button"} onClick={onHideDragAndDrop}>
+              x
+            </i>
           </div>
           <div {...getRootProps({ className: "border" })}>
             <input {...getInputProps()} />
             <i className={"icon"}>x</i>
-            <p className={"text"}>Drag 'n' drop some files here, or click to select files</p>
-            <em className={"textType"}>(Only *.json file will be accepted)</em>
+            <p className={"text"}>
+              Drag 'n' drop some files here, or click to select files
+            </p>
+            <em className={"text-type"}>(Only *.json file will be accepted)</em>
           </div>
         </section>
       </div>
       <div className={"overlay"} onClick={onHideDragAndDrop}></div>
-    </div >
+    </div>
   );
 };
 

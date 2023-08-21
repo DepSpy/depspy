@@ -3,25 +3,29 @@ $li-border-stroke-w: 2px;
 
 .side-search {
   background-color: white;
+
   h1 {
     font-size: 22px;
     font-weight: normal;
   }
+
   .find {
     h1 {
       height: 40px;
     }
+
     .result {
       ul {
         display: flex;
         flex-wrap: wrap;
         width: 252px;
       }
+
       li {
         width: fit-content;
         height: $li-h;
-        margin: 2px;
         padding: 0 8px;
+        margin: 2px;
         line-height: $li-h - 2 * $li-border-stroke-w;
         list-style: none;
         border: solid $li-border-stroke-w gray;

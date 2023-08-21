@@ -22,8 +22,8 @@ const SwitchButton: React.FC<SwitchProps> = ({ onDisplayDragAndDrop }) => {
   };
 
   return (
-    <div className={"buttonArea"}>
-      <div className={"buttonContainer"}>
+    <div className={"button-area"}>
+      <div className={"button-container"}>
         <button className={"button"} onClick={addHistoryHandler}>
           Find Package
         </button>

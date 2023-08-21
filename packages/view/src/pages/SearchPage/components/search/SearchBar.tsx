@@ -3,7 +3,7 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import Autosuggest, { ChangeEvent } from "react-autosuggest";
 import theme from "./theme.module.css";
 import MainPageContext from "../store/MainPageContext";
-import fetchPackageNames from "../../util/FetchPackageNames"
+import fetchPackageNames from "../../util/FetchPackageNames";
 
 interface SearchBarProps {
   onShowButton: () => void;
@@ -17,15 +17,19 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const ctx = useContext(MainPageContext);
   const searchBarRef = useRef<HTMLDivElement>(null);
   const [value, setValue] = useState<string>("");
-  const [suggestions, setSuggestions] = useState<Array<{ name: string; description: string; version: string }>>([]);
+  const [suggestions, setSuggestions] = useState<
+    Array<{ name: string; description: string; version: string }>
+  >([]);
 
-  const getSuggestions = async (inputValue: string): Promise<Array<{ name: string; description: string; version: string }>> => {
+  const getSuggestions = async (
+    inputValue: string,
+  ): Promise<Array<{ name: string; description: string; version: string }>> => {
     const trimmedInputValue = inputValue.trim().toLowerCase();
     try {
       const suggestions = await fetchPackageNames(trimmedInputValue);
       return suggestions;
     } catch (error) {
-      console.error('Error getting suggestions:', error);
+      console.error("Error getting suggestions:", error);
       return [];
     }
   };
@@ -46,7 +50,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
     };
   }, []);
 
-  const suggestionsFetchRequestedHandler = async ({ value }: { value: string }) => {
+  const suggestionsFetchRequestedHandler = async ({
+    value,
+  }: {
+    value: string;
+  }) => {
     try {
       const newSuggestions = await getSuggestions(value);
       setSuggestions(newSuggestions);
@@ -57,7 +65,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         onHideButton();
       }
     } catch (error) {
-      console.error('Error fetching suggestions:', error);
+      console.error("Error fetching suggestions:", error);
     }
   };
 
@@ -66,8 +74,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   const suggestionSelectedHandler = (
-    event: React.FormEvent<any>,
-    { suggestion }: { suggestion: { name: string; description: string; version: string } }
+    event,
+    {
+      suggestion,
+    }: { suggestion: { name: string; description: string; version: string } },
   ) => {
     setValue(suggestion.name);
     onShowButton();
@@ -76,10 +86,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   const getSuggestionValueHandler = (suggestion: string): string => suggestion;
 
-  const renderSuggestionHandler = (suggestion: { name: string; description: string; version: string }) => {
+  const renderSuggestionHandler = (suggestion: {
+    name: string;
+    description: string;
+    version: string;
+  }) => {
     return (
       <div className={theme.suggestion}>
-        <div className={theme.leftSection}>
+        <div className={theme.leftsection}>
           <div className={theme.name}>{suggestion.name}</div>
           <div className={theme.description}>{suggestion.description}</div>
         </div>
@@ -93,7 +107,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
     value,
     onChange: (
       event: React.FormEvent<HTMLElement>,
-      { newValue }: ChangeEvent
+      { newValue }: ChangeEvent,
     ) => {
       setValue(newValue);
       if (newValue === "") {
@@ -104,9 +118,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
     },
   };
 
-
-  const renderInputComponentHandler = (inputProps: any) => (
-    <div className={theme.inputLayout}>
+  const renderInputComponentHandler = (inputProps) => (
+    <div className={theme.inputlayout}>
       <i className={theme.icon}></i>
       <input {...inputProps} />
     </div>

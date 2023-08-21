@@ -20,7 +20,10 @@
     "build:tsup": "tsup",
     "tsup-build": "tsup --watch",
     "vite-build": "vite build --watch",
-    "vite-static": "cross-env VITE_STATIC=static vite build"
+    "vite-static": "cross-env VITE_STATIC=static vite build",
+    "lint": "npx --no -- lint-staged",
+    "lint:script": "eslint --ext .ts,.tsx,.js,.jsx --fix ./",
+    "lint:style": "stylelint --fix \"./src/**/*.{css,scss}\""
   },
   "keywords": [],
   "author": "",

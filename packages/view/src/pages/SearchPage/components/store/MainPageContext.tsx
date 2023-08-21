@@ -3,12 +3,14 @@ import React, { useEffect, useState } from "react";
 const MainPageContext = React.createContext({
   collectedHistory: "vitest",
   history: [] as string[],
-  onHistoryUpdate: (suggestion: string) => { },
-  onClearHistory: () => { },
-  onHistoryCollection: (suggestion: string) => { },
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onHistoryUpdate: (suggestion: string) => {},
+  onClearHistory: () => {},
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onHistoryCollection: (suggestion: string) => {},
 });
 
-export const MainPageContextProvider = (props: any) => {
+export const MainPageContextProvider = (props) => {
   const [history, setHistory] = useState<string[]>([]);
   const [collectedHistory, setcollectedHistory] = useState<string>("vitest");
 
