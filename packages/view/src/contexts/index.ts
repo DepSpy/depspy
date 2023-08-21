@@ -4,6 +4,7 @@ import { graph } from "virtual:graph-data";
 import { Node } from "../../types/types";
 
 interface Store {
+  theme: string;
   root: Node;
   collapse: boolean;
   codependency: Record<string, Node[]>;
@@ -17,6 +18,7 @@ interface Store {
   setSelectCircularDependency: (selectedCircularDependency: Node) => void;
   searchNode: (root: Node, target: string) => Node[];
   setCollapse: (flag: boolean) => void;
+  setTheme: (theme: string) => void;
 }
 
 const { root, codependency, circularDependency } = graph;
@@ -45,6 +47,7 @@ const searchNode = (root: Node, target: string) => {
 
 export const useStore = createWithEqualityFn<Store>(
   (set) => ({
+    theme: "light",
     root,
     collapse: true,
     codependency,
@@ -60,6 +63,9 @@ export const useStore = createWithEqualityFn<Store>(
       set({ selectedCircularDependency }),
     searchNode,
     setCollapse: (collapse) => set({ collapse }),
+    setTheme: (theme: string) => {
+      set({ theme: theme === "light" ? "dark" : "light" });
+    },
   }),
   shallow,
 );

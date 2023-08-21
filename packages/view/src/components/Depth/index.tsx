@@ -7,7 +7,7 @@ export default function Depth() {
     <section
       id={`${t("section.maxDepth")}`}
       className={`relative
-      hover:after:(absolute flex c-[var(--color-primary-light)] text-nowrap left-50% transform-translate-x--50%
+      hover:after:(absolute flex c-primary-hover text-nowrap left-50% transform-translate-x--50%
       content-[attr(id)])`}
     >
       <input
@@ -19,10 +19,10 @@ export default function Depth() {
         p-1
         h-2rem
         w-5rem
-        outline-[var(--color-primary-base)]
+        outline-primary-base
         text-center
         "
-        border="solid 2 rd-0.5rem [var(--color-border)] hover:[var(--color-primary-base)]"
+        border="solid 2 rd-0.5rem primary-border hover:primary-border-hover"
       ></input>
     </section>
   );

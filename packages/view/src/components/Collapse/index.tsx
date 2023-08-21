@@ -10,7 +10,7 @@ export default function Collapse() {
     <section
       id={`${collapse ? t("section.expand") : t("section.collapse")}`}
       className={`relative
-      hover:after:(absolute flex c-[var(--color-primary-light)] text-nowrap left-50% transform-translate-x--50%
+      hover:after:(absolute flex c-primary-hover text-nowrap left-50% transform-translate-x--50%
       content-[attr(id)])`}
     >
       <div
@@ -22,8 +22,8 @@ export default function Collapse() {
               : "i-carbon-collapse-categories"
           }
           text-1.5rem 
-          c-[var(--color-text)] 
-          hover:c-[var(--color-primary-base)]`}
+          c-primary-border 
+          hover:c-primary-border-hover`}
       ></div>
     </section>
   );
