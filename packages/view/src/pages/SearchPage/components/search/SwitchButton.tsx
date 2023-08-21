@@ -17,7 +17,12 @@ const SwitchButton: React.FC<SwitchProps> = ({ onDisplayDragAndDrop }) => {
     if (collectedHistory.length > 0) {
       ctx.onHistoryUpdate(collectedHistory);
       generateGraphWrapper(collectedHistory);
-      navigate("/analyze");
+      navigate("/analyze", {
+        state: {
+          searchname: "name",
+          json: "json",
+        },
+      });
     }
   };
 

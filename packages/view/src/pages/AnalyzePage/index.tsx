@@ -6,10 +6,19 @@ import Collapse from "@/components/Collapse";
 import useLanguage from "../../i18n/hooks/useLanguage";
 // import { Export } from "@/components/Export";
 import { useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 
 export default function AnalyzePage() {
-  const { searchname } = useParams();
+  let searchname: string;
+  let json: string;
+  const { URLSearchname } = useParams();
+  const location = useLocation();
+  if (location.state && location.state.json && location.state.searchname) {
+    window.history.replaceState(null, "", `${window.location.pathname}`);
+    searchname = location.state.searchname;
+    json = location.state.json;
+  }
+
   const root = useStore((state) => state.root);
   const { theme, setTheme } = useStore();
   const { t, toggleLanguage } = useLanguage();
@@ -19,8 +28,10 @@ export default function AnalyzePage() {
   };
 
   useEffect(() => {
-    console.log(searchname);
-  }, [searchname]);
+    console.log("url", URLSearchname);
+    console.log("searchname", searchname);
+    console.log("json", json);
+  }, [URLSearchname, json]);
 
   return (
     <>
