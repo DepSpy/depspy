@@ -1,19 +1,19 @@
-import { Tree } from "../../components/Tree";
+import Tree from "@/components/Tree";
 import { useStore } from "../../contexts";
 import Sidebar from "./Sidebar";
 import Depth from "@/components/Depth";
 import Collapse from "@/components/Collapse";
 import useLanguage from "../../i18n/hooks/useLanguage";
-
+// import { Export } from "@/components/Export";
+import { useRef } from "react";
 export default function AnalyzePage() {
   const root = useStore((state) => state.root);
   const { theme, setTheme } = useStore();
   const { t, toggleLanguage } = useLanguage();
-
+  const svg = useRef(null);
   const toggleMode = () => {
     setTheme(theme);
   };
-
   return (
     <>
       <div className="fixed">
@@ -22,7 +22,7 @@ export default function AnalyzePage() {
         <p className={`bg-primary-bg c-text`}>{t("section.depth")}</p>
       </div>
       <div className="flex h-screen overflow-hidden">
-        <Tree originalData={root}></Tree>
+        <Tree originalData={root} ref={svg}></Tree>
         <Sidebar />
       </div>
       <section
@@ -31,6 +31,12 @@ export default function AnalyzePage() {
       >
         <Depth></Depth>
         <Collapse></Collapse>
+        {/* <Export
+          svgRef={svg}
+          width={innerWidth}
+          height={innerHeight}
+          ZOOM={{ k: 0.5 }}
+        ></Export> */}
       </section>
     </>
   );

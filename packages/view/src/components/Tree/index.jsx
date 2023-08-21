@@ -1,8 +1,8 @@
 import * as d3 from "d3";
-import { useEffect, useState, useRef, useReducer } from "react";
+import { useEffect, useState, useRef, useReducer, forwardRef } from "react";
 import { shallow } from "zustand/shallow";
 import { useStore } from "../../contexts";
-export function Tree({ originalData, width = window.innerWidth }) {
+function Tree({ originalData, width = window.innerWidth }, svg) {
   //➡️全局数据
   const {
     setSelectNode,
@@ -76,7 +76,6 @@ export function Tree({ originalData, width = window.innerWidth }) {
   }, [offsetY]);
   //➡️
   //高亮
-  const svg = useRef(null);
   const [curHighlight, setCurHighlight] = useReducer((cur, nextPath) => {
     const nextHighLight = findDepBypath(nextPath, data[0]);
     cur.highlight = false;
@@ -442,3 +441,5 @@ const throttle = (func, delay = 500) => {
     }, delay);
   };
 };
+
+export default forwardRef(Tree);
