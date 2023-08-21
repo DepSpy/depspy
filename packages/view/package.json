@@ -20,7 +20,10 @@
     "build:tsup": "tsup",
     "tsup-build": "tsup --watch",
     "vite-build": "vite build --watch",
-    "vite-static": "cross-env VITE_STATIC=static vite build"
+    "vite-static": "cross-env VITE_STATIC=static vite build",
+    "lint": "npx --no -- lint-staged",
+    "lint:script": "eslint --ext .ts,.tsx,.js,.jsx --fix ./",
+    "lint:style": "stylelint --fix \"./src/**/*.{css,scss}\""
   },
   "keywords": [],
   "author": "",
@@ -36,6 +39,8 @@
     "unocss": "^0.55.2"
   },
   "dependencies": {
+    "react-autosuggest": "^10.1.0",
+    "react-dropzone": "^14.2.3",
     "@dep-spy/core": "workspace:^",
     "@types/d3": "^7.4.0",
     "@vitejs/plugin-react": "^4.0.4",
