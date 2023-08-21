@@ -31,14 +31,14 @@ export default function SelectItem({
   curNodeParents.add(node);
 
   useEffect(() => {
-    if (!selectedNode.path.includes(node.name)) {
+    if (isExpanded && !selectedNode.path.includes(node.name)) {
       setIsExpanded(false);
     }
     if (objSame(node, selectedNode)) {
       // 将 curExpandedHandleSet 中的所有函数都执行一遍
       curExpandedHandleSet.forEach((handle) => handle(true));
     }
-  }, [selectedNode.name, selectedNode.version]);
+  }, [selectedNode]);
 
   return (
     <div>

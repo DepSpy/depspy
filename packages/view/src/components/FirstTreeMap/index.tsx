@@ -24,6 +24,8 @@ function changeData(data: Node): Data | undefined {
   newdata.children = [];
   let isEmpty = true;
   const depvalues = Object.values(dep);
+  // console.log("depvalues", depvalues);
+
   if (depvalues.length !== 0) {
     isEmpty = false;
     depvalues.forEach((item) => {
@@ -56,7 +58,9 @@ const FirstTreeMap = ({
   hiddenHeightMultiplier = 10,
   width = 500,
   height = 500,
-  margin = 10,
+  margin = 0,
+  padding = 2,
+  RectFontSize = 14,
 }: DrawSVGProps) => {
   const [state, setState] = useState<number>(0); // control transition
   const [data, setData] = useState<Data>();
@@ -107,40 +111,45 @@ const FirstTreeMap = ({
         .treemap()
         .size([width - 2 * margin, height - 2 * margin])
         .round(true)
-        .padding(10)(rootTree as d3.HierarchyNode<Data>);
-      // 省略较小的依赖
-      const hideRoot = [];
-      TreeMap.children.forEach((child) => {
-        const { x1, x0, y1, y0, data } = child;
-        // console.log(child);
-        // console.log(hideRoot);
-        const width = x1 - x0;
-        const height = y1 - y0;
-        const rootWidth = TreeMap.x1 - TreeMap.x0;
-        const rootHeight = TreeMap.y1 - TreeMap.y0;
+        .padding(padding)(rootTree as d3.HierarchyNode<Data>);
+      if (width < 500 || height < 500) {
+        // 省略较小的依赖
+        const hideRoot = [];
+        // console.log("TreeMap.children", TreeMap, TreeMap.children);
+        if (TreeMap.children)
+          TreeMap.children.forEach((child) => {
+            const { x1, x0, y1, y0, data } = child;
+            // console.log(child);
+            // console.log(hideRoot);
+            const width = x1 - x0;
+            const height = y1 - y0;
+            const rootWidth = TreeMap.x1 - TreeMap.x0;
+            const rootHeight = TreeMap.y1 - TreeMap.y0;
 
-        if (
-          width < rootWidth / hiddenWidthMultiplier ||
-          height < rootHeight / hiddenHeightMultiplier
-        ) {
-          hideRoot.push((data as Data).name);
+            if (
+              width < rootWidth / hiddenWidthMultiplier ||
+              height < rootHeight / hiddenHeightMultiplier
+            ) {
+              hideRoot.push((data as Data).name);
+            }
+          });
+        console.log(hideRoot, data);
+        if (hideRoot.length > 0) {
+          const newData = {
+            name: data.name,
+            size: data.size,
+            children:
+              (data.children as Data[]).filter((item) => {
+                return !hideRoot.includes(item.name);
+              }) || [],
+          };
+          // console.log(newData);
+
+          updateTreeMap(newData);
+          return;
         }
-      });
-      console.log(hideRoot, data);
-      if (hideRoot.length > 0) {
-        const newData = {
-          name: data.name,
-          size: data.size,
-          children:
-            (data.children as Data[]).filter((item) => {
-              return !hideRoot.includes(item.name);
-            }) || [],
-        };
-        // console.log(newData);
-
-        updateTreeMap(newData);
-        return;
       }
+
       setTreeMap(
         TreeMap as SetStateAction<
           d3.HierarchyRectangularNode<Data> | undefined
@@ -160,7 +169,20 @@ const FirstTreeMap = ({
       if (!data._children || !data._children.length) return;
       setState(state ? 0 : 1);
       data.children = data._children;
-      setSelectNode(selectedNode.dependencies[data.name.split("@")[0]]);
+      // if (
+      //   selectedNode.dependencies[
+      //     data.name.split("@")[0]
+      //       ? data.name.split("@")[0]
+      //       : `@${data.name.split("@")[1]}`
+      //   ] !== void 0
+      // )
+      setSelectNode(
+        selectedNode.dependencies[
+          data.name.split("@")[0]
+            ? data.name.split("@")[0]
+            : `@${data.name.split("@")[1]}`
+        ],
+      );
       updateTreeMap(data);
     };
   };
@@ -168,17 +190,23 @@ const FirstTreeMap = ({
   return (
     <DrawStore value={handle_rect_click}>
       <div
+        // className={`relative w-[${width}px] h-[${height}px] bg-[#1a3055ff]`}
         style={{
           position: "relative",
           width: width,
           height: height,
-          backgroundColor: "#1a3055",
+          backgroundColor: "var(--color-border)",
         }}
       >
         <SwitchTransition mode="out-in">
           <CSSTransition classNames={"fade"} key={state} timeout={500}>
             <div style={{ position: "absolute", left: margin, top: margin }}>
-              {treeMap && <DrawRect treeMap={treeMap}></DrawRect>}
+              {treeMap && (
+                <DrawRect
+                  RectFontSize={RectFontSize}
+                  treeMap={treeMap}
+                ></DrawRect>
+              )}
             </div>
           </CSSTransition>
         </SwitchTransition>

@@ -27,8 +27,9 @@
             "find": "搜索包",
             "results": "所有类似搜索结果"
         },
-        "graph": {
-            "title": "图表",
+        "list": {
+            "title": "列表",
+            "selected": "选中",
             "management": "展示管理",
             "devDep": "包括开发环境依赖",
             "display": "展示方式",
@@ -37,8 +38,11 @@
             "duplicated": "重复依赖"
         },
         "module": {
-            "information": "模块信息",
-            "size": "包大小",
+            "title": "依赖",
+            "information": "依赖信息",
+            "description": "简介",
+            "size": "依赖大小",
+            "graph": "体积图表",
             "source": "数据源"
         }
     }
