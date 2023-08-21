@@ -11,22 +11,22 @@
   padding: 90px 30px 30px 30px;
   background-color: #a9a9a9;
   z-index: 2;
-}
 
-.droparea .backbutton {
-  position: absolute;
-  top: 30px;
-  right: 30px;
-  z-index: 3;
-}
+  .backbutton {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    z-index: 3;
+  }
 
-.droparea .border {
-  cursor: pointer;
-  padding: 90px 90px 90px 90px;
-  border: 2px dashed #000000;
-  text-align: center;
-  background-color: #ffffff;
-  z-index: 3;
+  .border {
+    cursor: pointer;
+    padding: 90px 90px 90px 90px;
+    border: 2px dashed #000000;
+    text-align: center;
+    background-color: #ffffff;
+    z-index: 3;
+  }
 }
 
 .overlay {

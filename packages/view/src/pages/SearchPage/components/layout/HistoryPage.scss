@@ -11,6 +11,15 @@
   padding: 15px;
   z-index: 2;
   font-family: Arial, Helvetica, sans-serif;
+
+  .buttonContainer {
+    margin-top: auto;
+    /* Push the button to the bottom */
+    display: flex;
+    margin-right: -15px;
+    /* Adjust for padding */
+  }
+
 }
 
 .historyPanel ul {
@@ -23,12 +32,6 @@
   margin-left: -15px;
   color: white;
   cursor: pointer;
-}
-
-.historyPanel .buttonContainer {
-  margin-top: auto; /* Push the button to the bottom */
-  display: flex;
-  margin-right: -15px; /* Adjust for padding */
 }
 
 .historyPanel button {

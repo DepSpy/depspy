@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import classes from "./DragAndDrop.module.css";
+import "./DragAndDrop.scss";
 import { generateGraphWrapper } from "../../util/GenerateGraphWrapper";
 import { useNavigate } from "react-router-dom";
 
@@ -51,18 +51,18 @@ const DragAndDrop: React.FC<DragAndDropProps> = ({
   }, [parsedData]);
 
   return (
-    <div className={classes.mainpage}>
-      <section className={classes.droparea}>
-        <button className={classes.backbutton} onClick={onHideDragAndDrop}>
+    <div className={"mainpage"}>
+      <section className={"droparea"}>
+        <button className={"backbutton"} onClick={onHideDragAndDrop}>
           X
         </button>
-        <div {...getRootProps({ className: classes["border"] })}>
+        <div {...getRootProps({ className: "border" })}>
           <input {...getInputProps()} />
           <p>Drag 'n' drop some files here, or click to select files</p>
           <em>(Only *.json file will be accepted)</em>
         </div>
       </section>
-      <div className={classes.overlay} onClick={onHideDragAndDrop}></div>
+      <div className={"overlay"} onClick={onHideDragAndDrop}></div>
     </div>
   );
 };

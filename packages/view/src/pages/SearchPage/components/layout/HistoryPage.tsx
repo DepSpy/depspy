@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import classes from "./HistoryPage.module.css";
+import "./HistoryPage.scss";
 import MainPageContext from "../store/MainPageContext";
 import { useNavigate } from "react-router-dom";
 import { generateGraphWrapper } from "../../util/GenerateGraphWrapper";
@@ -20,7 +20,7 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ onDisplayHistory }) => {
 
   return (
     <>
-      <div className={classes.historyPanel}>
+      <div className={"historyPanel"}>
         <ul>
           {historyArr.map((item) => (
             <li onClick={() => loadHistoryHandler(item)} key={item}>
@@ -28,11 +28,11 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ onDisplayHistory }) => {
             </li>
           ))}
         </ul>
-        <div className={classes.buttonContainer}>
+        <div className={"buttonContainer"}>
           <button onClick={ctx.onClearHistory}>Clear History</button>
         </div>
       </div>
-      <div className={classes.overlay} onClick={onDisplayHistory}></div>
+      <div className={"overlay"} onClick={onDisplayHistory}></div>
     </>
   );
 };

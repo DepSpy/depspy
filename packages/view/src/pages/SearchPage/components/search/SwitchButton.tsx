@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import classes from "./SwitchButton.module.css";
+import "./SwitchButton.scss";
 import MainPageContext from "../store/MainPageContext";
 import { useNavigate } from "react-router-dom";
 import { generateGraphWrapper } from "../../util/GenerateGraphWrapper";
@@ -22,13 +22,13 @@ const SwitchButton: React.FC<SwitchProps> = ({ onDisplayDragAndDrop }) => {
   };
 
   return (
-    <div className={classes.buttonArea}>
-      <div className={classes.buttonContainer}>
-        <div className={classes.buttonCollection}>
-          <button className={classes.button} onClick={addHistoryHandler}>
+    <div className={"buttonArea"}>
+      <div className={"buttonContainer"}>
+        <div className={"buttonCollection"}>
+          <button className={"button"} onClick={addHistoryHandler}>
             Find Package
           </button>
-          <button className={classes.button} onClick={onDisplayDragAndDrop}>
+          <button className={"button"} onClick={onDisplayDragAndDrop}>
             Upload package.json File
           </button>
         </div>

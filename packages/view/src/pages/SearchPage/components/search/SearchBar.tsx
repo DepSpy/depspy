@@ -69,11 +69,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   const suggestionSelectedHandler = (
     event: React.FormEvent<any>,
-    { suggestion }: { suggestion: string }
+    { suggestion }: { suggestion: { name: string; description: string; version: string } }
   ) => {
-    setValue(suggestion);
+    setValue(suggestion.name);
     onShowButton();
-    ctx.onHistoryCollection(suggestion);
+    ctx.onHistoryCollection(suggestion.name);
   };
 
   const getSuggestionValueHandler = (suggestion: string): string => suggestion;

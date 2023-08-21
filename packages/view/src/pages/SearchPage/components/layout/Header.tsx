@@ -1,6 +1,6 @@
 import React, { ReactNode } from "react";
 import MainNavigation from "./MainNavigation";
-import classes from "./Header.module.css";
+import "./Header.scss";
 
 interface HeaderProps {
   children: ReactNode;
@@ -11,7 +11,7 @@ const Layout: React.FC<HeaderProps> = (props) => {
     <div>
       <MainNavigation
       />
-      <main className={classes.main}>{props.children}</main>
+      <main className={"main"}>{props.children}</main>
     </div>
   );
 };

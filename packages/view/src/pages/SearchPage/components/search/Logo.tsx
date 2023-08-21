@@ -1,5 +1,5 @@
 import React, { ReactNode } from "react";
-import classes from "./Logo.module.css";
+import "./Logo.scss";
 
 interface LayoutProps {
   children: ReactNode;
@@ -8,7 +8,7 @@ interface LayoutProps {
 const Logo: React.FC<LayoutProps> = () => {
   return (
     <div>
-      <main className={classes.logo}>DevSpy</main>
+      <main className={"logo"}>DevSpy</main>
     </div>
   );
 };

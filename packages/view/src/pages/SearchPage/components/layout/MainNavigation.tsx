@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import classes from "./MainNavigation.module.css";
+import "./MainNavigation.scss";
 import HistoryPage from "./HistoryPage";
 
-interface MainNavigationProps {}
+interface MainNavigationProps { }
 
 const MainNavigation: React.FC<MainNavigationProps> = () => {
   const [displayHistory, setDisplayHistory] = useState<boolean>(false);
@@ -12,7 +12,7 @@ const MainNavigation: React.FC<MainNavigationProps> = () => {
   };
 
   return (
-    <header className={classes.header}>
+    <header className={"header"}>
       <ul>
         <li>
           <button>English</button>
