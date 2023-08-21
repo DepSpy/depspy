@@ -1,15 +1,30 @@
 import bump from "./bump";
 import { Export } from "../Export/index";
 import * as d3 from "d3";
-import { useEffect, useState, useRef, useReducer } from "react";
+import { useEffect, useState, useRef, useReducer, forwardRef } from "react";
+import { shallow } from "zustand/shallow";
 import { useStore } from "../../contexts";
-export function Tree({ originalData, width = window.innerWidth }) {
+function Tree({ originalData, width = window.innerWidth }, svg) {
   const [ZOOM, setZOOM] = useState(0);
-  const { setSelectNode, selectedNode } = useStore((state) => ({
-    setSelectNode: state.setSelectNode,
-    selectedNode: state.selectedNode,
-  }));
-  const [data, setData] = useState(() => [filterCache(originalData)]);
+  //➡️全局数据
+  const {
+    setSelectNode,
+    collapse,
+    selectedNode,
+    // selectedCodependency,
+    selectedCircularDependency,
+  } = useStore(
+    (state) => ({
+      setSelectNode: state.setSelectNode,
+      collapse: state.collapse,
+      selectedNode: state.selectedNode,
+      // selectedCodependency: state.selectedCodependency,
+      selectedCircularDependency: state.selectedCircularDependency,
+    }),
+    shallow,
+  );
+  //➡️改变内部数据不能检测，所以改为引用类型包裹以便更新
+  const [data, setData] = useState(() => [filterData(originalData, collapse)]);
   const [offsetY, setOffsetY] = useState({});
   const [links, setLinks] = useState([]);
   //用来记录不影响重渲染的值
@@ -21,9 +36,48 @@ export function Tree({ originalData, width = window.innerWidth }) {
     current.rootLength = rootLength;
     setOffsetY(offsetY);
     setLinks(links);
-  }, [width, data]);
-
-  const svg = useRef(null);
+  }, [data]);
+  //➡️
+  //循环
+  const [, setCirclePath] = useState("");
+  //将循环的路径上的节点展开并高亮循环节点
+  useEffect(() => {
+    if (selectedCircularDependency) {
+      setSelectNode(
+        findDepBypath(selectedCircularDependency.path, originalData),
+      );
+    }
+  }, [selectedCircularDependency]);
+  //将循环节点连接
+  useEffect(() => {
+    if (
+      selectedCircularDependency &&
+      offsetY[selectedCircularDependency.path.join()]
+    ) {
+      const circleParentPath = [];
+      selectedCircularDependency.path.some((path) => {
+        circleParentPath.push(path);
+        if (path === selectedCircularDependency.path.at(-1)) {
+          return true;
+        }
+        return false;
+      });
+      const { x: x0, y: y0, width: width0 } = offsetY[circleParentPath.join()];
+      const { x, y, width } = offsetY[selectedCircularDependency.path.join()];
+      const x1 = y + width / 2,
+        x2 = y0 + width0 / 2,
+        y1 = x,
+        y2 = x0;
+      const path = d3.path();
+      path.moveTo(x1, y1);
+      path.lineTo(x2, y2);
+      setCirclePath(path.toString());
+    } else {
+      setCirclePath("");
+    }
+  }, [offsetY]);
+  //➡️
+  //高亮
   const [curHighlight, setCurHighlight] = useReducer((cur, nextPath) => {
     const nextHighLight = findDepBypath(nextPath, data[0]);
     cur.highlight = false;
@@ -57,6 +111,19 @@ export function Tree({ originalData, width = window.innerWidth }) {
     }
     d3.select(svg.current).call(zoom).call(zoom.transform, d3.zoomIdentity);
   }, [curHighlight]);
+  //界面适配
+  useEffect(() => {
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        setData((pre) => [...pre]);
+      }, 500),
+    );
+  }, []);
+  //全部折叠/收起
+  useEffect(() => {
+    setData([filterData(originalData, collapse)]);
+  }, [collapse]);
   return (
     <>
       <svg
@@ -265,8 +332,10 @@ function findDepBypath(paths, data) {
   });
   return dep;
 }
-function filterCache(data) {
+//为第二层以下的节点添加originDeps字段
+function filterData(data, collapse) {
   const cacheSet = new Set();
+  let depth = 1;
   function traverse(data) {
     const newData = {
       ...data,
@@ -286,10 +355,25 @@ function filterCache(data) {
     const entries = Object.entries(newData.dependencies);
     for (let i = 0; i < entries.length; i++) {
       const [name, dependency] = entries[i];
-      newData.dependencies[name] = traverse(dependency);
+      const child = traverse(dependency);
+      if (depth <= 2 || !collapse) newData.dependencies[name] = child;
+      newData.originDeps[name] = child;
     }
     return newData;
   }
   const root = traverse(data);
   return root;
 }
+//节流
+const throttle = (func, delay = 500) => {
+  let timer = null;
+  return (...args) => {
+    if (timer) return;
+    timer = setTimeout(() => {
+      func(...args);
+      timer = null;
+    }, delay);
+  };
+};
+
+export default forwardRef(Tree);

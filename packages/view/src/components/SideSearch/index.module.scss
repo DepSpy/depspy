@@ -14,26 +14,22 @@ $li-border-stroke-w: 2px;
       height: 40px;
     }
 
-    .search-bar {
-      height: 48px;
-    }
-  }
+    .result {
+      ul {
+        display: flex;
+        flex-wrap: wrap;
+        width: 252px;
+      }
 
-  .result {
-    ul {
-      display: flex;
-      flex-wrap: wrap;
-      width: 252px;
-    }
-
-    li {
-      width: fit-content;
-      height: $li-h;
-      padding: 0 8px;
-      margin: 2px;
-      line-height: $li-h - 2 * $li-border-stroke-w;
-      list-style: none;
-      border: solid $li-border-stroke-w gray;
+      li {
+        width: fit-content;
+        height: $li-h;
+        padding: 0 8px;
+        margin: 2px;
+        line-height: $li-h - 2 * $li-border-stroke-w;
+        list-style: none;
+        border: solid $li-border-stroke-w gray;
+      }
     }
   }
 }

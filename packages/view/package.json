@@ -20,17 +20,20 @@
     "build:tsup": "tsup",
     "tsup-build": "tsup --watch",
     "vite-build": "vite build --watch",
-    "vite-static": "VITE_STATIC=static vite build"
+    "vite-static": "cross-env VITE_STATIC=static vite build"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@iconify-json/carbon": "^1.1.20",
     "@types/react": "^18.2.18",
     "@types/react-dom": "^18.2.7",
+    "@unocss/preset-attributify": "^0.55.2",
+    "@unocss/transformer-variant-group": "^0.55.2",
     "sass": "^1.65.1",
     "tsup": "^7.1.0",
-    "unocss": "^0.55.0"
+    "unocss": "^0.55.2"
   },
   "dependencies": {
     "@dep-spy/core": "workspace:^",
@@ -46,7 +49,7 @@
     "react-router-dom": "^6.14.2",
     "react-transition-group": "^4.4.5",
     "vite": "^4.4.9",
-    "zustand": "^4.4.1"
+    "zustand": "^4.4.0"
   },
   "gitHead": "50c073c23fc0eed9ed09baaa47244288326bc3d8"
 }
