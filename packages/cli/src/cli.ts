@@ -38,12 +38,12 @@ cli
     console.log(green(`破解完成,耗时 ${yellow(Date.now() - startTime)} ms`));
     // 如果开启 ui，则启动可视化界面
     if (options.ui) {
-      const [root, codependency, circleDependency] = await Promise.all([
+      const [root, codependency, circularDependency] = await Promise.all([
         graph.getGraph(),
         graph.getCodependency(),
         graph.getCircularDependency(),
       ]);
-      const graphData = { root, codependency, circleDependency };
+      const graphData = { root, codependency, circularDependency };
 
       createServer(graphData);
     }
