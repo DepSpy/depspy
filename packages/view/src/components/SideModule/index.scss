@@ -1,0 +1,51 @@
+.module-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 3rem;
+  padding: 0 0.75rem;
+  background-color: var(--color-bg-layout);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.module-info-name {
+  padding: 0.75rem;
+  font-size: 1.3rem;
+  color: var(--color-primary-base);
+}
+
+.module-info-version {
+  padding: 0.75rem 0.3rem;
+  padding-right: 1rem;
+  font-size: 1.3rem;
+  color: var(--color-text-description);
+}
+
+.module-des {
+  .title {
+    padding-left: 0.75rem;
+    font-size: 1.1rem;
+  }
+
+  .des {
+    padding: 0.75rem;
+  }
+}
+
+.module-size {
+  .title {
+    padding-left: 0.75rem;
+    font-size: 1.1rem;
+  }
+
+  .size {
+    padding: 0.75rem;
+  }
+}
+
+.size-graph-title {
+  padding-left: 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+}

@@ -12,6 +12,6 @@ export interface Node {
 
 export interface generateGraphRes {
   root?: Node;
-  codependency?: Node[];
+  codependency?: Record<string, Node[]>;
   circularDependency?: Node[];
 }

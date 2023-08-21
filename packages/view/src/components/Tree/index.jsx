@@ -60,6 +60,7 @@ export function Tree({ originalData, width = window.innerWidth }) {
   return (
     <>
       <svg
+        id="svgImg"
         ref={svg}
         width={width}
         height={innerHeight}

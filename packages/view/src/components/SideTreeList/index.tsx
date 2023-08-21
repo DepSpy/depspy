@@ -46,8 +46,8 @@ export default function TreeSelectedList() {
         style={{
           height: `${
             100 -
-            (codependency && codependency.length ? 30 : 0) +
-            (circularDependency && circularDependency.length ? 10 : 0)
+            (codependency && codependency.length ? 25 : 0) +
+            (circularDependency && circularDependency.length ? 15 : 0)
           }vh`,
           overflow: "auto",
         }}
@@ -61,7 +61,9 @@ export default function TreeSelectedList() {
           nodeParents={nodeParents}
         />
       </div>
-      {codependency && codependency?.length ? <CoDepList /> : null}
+      {codependency && Object.values(codependency)?.length ? (
+        <CoDepList />
+      ) : null}
       {circularDependency && circularDependency?.length ? (
         <CircleDepList />
       ) : null}

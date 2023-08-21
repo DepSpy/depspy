@@ -1,0 +1,49 @@
+{
+    "mode": {
+        "language": "ENGLISH",
+        "theme": {
+            "light": "LIGHT",
+            "dark": "DARK"
+        }
+    },
+    "search": {
+        "history": "HISTORY",
+        "searchHis": "Search History",
+        "searchPkg": "Search Package",
+        "search": "Search",
+        "upload": "Upload package.json File",
+        "drag": "Click or drag file to this area to upload",
+        "format": "Only *.json file will be accepted"
+    },
+    "section": {
+        "title": "DepSpy",
+        "depth": "depth",
+        "export": "Export",
+        "select": "Select"
+    },
+    "aside": {
+        "search": {
+            "title": "SEARCH",
+            "find": "FIND MODULE",
+            "results": "SIMILAR SEARCH RESULTS"
+        },
+        "list": {
+            "title": "LIST",
+            "selected": "SELECTED",
+            "management": "DISPLAY MANAGEMENT",
+            "devDep": "Include devDependencies",
+            "display": "display by",
+            "structure": "MODULE STRUCTURE",
+            "circular": "CIRCULAR DEPENDENCY",
+            "duplicated": "DUPLICATED DEPENDENCY"
+        },
+        "module": {
+            "title": "MODULE",
+            "information": "MODULE INFORMATION",
+            "description": "DESCRIPTION",
+            "size": "BUNDLE SIZE",
+            "graph": "BUNDLE GRAPH",
+            "source": "Data source"
+        }
+    }
+}
