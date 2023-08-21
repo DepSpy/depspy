@@ -16,10 +16,13 @@
         "format": "只接受*.json文件"
     },
     "section": {
-        "title": "依赖间谍",
-        "depth": "深度",
-        "export": "导出",
-        "select": "选择"
+      "title": "依赖间谍",
+      "depth": "深度",
+      "export": "导出",
+      "select": "选择",
+      "maxDepth": "最大深度",
+      "expand": "展开",
+      "collapse": "折叠"
     },
     "aside": {
         "search": {

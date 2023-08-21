@@ -4,13 +4,14 @@ import {
   presetUno,
   presetIcons,
 } from "unocss";
-
+import transformerVariantGroup from "@unocss/transformer-variant-group";
 export default defineConfig({
   presets: [
     presetUno(),
     presetAttributify(),
     presetIcons({ scale: 1.2, warn: true }),
   ],
+  transformers: [transformerVariantGroup()],
   shortcuts: [],
   rules: [],
   theme: {

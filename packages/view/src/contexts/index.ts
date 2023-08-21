@@ -1,9 +1,11 @@
-import { create } from "zustand";
+import { shallow } from "zustand/shallow";
+import { createWithEqualityFn } from "zustand/traditional";
 import { graph } from "virtual:graph-data";
 import { Node } from "../../types/types";
 
 interface Store {
   root: Node;
+  collapse: boolean;
   codependency: Record<string, Node[]>;
   circularDependency: Node[];
   selectedNode: Node;
@@ -14,6 +16,7 @@ interface Store {
   setSelectCodependency: (selectedCodependency: Node[]) => void;
   setSelectCircularDependency: (selectedCircularDependency: Node) => void;
   searchNode: (root: Node, target: string) => Node[];
+  setCollapse: (flag: boolean) => void;
 }
 
 const { root, codependency, circularDependency } = graph;
@@ -40,18 +43,23 @@ const searchNode = (root: Node, target: string) => {
   }
 };
 
-export const useStore = create<Store>((set) => ({
-  root,
-  codependency,
-  circularDependency: circularDependency,
-  selectedNode: root, // 默认选中根节点
-  selectedCodependency: [],
-  selectedCircularDependency: null,
-  setRoot: (root: Node) => set({ root }),
-  setSelectNode: (selectedNode: Node) => set({ selectedNode }),
-  setSelectCodependency: (selectedCodependency: Node[]) =>
-    set({ selectedCodependency }),
-  setSelectCircularDependency: (selectedCircularDependency: Node) =>
-    set({ selectedCircularDependency }),
-  searchNode,
-}));
+export const useStore = createWithEqualityFn<Store>(
+  (set) => ({
+    root,
+    collapse: true,
+    codependency,
+    circularDependency: circularDependency,
+    selectedNode: root, // 默认选中根节点
+    selectedCodependency: [],
+    selectedCircularDependency: null,
+    setRoot: (root: Node) => set({ root }),
+    setSelectNode: (selectedNode: Node) => set({ selectedNode }),
+    setSelectCodependency: (selectedCodependency: Node[]) =>
+      set({ selectedCodependency }),
+    setSelectCircularDependency: (selectedCircularDependency: Node) =>
+      set({ selectedCircularDependency }),
+    searchNode,
+    setCollapse: (collapse) => set({ collapse }),
+  }),
+  shallow,
+);

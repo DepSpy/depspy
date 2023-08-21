@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Tree } from "../../components/Tree";
 import { useStore } from "../../contexts";
 import Sidebar from "./Sidebar";
+import Depth from "@/components/Depth";
+import Collapse from "@/components/Collapse";
 import useLanguage from "../../i18n/hooks/useLanguage";
 
 export default function AnalyzePage() {
@@ -28,6 +30,13 @@ export default function AnalyzePage() {
         <Tree originalData={root}></Tree>
         <Sidebar />
       </div>
+      <section
+        className="fixed flex left-2rem bottom-2rem gap-4 h-2rem"
+        flex="items-end"
+      >
+        <Depth></Depth>
+        <Collapse></Collapse>
+      </section>
     </>
   );
 }

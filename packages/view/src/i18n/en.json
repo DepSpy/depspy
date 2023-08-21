@@ -16,10 +16,13 @@
         "format": "Only *.json file will be accepted"
     },
     "section": {
-        "title": "DepSpy",
-        "depth": "depth",
-        "export": "Export",
-        "select": "Select"
+      "title": "DepSpy",
+      "depth": "depth",
+      "export": "Export",
+      "select": "Select",
+      "maxDepth": "Max Depth",
+      "expand": "Expand",
+      "collapse": "Collapse"
     },
     "aside": {
         "search": {
