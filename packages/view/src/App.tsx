@@ -11,7 +11,7 @@ import { useStore } from "./contexts";
 function App() {
   const routeElement = [
     { path: "search", element: <SearchPage /> },
-    { path: "analyze", element: <AnalyzePage /> },
+    { path: "analyze/:searchname?", element: <AnalyzePage /> },
     { path: "*", element: <Navigate to={isStatic ? "/search" : "/analyze"} /> },
   ];
 

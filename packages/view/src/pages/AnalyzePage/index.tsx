@@ -5,8 +5,11 @@ import Depth from "@/components/Depth";
 import Collapse from "@/components/Collapse";
 import useLanguage from "../../i18n/hooks/useLanguage";
 // import { Export } from "@/components/Export";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
+
 export default function AnalyzePage() {
+  const { searchname } = useParams();
   const root = useStore((state) => state.root);
   const { theme, setTheme } = useStore();
   const { t, toggleLanguage } = useLanguage();
@@ -14,6 +17,11 @@ export default function AnalyzePage() {
   const toggleMode = () => {
     setTheme(theme);
   };
+
+  useEffect(() => {
+    console.log(searchname);
+  }, [searchname]);
+
   return (
     <>
       <div className="fixed">
