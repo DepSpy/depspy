@@ -3,12 +3,10 @@ import SearchBar from "./SearchBar";
 import SwitchButton from "./SwitchButton";
 
 interface SearchSectionProps {
-  names: string[];
   onDisplayDragAndDrop: () => void;
 }
 
 const SearchSection: React.FC<SearchSectionProps> = ({
-  names,
   onDisplayDragAndDrop,
 }) => {
   const [showButton, setShowButton] = useState<boolean>(true);
@@ -24,7 +22,6 @@ const SearchSection: React.FC<SearchSectionProps> = ({
   return (
     <>
       <SearchBar
-        names={names}
         onShowButton={showButtonHandler}
         onHideButton={hideButtonHandler}
       />

@@ -3,36 +3,32 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import Autosuggest, { ChangeEvent } from "react-autosuggest";
 import theme from "./theme.module.css";
 import MainPageContext from "../store/MainPageContext";
+import fetchPackageNames from "../../util/FetchPackageNames"
 
 interface SearchBarProps {
-  names: string[];
   onShowButton: () => void;
   onHideButton: () => void;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
-  names,
   onShowButton,
   onHideButton,
 }) => {
   const ctx = useContext(MainPageContext);
   const searchBarRef = useRef<HTMLDivElement>(null);
   const [value, setValue] = useState<string>("");
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<Array<{ name: string; description: string; version: string }>>([]);
 
-  const getSuggestions = (inputValue: string): string[] => {
+  const getSuggestions = async (inputValue: string): Promise<Array<{ name: string; description: string; version: string }>> => {
     const trimmedInputValue = inputValue.trim().toLowerCase();
     const inputLength = trimmedInputValue.length;
-
-    return inputLength === 0
-      ? []
-      : names
-        .filter(
-          (name) =>
-            name.toLowerCase().slice(0, inputLength) === trimmedInputValue
-        )
-        .sort((a, b) => a.length - b.length)
-        .slice(0, 11);
+    try {
+      const suggestions = await fetchPackageNames(trimmedInputValue);
+      return suggestions;
+    } catch (error) {
+      console.error('Error getting suggestions:', error);
+      return [];
+    }
   };
 
   const clickOutsideHandler = (event: MouseEvent) => {
@@ -51,16 +47,21 @@ const SearchBar: React.FC<SearchBarProps> = ({
     };
   }, []);
 
-  const suggestionsFetchRequestedHandler = ({ value }: { value: string }) => {
-    const newSuggestions = getSuggestions(value);
-    setSuggestions(newSuggestions);
+  const suggestionsFetchRequestedHandler = async ({ value }: { value: string }) => {
+    try {
+      const newSuggestions = await getSuggestions(value);
+      setSuggestions(newSuggestions);
 
-    if (newSuggestions.length === 0) {
-      onShowButton();
-    } else {
-      onHideButton();
+      if (newSuggestions.length === 0) {
+        onShowButton();
+      } else {
+        onHideButton();
+      }
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
     }
   };
+
 
   const suggestionsClearRequestedHandler = () => {
     setSuggestions([]);
@@ -77,9 +78,17 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   const getSuggestionValueHandler = (suggestion: string): string => suggestion;
 
-  const renderSuggestionHandler = (suggestion: string) => (
-    <div>{suggestion}</div>
-  );
+  const renderSuggestionHandler = (suggestion: { name: string; description: string; version: string }) => {
+    return (
+      <div className={theme.suggestion}>
+        <div className={theme.leftSection}>
+          <div className={theme.name}>{suggestion.name}</div>
+          <div className={theme.description}>{suggestion.description}</div>
+        </div>
+        <div className={theme.version}>{suggestion.version}</div>
+      </div>
+    );
+  };
 
   const inputProps = {
     placeholder: "Search packages",

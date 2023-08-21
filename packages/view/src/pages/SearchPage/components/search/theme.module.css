@@ -34,12 +34,36 @@
   overflow-y: auto;
 }
 
+/* 
+.suggestionsList {} */
+
 .suggestion {
   padding: 5px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
   cursor: pointer;
   list-style: none;
 }
 
 .suggestion:hover {
-  background-color: #6d6d6d;
+  background-color: #b6b6b6;
+}
+
+.leftSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.name {
+  font-weight: bold;
+}
+
+.description {
+  font-weight: light;
+}
+
+.version {
+  margin-left: auto;
+  text-align: right;
 }
