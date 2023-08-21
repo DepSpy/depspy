@@ -1,21 +1,27 @@
 import * as d3 from "d3";
-import { useEffect, useState, useRef, useReducer } from "react";
+import { useEffect, useState, useRef, useReducer, forwardRef } from "react";
+import { shallow } from "zustand/shallow";
 import { useStore } from "../../contexts";
-export function Tree({ originalData, width = window.innerWidth }) {
+function Tree({ originalData, width = window.innerWidth }, svg) {
   //➡️全局数据
   const {
     setSelectNode,
+    collapse,
     selectedNode,
     selectedCodependency,
     selectedCircularDependency,
-  } = useStore((state) => ({
-    setSelectNode: state.setSelectNode,
-    selectedNode: state.selectedNode,
-    selectedCodependency: state.selectedCodependency,
-    selectedCircularDependency: state.selectedCircularDependency,
-  }));
+  } = useStore(
+    (state) => ({
+      setSelectNode: state.setSelectNode,
+      collapse: state.collapse,
+      selectedNode: state.selectedNode,
+      selectedCodependency: state.selectedCodependency,
+      selectedCircularDependency: state.selectedCircularDependency,
+    }),
+    shallow,
+  );
   //➡️改变内部数据不能检测，所以改为引用类型包裹以便更新
-  const [data, setData] = useState(() => [filterCache(originalData)]);
+  const [data, setData] = useState(() => [filterData(originalData, collapse)]);
   const [offsetY, setOffsetY] = useState({});
   const [links, setLinks] = useState([]);
   //用来记录不影响重渲染的值
@@ -70,7 +76,6 @@ export function Tree({ originalData, width = window.innerWidth }) {
   }, [offsetY]);
   //➡️
   //高亮
-  const svg = useRef(null);
   const [curHighlight, setCurHighlight] = useReducer((cur, nextPath) => {
     const nextHighLight = findDepBypath(nextPath, data[0]);
     cur.highlight = false;
@@ -111,6 +116,10 @@ export function Tree({ originalData, width = window.innerWidth }) {
       }, 500),
     );
   }, []);
+  //全部折叠/收起
+  useEffect(() => {
+    setData([filterData(originalData, collapse)]);
+  }, [collapse]);
   return (
     <>
       <svg
@@ -398,7 +407,7 @@ function findDepBypath(paths, data) {
   return dep;
 }
 //为第二层以下的节点添加originDeps字段
-function filterCache(data) {
+function filterData(data, collapse) {
   let depth = 1;
   function traverse(data) {
     const newData = {
@@ -412,7 +421,7 @@ function filterCache(data) {
     for (let i = 0; i < entries.length; i++) {
       const [name, dependency] = entries[i];
       const child = traverse(dependency);
-      if (depth <= 2) newData.dependencies[name] = child;
+      if (depth <= 2 || !collapse) newData.dependencies[name] = child;
       newData.originDeps[name] = child;
     }
     depth--;
@@ -432,3 +441,5 @@ const throttle = (func, delay = 500) => {
     }, delay);
   };
 };
+
+export default forwardRef(Tree);

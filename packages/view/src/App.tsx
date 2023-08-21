@@ -6,6 +6,7 @@ import {
 import SearchPage from "./pages/SearchPage";
 import AnalyzePage from "./pages/AnalyzePage";
 import { isStatic } from "./utils/isStatic";
+import { useStore } from "./contexts";
 
 function App() {
   const routeElement = [
@@ -15,7 +16,13 @@ function App() {
   ];
 
   const router = createBrowserRouter(routeElement);
-  return <RouterProvider router={router} />;
+  const theme = useStore((state) => state.theme);
+
+  return (
+    <div className="app" data-theme={theme}>
+      <RouterProvider router={router} />
+    </div>
+  );
 }
 
 export default App;
