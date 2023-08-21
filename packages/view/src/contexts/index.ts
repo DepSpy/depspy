@@ -3,6 +3,7 @@ import { graph } from "virtual:graph-data";
 import { Node } from "../../types/types";
 
 interface Store {
+  theme: string;
   root: Node;
   codependency: Record<string, Node[]>;
   circularDependency: Node[];
@@ -14,6 +15,7 @@ interface Store {
   setSelectCodependency: (selectedCodependency: Node[]) => void;
   setSelectCircularDependency: (selectedCircularDependency: Node) => void;
   searchNode: (root: Node, target: string) => Node[];
+  setTheme: (theme: string) => void;
 }
 
 const { root, codependency, circularDependency } = graph;
@@ -41,6 +43,7 @@ const searchNode = (root: Node, target: string) => {
 };
 
 export const useStore = create<Store>((set) => ({
+  theme: "light",
   root,
   codependency,
   circularDependency: circularDependency,
@@ -54,4 +57,7 @@ export const useStore = create<Store>((set) => ({
   setSelectCircularDependency: (selectedCircularDependency: Node) =>
     set({ selectedCircularDependency }),
   searchNode,
+  setTheme: (theme: string) => {
+    set({ theme: theme === "light" ? "dark" : "light" });
+  },
 }));
