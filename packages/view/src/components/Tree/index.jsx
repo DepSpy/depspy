@@ -1,8 +1,10 @@
 import bump from "./bump";
+import { Export } from "../Export/index";
 import * as d3 from "d3";
 import { useEffect, useState, useRef, useReducer } from "react";
 import { useStore } from "../../contexts";
 export function Tree({ originalData, width = window.innerWidth }) {
+  const [ZOOM, setZOOM] = useState(0);
   const { setSelectNode, selectedNode } = useStore((state) => ({
     setSelectNode: state.setSelectNode,
     selectedNode: state.selectedNode,
@@ -36,7 +38,21 @@ export function Tree({ originalData, width = window.innerWidth }) {
 
   useEffect(() => {
     const zoom = d3.zoom().scaleExtent([0.1, 5]).on("zoom", zoomed);
+    function debounce(fn, wait) {
+      let timer = null;
+      return function (...args) {
+        if (timer !== null) {
+          clearTimeout(timer);
+        }
+        timer = setTimeout(() => {
+          fn(args);
+          timer = null;
+        }, wait);
+      };
+    }
+
     function zoomed(e) {
+      debounce(setZOOM(e.transform), 1000);
       d3.selectAll("#resizing").attr("transform", e.transform);
     }
     d3.select(svg.current).call(zoom).call(zoom.transform, d3.zoomIdentity);
@@ -189,6 +205,7 @@ export function Tree({ originalData, width = window.innerWidth }) {
           </marker>
         </defs>
       </svg>
+      <Export svgRef={svg} width={width} height={innerHeight} ZOOM={ZOOM} />
     </>
   );
 }
