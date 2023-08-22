@@ -53,13 +53,11 @@ const DragAndDrop: React.FC<DragAndDropProps> = ({ onHideDragAndDrop }) => {
         <section className={"droparea"}>
           <div className={"draganddrop-header"}>
             <p className={"title"}>Upload package.json File</p>
-            <i className={"close-button"} onClick={onHideDragAndDrop}>
-              x
-            </i>
+            <button className="i-ic-sharp-close" onClick={onHideDragAndDrop} />
           </div>
           <div {...getRootProps({ className: "border" })}>
             <input {...getInputProps()} />
-            <i className={"icon"}>x</i>
+            <div className="i-bi-filetype-json" />
             <p className={"text"}>
               Drag 'n' drop some files here, or click to select files
             </p>
