@@ -19,10 +19,12 @@
       "title": "依赖间谍",
       "depth": "深度",
       "export": "导出",
+      "fileType": "文件类型",
       "select": "选择",
       "maxDepth": "最大深度",
       "expand": "展开",
-      "collapse": "折叠"
+      "collapse": "折叠",
+      "dependences": "-依赖分析"
     },
     "aside": {
         "search": {

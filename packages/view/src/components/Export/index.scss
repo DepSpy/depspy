@@ -1,7 +1,7 @@
 .bottom-bar {
   position: fixed;
   bottom: 2rem;
-  left: 2rem;
+  left: 60%;
   width: 24rem;
   display: flex;
   justify-content: space-between;
@@ -22,4 +22,12 @@
 
     overflow-x: hidden;
   }
+}
+.exporter {
+  position: fixed;
+  bottom: 2rem;
+  left: 55%;
+  width: 10rem;
+  display: flex;
+  justify-content: space-between;
 }

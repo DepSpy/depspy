@@ -31,12 +31,6 @@ export default function AnalyzePage() {
       >
         <Depth></Depth>
         <Collapse></Collapse>
-        {/* <Export
-          svgRef={svg}
-          width={innerWidth}
-          height={innerHeight}
-          ZOOM={{ k: 0.5 }}
-        ></Export> */}
       </section>
     </>
   );

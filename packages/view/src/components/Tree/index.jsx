@@ -273,7 +273,13 @@ function Tree({ originalData, width = window.innerWidth }, svg) {
           </marker>
         </defs>
       </svg>
-      <Export svgRef={svg} width={width} height={innerHeight} ZOOM={ZOOM} />
+      <Export
+        svgRef={svg}
+        width={width}
+        height={innerHeight}
+        json={originalData}
+        zoom={ZOOM}
+      />
     </>
   );
 }
