@@ -1,8 +1,9 @@
-import React, { useContext, useState } from "react";
+import { useContext, useState, useEffect, useRef } from "react";
 import Autosuggest, { ChangeEvent } from "react-autosuggest";
 import theme from "./theme.module.scss";
 import MainPageContext from "../store/MainPageContext";
 import fetchPackageNames from "../../util/FetchPackageNames";
+import debounce from "lodash/debounce";
 
 interface SearchBarProps {
   onShowButton: () => void;
@@ -19,26 +20,18 @@ const SearchBar: React.FC<SearchBarProps> = ({
     Array<{ name: string; description: string; version: string }>
   >([]);
 
-  const getSuggestions = async (
-    inputValue: string,
-  ): Promise<Array<{ name: string; description: string; version: string }>> => {
-    const trimmedInputValue = inputValue.trim().toLowerCase();
-    try {
-      const suggestions = await fetchPackageNames(trimmedInputValue);
-      return suggestions;
-    } catch (error) {
-      console.error("Error getting suggestions:", error);
-      return [];
-    }
-  };
-
   const suggestionsFetchRequestedHandler = async ({
     value,
   }: {
     value: string;
   }) => {
+    const trimmedInputValue = value.trim().toLowerCase();
+    if (trimmedInputValue === "") {
+      return [];
+    }
+
     try {
-      const newSuggestions = await getSuggestions(value);
+      const newSuggestions = await fetchPackageNames(trimmedInputValue);
       setSuggestions(newSuggestions);
 
       if (newSuggestions.length === 0) {
@@ -50,6 +43,16 @@ const SearchBar: React.FC<SearchBarProps> = ({
       console.error("Error fetching suggestions:", error);
     }
   };
+
+  const debouncedSuggestionsFetch = useRef(
+    debounce(suggestionsFetchRequestedHandler, 600),
+  ).current;
+
+  useEffect(() => {
+    return () => {
+      debouncedSuggestionsFetch.cancel();
+    };
+  }, [debouncedSuggestionsFetch]);
 
   const suggestionsClearRequestedHandler = () => {
     setSuggestions([]);
@@ -97,6 +100,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       } else {
         onHideButton();
       }
+      debouncedSuggestionsFetch({ value: newValue });
     },
     onBlur: () => {
       onShowButton();
