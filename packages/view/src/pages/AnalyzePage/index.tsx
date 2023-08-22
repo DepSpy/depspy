@@ -13,7 +13,7 @@ export default function AnalyzePage() {
   let json: string;
   const { URLSearchname } = useParams();
   const location = useLocation();
-  if (location.state && location.state.json && location.state.searchname) {
+  if (location.state && (location.state.json || location.state.searchname)) {
     window.history.replaceState(null, "", `${window.location.pathname}`);
     searchname = location.state.searchname;
     json = location.state.json;

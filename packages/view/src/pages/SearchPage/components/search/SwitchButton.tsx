@@ -11,16 +11,17 @@ interface SwitchProps {
 const SwitchButton: React.FC<SwitchProps> = ({ onDisplayDragAndDrop }) => {
   const navigate = useNavigate();
   const ctx = useContext(MainPageContext);
-  const collectedHistory = ctx.collectedHistory;
+  const info = ctx.info;
 
   const addHistoryHandler = () => {
-    if (collectedHistory.length > 0) {
-      ctx.onHistoryUpdate(collectedHistory);
-      generateGraphWrapper(collectedHistory);
+    if (info.length > 0) {
+      console.log("search name is:", info);
+      ctx.onHistoryUpdate(info);
+      generateGraphWrapper(info);
       navigate("/analyze", {
         state: {
-          searchname: "name",
-          json: "json",
+          searchname: info,
+          json: "",
         },
       });
     }

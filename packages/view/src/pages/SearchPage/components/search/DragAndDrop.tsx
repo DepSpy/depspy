@@ -43,7 +43,12 @@ const DragAndDrop: React.FC<DragAndDropProps> = ({ onHideDragAndDrop }) => {
     if (parsedData) {
       const graphString = JSON.stringify(parsedData, null, 2);
       generateGraphWrapper(graphString);
-      navigate("/analyze");
+      navigate("/analyze", {
+        state: {
+          searchname: "",
+          json: graphString,
+        },
+      });
     }
   }, [parsedData]);
 

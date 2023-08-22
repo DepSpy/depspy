@@ -45,7 +45,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   const debouncedSuggestionsFetch = useRef(
-    debounce(suggestionsFetchRequestedHandler, 600),
+    debounce(suggestionsFetchRequestedHandler, 100),
   ).current;
 
   useEffect(() => {
@@ -64,9 +64,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
       suggestion,
     }: { suggestion: { name: string; description: string; version: string } },
   ) => {
-    setValue(suggestion.name);
+    const newVal = suggestion.name;
+    setValue(newVal);
     onShowButton();
-    ctx.onHistoryCollection(suggestion.name);
+    ctx.onHistoryCollection(newVal);
   };
 
   const getSuggestionValueHandler = (suggestion: string): string => suggestion;
@@ -100,7 +101,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
       } else {
         onHideButton();
       }
-      debouncedSuggestionsFetch({ value: newValue });
     },
     onBlur: () => {
       onShowButton();
@@ -119,7 +119,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       <Autosuggest
         theme={theme}
         suggestions={suggestions}
-        onSuggestionsFetchRequested={suggestionsFetchRequestedHandler}
+        onSuggestionsFetchRequested={debouncedSuggestionsFetch}
         onSuggestionsClearRequested={suggestionsClearRequestedHandler}
         onSuggestionSelected={suggestionSelectedHandler}
         getSuggestionValue={getSuggestionValueHandler}
