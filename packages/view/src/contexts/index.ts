@@ -1,61 +1,23 @@
 import { shallow } from "zustand/shallow";
 import { createWithEqualityFn } from "zustand/traditional";
-import { graph } from "virtual:graph-data";
-import { Node } from "../../types/types";
+import { subscribeWithSelector } from "zustand/middleware";
+import type { Node } from "../../types/types";
+import { linkContext } from "./linkContext";
+import { searchNode } from "./searchNode";
 
-interface Store {
-  theme: string;
-  root: Node;
-  collapse: boolean;
-  codependency: Record<string, Node[]>;
-  circularDependency: Node[];
-  selectedNode: Node;
-  selectedCodependency: Node[] | [];
-  selectedCircularDependency: Node | null;
-  setRoot: (root: Node) => void;
-  setSelectNode: (selectedNode: Node) => void;
-  setSelectCodependency: (selectedCodependency: Node[]) => void;
-  setSelectCircularDependency: (selectedCircularDependency: Node) => void;
-  searchNode: (root: Node, target: string) => Node[];
-  setCollapse: (flag: boolean) => void;
-  setTheme: (theme: string) => void;
-}
-
-const { root, codependency, circularDependency } = graph;
-
-const searchNode = (root: Node, target: string) => {
-  const queue = [root];
-  const res = [];
-  while (queue.length > 0) {
-    const currentNode = queue.shift();
-    if (currentNode.name.includes(target)) {
-      res.push(currentNode);
-    }
-    const deps = Object.entries(currentNode.dependencies).map((v) => v[1]);
-    queue.push(...deps);
-  }
-
-  if (res.length <= 10) return res;
-  else {
-    for (let i = res.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [res[i], res[j]] = [res[j], res[i]]; // Swap elements
-    }
-    return res.slice(0, 10);
-  }
-};
-
-export const useStore = createWithEqualityFn<Store>(
-  (set) => ({
+export const useStore = createWithEqualityFn<Store>()(
+  subscribeWithSelector((set) => ({
     theme: "light",
-    root,
+    root: null,
+    depth: 3,
     collapse: true,
-    codependency,
-    circularDependency: circularDependency,
-    selectedNode: root, // 默认选中根节点
+    codependency: {},
+    circularDependency: [],
+    selectedNode: null, // 默认选中根节点
     selectedCodependency: [],
     selectedCircularDependency: null,
     setRoot: (root: Node) => set({ root }),
+    setDepth: (depth: number) => set({ depth }),
     setSelectNode: (selectedNode: Node) => set({ selectedNode }),
     setSelectCodependency: (selectedCodependency: Node[]) =>
       set({ selectedCodependency }),
@@ -66,6 +28,43 @@ export const useStore = createWithEqualityFn<Store>(
     setTheme: (theme: string) => {
       set({ theme: theme === "light" ? "dark" : "light" });
     },
-  }),
+  })),
   shallow,
 );
+linkContext(
+  (updateDepth) => {
+    useStore.subscribe(
+      (state) => state.depth,
+      (depth) => {
+        updateDepth(depth);
+      },
+    );
+  },
+  ({ root, circularDependency, codependency }) => {
+    useStore.setState({
+      root,
+      circularDependency,
+      codependency,
+      selectedNode: root,
+    });
+  },
+);
+export interface Store {
+  theme: string;
+  root: Node;
+  depth: number;
+  collapse: boolean;
+  codependency: Record<string, Node[]>;
+  circularDependency: Node[];
+  selectedNode: Node;
+  selectedCodependency: Node[] | [];
+  selectedCircularDependency: Node | null;
+  setRoot: (root: Node) => void;
+  setDepth: (depth: number) => void;
+  setSelectNode: (selectedNode: Node) => void;
+  setSelectCodependency: (selectedCodependency: Node[]) => void;
+  setSelectCircularDependency: (selectedCircularDependency: Node) => void;
+  searchNode: (root: Node, target: string) => Node[];
+  setCollapse: (flag: boolean) => void;
+  setTheme: (theme: string) => void;
+}

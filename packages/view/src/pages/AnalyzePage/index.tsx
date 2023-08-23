@@ -22,8 +22,8 @@ export default function AnalyzePage() {
         <p className={`bg-primary-bg c-text`}>{t("section.depth")}</p>
       </div>
       <div className="flex h-screen overflow-hidden">
-        <Tree originalData={root} ref={svg}></Tree>
-        <Sidebar />
+        {root && <Tree originalData={root} ref={svg}></Tree>}
+        {root && <Sidebar />}
       </div>
       <section
         className="fixed flex left-2rem bottom-2rem gap-4 h-2rem"
