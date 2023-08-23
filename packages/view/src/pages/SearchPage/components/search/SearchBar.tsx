@@ -3,7 +3,7 @@ import Autosuggest, { ChangeEvent } from "react-autosuggest";
 import theme from "./theme.module.scss";
 import MainPageContext from "../store/MainPageContext";
 import fetchPackageNames from "../../util/FetchPackageNames";
-import debounce from "lodash/debounce";
+import { debounce } from "lodash-es";
 
 interface SearchBarProps {
   onShowButton: () => void;
@@ -131,5 +131,4 @@ const SearchBar: React.FC<SearchBarProps> = ({
     </div>
   );
 };
-
 export default SearchBar;
