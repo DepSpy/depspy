@@ -5,14 +5,20 @@ import {
 } from "react-router-dom";
 import SearchPage from "./pages/SearchPage";
 import AnalyzePage from "./pages/AnalyzePage";
-import { online } from "./utils/online";
 import { useStore } from "./contexts";
 
 function App() {
   const routeElement = [
     { path: "search", element: <SearchPage /> },
     { path: "analyze", element: <AnalyzePage /> },
-    { path: "*", element: <Navigate to={online ? "/search" : "/analyze"} /> },
+    {
+      path: "*",
+      element: (
+        <Navigate
+          to={import.meta.env.VITE_ONLINE == "online" ? "/search" : "/analyze"}
+        />
+      ),
+    },
   ];
 
   const router = createBrowserRouter(routeElement);

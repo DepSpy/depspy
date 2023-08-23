@@ -21,18 +21,22 @@ export function createServer(graph: Graph, option: Config) {
 function createWs(graph: Graph, option: Config) {
   const wss = new ws.Server({ port: 822 });
   wss.on("connection", async function (ws) {
-    ws.send(await combineRes(graph));
+    ws.send(formatMes("init", await combineRes(graph, option)));
     ws.addEventListener("message", async (mes) => {
       const graph = generateGraph("", { ...option, depth: Number(mes.data) });
-      ws.send(await combineRes(graph));
+      ws.send(formatMes("update", await combineRes(graph, option)));
     });
   });
 }
-async function combineRes(graph: Graph) {
+async function combineRes(graph: Graph, option: Config = {}) {
   await graph.ensureGraph();
   return JSON.stringify({
     root: await graph.getGraph(),
     codependency: await graph.getCodependency(),
     circularDependency: await graph.getCircularDependency(),
+    ...option,
   });
+}
+function formatMes(type: string, data: unknown) {
+  return JSON.stringify({ type, data });
 }

@@ -1,8 +1,12 @@
 // import { useState } from "react";
 import { useStore } from "@/contexts";
+import { shallow } from "zustand/shallow";
 import useLanguage from "@/i18n/hooks/useLanguage";
 export default function Depth() {
-  const setDepth = useStore((state) => state.setDepth);
+  const [depth, setDepth] = useStore(
+    (state) => [state.depth, state.setDepth],
+    shallow,
+  );
   const { t } = useLanguage();
   return (
     <section
@@ -15,7 +19,7 @@ export default function Depth() {
         id="depth"
         type="number"
         min={2}
-        defaultValue={3}
+        defaultValue={depth}
         onBlur={(e) => setDepth(parseInt(e.target.value))}
         className="  
         p-1

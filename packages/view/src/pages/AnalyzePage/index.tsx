@@ -14,6 +14,9 @@ export default function AnalyzePage() {
   const toggleMode = () => {
     setTheme(theme);
   };
+  if (!root) {
+    return <>loading</>;
+  }
   return (
     <>
       <div className="fixed">
@@ -22,8 +25,8 @@ export default function AnalyzePage() {
         <p className={`bg-primary-bg c-text`}>{t("section.depth")}</p>
       </div>
       <div className="flex h-screen overflow-hidden">
-        {root && <Tree originalData={root} ref={svg}></Tree>}
-        {root && <Sidebar />}
+        <Tree ref={svg}></Tree>
+        <Sidebar />
       </div>
       <section
         className="fixed flex left-2rem bottom-2rem gap-4 h-2rem"

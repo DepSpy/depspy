@@ -13,12 +13,13 @@
       "import": "./dist/tsup/index.js",
       "require": "./dist/tsup/index.cjs"
     },
-    "./dist":"./dist/vite"
+    "./dist": "./dist/vite"
   },
   "scripts": {
     "build": "pnpm run build:vite & pnpm run build:tsup",
-    "build:vite": "vite build",
+    "build:vite": "vite build --mode offline",
     "build:tsup": "tsup",
+    "build:online": "vite build --mode online",
     "tsup-build": "tsup --watch",
     "vite-build": "vite build --watch",
     "vite-static": "cross-env VITE_STATIC=static vite build"

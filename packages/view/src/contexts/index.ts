@@ -31,24 +31,34 @@ export const useStore = createWithEqualityFn<Store>()(
   })),
   shallow,
 );
-linkContext(
-  (updateDepth) => {
-    useStore.subscribe(
-      (state) => state.depth,
-      (depth) => {
-        updateDepth(depth);
-      },
-    );
-  },
-  ({ root, circularDependency, codependency }) => {
-    useStore.setState({
-      root,
-      circularDependency,
-      codependency,
-      selectedNode: root,
-    });
-  },
-);
+if (import.meta.env.VITE_BUILD_MODE == "offline") {
+  linkContext(
+    ({ root, circularDependency, codependency, depth }, ws) => {
+      useStore.setState({
+        root,
+        circularDependency,
+        codependency,
+        selectedNode: root,
+        depth,
+      });
+      useStore.subscribe(
+        (state) => state.depth,
+        (newDepth) => {
+          ws.send(newDepth + "");
+        },
+      );
+    },
+    ({ root, circularDependency, codependency }) => {
+      useStore.setState({
+        root,
+        circularDependency,
+        codependency,
+        selectedNode: root,
+      });
+    },
+  );
+}
+
 export interface Store {
   theme: string;
   root: Node;

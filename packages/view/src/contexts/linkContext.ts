@@ -2,15 +2,20 @@ import { generateGraphRes } from "~/types";
 const online = new URL(location.href).hostname !== "localhost";
 const wsPath = "ws://localhost:822";
 export function linkContext(
-  init: (updateDepth: (depth: number) => void) => void,
-  update: (result: generateGraphRes) => void,
+  init: (data: generateGraphRes, ws: WebSocket) => void,
+  update: (data: generateGraphRes, ws: WebSocket) => void,
 ) {
   if (!online) {
     const ws = new WebSocket(wsPath);
-    init((depth: number) => ws.send(depth + ""));
+
     ws.addEventListener("open", () => {
       ws.addEventListener("message", (result) => {
-        update(JSON.parse(result.data));
+        const { type, data } = parseMes(result.data);
+        if (type == "init") {
+          init(JSON.parse(data), ws);
+        } else {
+          update(JSON.parse(data), ws);
+        }
       });
     });
     ws.addEventListener("error", () => {
@@ -20,4 +25,7 @@ export function linkContext(
       console.error("连接断开");
     });
   }
+}
+function parseMes(mes: string) {
+  return JSON.parse(mes);
 }
