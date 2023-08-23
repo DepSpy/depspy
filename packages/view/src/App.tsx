@@ -5,14 +5,22 @@ import {
 } from "react-router-dom";
 import SearchPage from "./pages/SearchPage";
 import AnalyzePage from "./pages/AnalyzePage";
-import { isStatic } from "./utils/isStatic";
 import { useStore } from "./contexts";
 
 function App() {
   const routeElement = [
     { path: "search", element: <SearchPage /> },
-    { path: "analyze/:URLSearchname?", element: <AnalyzePage /> },
-    { path: "*", element: <Navigate to={isStatic ? "/search" : "/analyze"} /> },
+    { path: "analyze", element: <AnalyzePage /> },
+    {
+      path: "*",
+      element: (
+        <Navigate
+          to={
+            import.meta.env.VITE_BUILD_MODE == "online" ? "/search" : "/analyze"
+          }
+        />
+      ),
+    },
   ];
 
   const router = createBrowserRouter(routeElement);

@@ -168,7 +168,7 @@ export class Graph {
       this.writeJson(await this.getCodependency(), codependency);
     }
   }
-  private async ensureGraph() {
+  public async ensureGraph() {
     if (!this.graph) {
       this.graph = await this.initGraph(this.info);
     }

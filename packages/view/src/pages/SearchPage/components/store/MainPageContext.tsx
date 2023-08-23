@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 const MainPageContext = React.createContext({
-  collectedHistory: "vitest",
+  info: "vitest",
   history: [] as string[],
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onHistoryUpdate: (suggestion: string) => {},
@@ -12,10 +12,10 @@ const MainPageContext = React.createContext({
 
 export const MainPageContextProvider = (props) => {
   const [history, setHistory] = useState<string[]>([]);
-  const [collectedHistory, setcollectedHistory] = useState<string>("vitest");
+  const [info, setInfo] = useState<string>("vitest");
 
   const historyCollectionHander = (suggestion: string) => {
-    setcollectedHistory(suggestion);
+    setInfo(suggestion);
   };
 
   const historyUpdateHandler = (suggestion: string) => {
@@ -42,7 +42,7 @@ export const MainPageContextProvider = (props) => {
   return (
     <MainPageContext.Provider
       value={{
-        collectedHistory: collectedHistory,
+        info: info,
         history: history,
         onHistoryUpdate: historyUpdateHandler,
         onClearHistory: clearHistoryHandler,

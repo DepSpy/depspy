@@ -14,4 +14,5 @@ export interface generateGraphRes {
   root?: Node;
   codependency?: Record<string, Node[]>;
   circularDependency?: Node[];
+  depth: number;
 }

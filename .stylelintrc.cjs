@@ -13,6 +13,7 @@ module.exports = {
     // 接入 Prettier 规则
     "stylelint-config-prettier",
     "stylelint-prettier/recommended",
+    "stylelint-config-standard-scss",
   ],
   // 配置 rules
   rules: {

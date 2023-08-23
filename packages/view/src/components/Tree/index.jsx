@@ -2,9 +2,10 @@ import * as d3 from "d3";
 import { useEffect, useState, useRef, useReducer, forwardRef } from "react";
 import { shallow } from "zustand/shallow";
 import { useStore } from "../../contexts";
-function Tree({ originalData, width = window.innerWidth }, svg) {
+function Tree({ width = window.innerWidth }, svg) {
   //➡️全局数据
   const {
+    root,
     setSelectNode,
     collapse,
     selectedNode,
@@ -12,6 +13,7 @@ function Tree({ originalData, width = window.innerWidth }, svg) {
     selectedCircularDependency,
   } = useStore(
     (state) => ({
+      root: state.root,
       setSelectNode: state.setSelectNode,
       collapse: state.collapse,
       selectedNode: state.selectedNode,
@@ -21,9 +23,12 @@ function Tree({ originalData, width = window.innerWidth }, svg) {
     shallow,
   );
   //➡️改变内部数据不能检测，所以改为引用类型包裹以便更新
-  const [data, setData] = useState(() => [filterData(originalData, collapse)]);
+  const [data, setData] = useState(() => [filterData(root, collapse)]);
   const [offsetY, setOffsetY] = useState({});
   const [links, setLinks] = useState([]);
+  useEffect(() => {
+    setData([filterData(root, collapse)]);
+  }, [root, collapse]);
   //用来记录不影响重渲染的值
   let { current } = useRef({
     rootLength: 0,
@@ -37,13 +42,11 @@ function Tree({ originalData, width = window.innerWidth }, svg) {
   }, [data]);
   //➡️
   //循环
-  const [circlePath, setCirclePath] = useState("");
+  const [, setCirclePath] = useState("");
   //将循环的路径上的节点展开并高亮循环节点
   useEffect(() => {
     if (selectedCircularDependency) {
-      setSelectNode(
-        findDepBypath(selectedCircularDependency.path, originalData),
-      );
+      setSelectNode(findDepBypath(selectedCircularDependency.path, root));
     }
   }, [selectedCircularDependency]);
   //将循环节点连接
@@ -101,7 +104,6 @@ function Tree({ originalData, width = window.innerWidth }, svg) {
   //绑定缩放事件
   useEffect(() => {
     const zoom = d3.zoom().scaleExtent([0.1, 5]).on("zoom", zoomed);
-
     function zoomed(e) {
       d3.selectAll("#resizing").attr("transform", e.transform);
     }
@@ -116,10 +118,6 @@ function Tree({ originalData, width = window.innerWidth }, svg) {
       }, 500),
     );
   }, []);
-  //全部折叠/收起
-  useEffect(() => {
-    setData([filterData(originalData, collapse)]);
-  }, [collapse]);
   return (
     <>
       <svg
@@ -182,7 +180,7 @@ function Tree({ originalData, width = window.innerWidth }, svg) {
               <g
                 cursor={"pointer"}
                 onClick={() => {
-                  setSelectNode(findDepBypath(d.data.path, originalData));
+                  setSelectNode(findDepBypath(d.data.path, root));
                 }}
                 transform={`translate(${y + width / 2},${x})`}
               >
@@ -268,7 +266,6 @@ function Tree({ originalData, width = window.innerWidth }, svg) {
             strokeWidth={2}
             stroke="red"
             markerEnd="url(#triangleRed)"
-            d={circlePath}
           ></path>
         </g>
       </svg>

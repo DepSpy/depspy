@@ -15,7 +15,12 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ onDisplayHistory }) => {
 
   const loadHistoryHandler = (item: string) => {
     generateGraphWrapper(item);
-    navigate("/analyze");
+    navigate("/analyze", {
+      state: {
+        searchname: item,
+        json: "",
+      },
+    });
   };
 
   return (
@@ -24,9 +29,10 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ onDisplayHistory }) => {
         <div className={"panel-header"}>
           <div className={"header-content"}>
             <p className={"header-title"}>History</p>
-            <i onClick={ctx.onClearHistory} className={"icon"}>
-              C
-            </i>
+            <button
+              className="i-ic-outline-delete-sweep"
+              onClick={ctx.onClearHistory}
+            />
           </div>
         </div>
         <div className={"history-panel"}>
