@@ -5,7 +5,7 @@ import path from "path";
 import express from "express";
 import ws from "ws";
 import { blueBright, green } from "chalk";
-const root = path.join(staticPath, "online");
+const root = path.join(staticPath, "vite");
 export function createServer(graph: Graph, option: Config) {
   createWs(graph, option);
   const app = express();

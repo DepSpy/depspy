@@ -1,10 +1,8 @@
 import * as d3 from "d3";
 import { useEffect, useState, useRef, useReducer, forwardRef } from "react";
-import { Export } from "../Export";
 import { shallow } from "zustand/shallow";
 import { useStore } from "../../contexts";
 function Tree({ width = window.innerWidth }, svg) {
-  const [ZOOM] = useState(0);
   //➡️全局数据
   const {
     root,
@@ -106,7 +104,6 @@ function Tree({ width = window.innerWidth }, svg) {
   //绑定缩放事件
   useEffect(() => {
     const zoom = d3.zoom().scaleExtent([0.1, 5]).on("zoom", zoomed);
-
     function zoomed(e) {
       d3.selectAll("#resizing").attr("transform", e.transform);
     }
@@ -343,13 +340,6 @@ function Tree({ width = window.innerWidth }, svg) {
           </marker>
         </defs>
       </svg>
-      <Export
-        svgRef={svg}
-        width={width}
-        height={innerHeight}
-        json={root}
-        zoom={ZOOM}
-      />
     </>
   );
 }

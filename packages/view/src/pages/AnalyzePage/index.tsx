@@ -4,7 +4,7 @@ import Sidebar from "./Sidebar";
 import Depth from "@/components/Depth";
 import Collapse from "@/components/Collapse";
 import useLanguage from "../../i18n/hooks/useLanguage";
-// import { Export } from "@/components/Export";
+import { Export } from "@/components/Export";
 import { useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { shallow } from "zustand/shallow";
@@ -26,7 +26,6 @@ export default function AnalyzePage() {
   const toggleMode = () => {
     setTheme(theme);
   };
-
   useEffect(() => {
     if (import.meta.env.VITE_BUILD_MODE == "online") {
       setGraphRes(searchParams.get("q") || info, depth);
@@ -53,6 +52,12 @@ export default function AnalyzePage() {
       >
         <Depth></Depth>
         <Collapse></Collapse>
+        <Export
+          svgRef={svg}
+          width={innerWidth}
+          height={innerHeight}
+          json={root}
+        />
       </section>
     </>
   );
