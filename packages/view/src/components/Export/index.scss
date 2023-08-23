@@ -1,25 +1,8 @@
-.bottom-bar {
+.exporter {
   position: fixed;
   bottom: 2rem;
-  left: 2rem;
+  left: 55%;
+  width: 10rem;
   display: flex;
   justify-content: space-between;
-  width: 24rem;
-
-  .bottom-btn {
-    box-sizing: border-box;
-    align-items: center;
-    width: 120px;
-    height: 50px;
-    padding: 0 0.5rem;
-    overflow: hidden;
-    overflow-x: hidden;
-    font-size: 1rem;
-    letter-spacing: 0.2rem;
-    white-space: nowrap;
-    cursor: pointer;
-    user-select: none;
-    border: rgb(82 82 82);
-    border-radius: 10px;
-  }
 }

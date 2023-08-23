@@ -19,10 +19,14 @@
       "title": "DepSpy",
       "depth": "depth",
       "export": "Export",
+      "fileType": "export file type",
       "select": "Select",
       "maxDepth": "Max Depth",
       "expand": "Expand",
-      "collapse": "Collapse"
+      "collapse": "Collapse",
+      "dependences": "-dependences-analysis",
+      "alertexp":"Please select the export file type first!",
+      "jsonexp":"JSON data is null!"
     },
     "aside": {
         "search": {

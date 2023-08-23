@@ -1,8 +1,10 @@
 import * as d3 from "d3";
 import { useEffect, useState, useRef, useReducer, forwardRef } from "react";
+import { Export } from "../Export";
 import { shallow } from "zustand/shallow";
 import { useStore } from "../../contexts";
 function Tree({ width = window.innerWidth }, svg) {
+  const [ZOOM] = useState(0);
   //➡️全局数据
   const {
     root,
@@ -42,7 +44,7 @@ function Tree({ width = window.innerWidth }, svg) {
   }, [data]);
   //➡️
   //循环
-  const [circlePath, setCirclePath] = useState("");
+  const [, setCirclePath] = useState("");
   //将循环的路径上的节点展开并高亮循环节点
   useEffect(() => {
     if (selectedCircularDependency) {
@@ -267,7 +269,6 @@ function Tree({ width = window.innerWidth }, svg) {
             strokeWidth={2}
             stroke="red"
             markerEnd="url(#triangleRed)"
-            d={circlePath}
           ></path>
         </g>
       </svg>
@@ -342,6 +343,13 @@ function Tree({ width = window.innerWidth }, svg) {
           </marker>
         </defs>
       </svg>
+      <Export
+        svgRef={svg}
+        width={width}
+        height={innerHeight}
+        json={root}
+        zoom={ZOOM}
+      />
     </>
   );
 }
