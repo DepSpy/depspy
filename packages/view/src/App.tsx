@@ -10,7 +10,7 @@ import { useStore } from "./contexts";
 function App() {
   const routeElement = [
     { path: "search", element: <SearchPage /> },
-    { path: "analyze", element: <AnalyzePage /> },
+    { path: "analyze?:URLSearchname?", element: <AnalyzePage /> },
     {
       path: "*",
       element: (
