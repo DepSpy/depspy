@@ -1,9 +1,9 @@
-// SearchBar.tsx
-import React, { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useState, useEffect, useRef } from "react";
 import Autosuggest, { ChangeEvent } from "react-autosuggest";
-import theme from "./theme.module.css";
+import theme from "./theme.module.scss";
 import MainPageContext from "../store/MainPageContext";
 import fetchPackageNames from "../../util/FetchPackageNames";
+import debounce from "lodash/debounce";
 
 interface SearchBarProps {
   onShowButton: () => void;
@@ -15,48 +15,23 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onHideButton,
 }) => {
   const ctx = useContext(MainPageContext);
-  const searchBarRef = useRef<HTMLDivElement>(null);
   const [value, setValue] = useState<string>("");
   const [suggestions, setSuggestions] = useState<
     Array<{ name: string; description: string; version: string }>
   >([]);
-
-  const getSuggestions = async (
-    inputValue: string,
-  ): Promise<Array<{ name: string; description: string; version: string }>> => {
-    const trimmedInputValue = inputValue.trim().toLowerCase();
-    try {
-      const suggestions = await fetchPackageNames(trimmedInputValue);
-      return suggestions;
-    } catch (error) {
-      console.error("Error getting suggestions:", error);
-      return [];
-    }
-  };
-
-  const clickOutsideHandler = (event: MouseEvent) => {
-    if (
-      searchBarRef.current &&
-      !searchBarRef.current.contains(event.target as Node)
-    ) {
-      onShowButton();
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener("mousedown", clickOutsideHandler);
-    return () => {
-      document.removeEventListener("mousedown", clickOutsideHandler);
-    };
-  }, []);
 
   const suggestionsFetchRequestedHandler = async ({
     value,
   }: {
     value: string;
   }) => {
+    const trimmedInputValue = value.trim().toLowerCase();
+    if (trimmedInputValue === "") {
+      return [];
+    }
+
     try {
-      const newSuggestions = await getSuggestions(value);
+      const newSuggestions = await fetchPackageNames(trimmedInputValue);
       setSuggestions(newSuggestions);
 
       if (newSuggestions.length === 0) {
@@ -69,6 +44,16 @@ const SearchBar: React.FC<SearchBarProps> = ({
     }
   };
 
+  const debouncedSuggestionsFetch = useRef(
+    debounce(suggestionsFetchRequestedHandler, 100),
+  ).current;
+
+  useEffect(() => {
+    return () => {
+      debouncedSuggestionsFetch.cancel();
+    };
+  }, [debouncedSuggestionsFetch]);
+
   const suggestionsClearRequestedHandler = () => {
     setSuggestions([]);
   };
@@ -79,9 +64,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
       suggestion,
     }: { suggestion: { name: string; description: string; version: string } },
   ) => {
-    setValue(suggestion.name);
+    const newVal = suggestion.name;
+    setValue(newVal);
     onShowButton();
-    ctx.onHistoryCollection(suggestion.name);
+    ctx.onHistoryCollection(newVal);
   };
 
   const getSuggestionValueHandler = (suggestion: string): string => suggestion;
@@ -116,21 +102,24 @@ const SearchBar: React.FC<SearchBarProps> = ({
         onHideButton();
       }
     },
+    onBlur: () => {
+      onShowButton();
+    },
   };
 
   const renderInputComponentHandler = (inputProps) => (
     <div className={theme.inputlayout}>
-      <i className={theme.icon}></i>
+      <div className={theme["i-ic-round-search"]} />
       <input {...inputProps} />
     </div>
   );
 
   return (
-    <div className={theme.mainpage} ref={searchBarRef}>
+    <div className={theme.mainpage}>
       <Autosuggest
         theme={theme}
         suggestions={suggestions}
-        onSuggestionsFetchRequested={suggestionsFetchRequestedHandler}
+        onSuggestionsFetchRequested={debouncedSuggestionsFetch}
         onSuggestionsClearRequested={suggestionsClearRequestedHandler}
         onSuggestionSelected={suggestionSelectedHandler}
         getSuggestionValue={getSuggestionValueHandler}

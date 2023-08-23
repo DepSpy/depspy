@@ -11,24 +11,32 @@ interface SwitchProps {
 const SwitchButton: React.FC<SwitchProps> = ({ onDisplayDragAndDrop }) => {
   const navigate = useNavigate();
   const ctx = useContext(MainPageContext);
-  const collectedHistory = ctx.collectedHistory;
   const setInfo = useStore((state) => state.setInfo);
+  const info = ctx.info;
+
   const addHistoryHandler = () => {
-    if (collectedHistory.length > 0) {
-      ctx.onHistoryUpdate(collectedHistory);
-      generateGraphWrapper(collectedHistory);
-      navigate(`/analyze?q=${collectedHistory}`);
-      setInfo(collectedHistory);
+    if (info.length > 0) {
+      console.log("search name is:", info);
+      ctx.onHistoryUpdate(info);
+      generateGraphWrapper(info);
+      navigate(`/analyze?q=${info}`);
+      setInfo(info);
     }
   };
 
   return (
     <div className={"button-area"}>
       <div className={"button-container"}>
-        <button className={"button"} onClick={addHistoryHandler}>
+        <button
+          className={"button-large-important"}
+          onClick={addHistoryHandler}
+        >
           Find Package
         </button>
-        <button className={"button"} onClick={onDisplayDragAndDrop}>
+        <button
+          className={"button-large-default"}
+          onClick={onDisplayDragAndDrop}
+        >
           Upload package.json File
         </button>
       </div>
