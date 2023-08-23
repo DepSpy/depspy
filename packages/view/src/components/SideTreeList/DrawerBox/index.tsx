@@ -43,9 +43,13 @@ export default function DrawerBox({
         }}
       >
         {dependencies
-          ? dependencies.map((dep: Node) =>
-              DrawerItem({ dep, selectedNode, clickHandler }),
-            )
+          ? dependencies.map((dep: Node) => (
+              <DrawerItem
+                dep={dep}
+                selectedNode={selectedNode}
+                clickHandler={clickHandler}
+              ></DrawerItem>
+            ))
           : null}
       </div>
     </div>
