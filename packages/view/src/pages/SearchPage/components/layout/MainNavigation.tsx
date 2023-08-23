@@ -4,9 +4,7 @@ import HistoryPage from "./HistoryPage";
 import useLanguage from "../../../../i18n/hooks/useLanguage";
 import { useStore } from "../../../../contexts";
 
-interface MainNavigationProps {}
-
-const MainNavigation: React.FC<MainNavigationProps> = () => {
+const MainNavigation = () => {
   const [displayHistory, setDisplayHistory] = useState<boolean>(false);
 
   const displayHistoryHandler = () => {
@@ -24,22 +22,24 @@ const MainNavigation: React.FC<MainNavigationProps> = () => {
     <header className={"header"}>
       <ul>
         <li>
-          {/* <button>English</button> */}
-          <i onClick={toggleLanguage} className={"icon"}>
-            E
-          </i>
+          <button
+            className={`i-icon-park-outline-${
+              t("mode.language") === "ENGLISH" ? "english" : "chinese"
+            }`}
+            onClick={toggleLanguage}
+          />
         </li>
         <li>
-          {/* <button>Light Mode</button> */}
-          <i onClick={toggleMode} className={"icon"}>
-            L
-          </i>
+          <button
+            className={`i-ic-baseline-${theme}-mode`}
+            onClick={toggleMode}
+          />
         </li>
         <li>
-          {/* <button onClick={displayHistoryHandler}>History</button> */}
-          <i className={"icon"} onClick={displayHistoryHandler}>
-            H
-          </i>
+          <button
+            className="i-ic-baseline-history"
+            onClick={displayHistoryHandler}
+          />
           {displayHistory && (
             <HistoryPage onDisplayHistory={displayHistoryHandler} />
           )}

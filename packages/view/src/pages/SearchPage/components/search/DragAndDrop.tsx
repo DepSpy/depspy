@@ -3,6 +3,7 @@ import { useDropzone } from "react-dropzone";
 import "./DragAndDrop.scss";
 import { generateGraphWrapper } from "../../util/GenerateGraphWrapper";
 import { useNavigate } from "react-router-dom";
+import { useStore } from "@/contexts";
 
 interface DragAndDropProps {
   onHideDragAndDrop: () => void;
@@ -10,7 +11,7 @@ interface DragAndDropProps {
 
 const DragAndDrop: React.FC<DragAndDropProps> = ({ onHideDragAndDrop }) => {
   const navigate = useNavigate();
-
+  const setInfo = useStore((state) => state.setInfo);
   const { getRootProps, getInputProps } = useDropzone({
     accept: { "application/json": ["json"] },
     onDrop: (acceptedFiles) => {
@@ -44,6 +45,7 @@ const DragAndDrop: React.FC<DragAndDropProps> = ({ onHideDragAndDrop }) => {
       const graphString = JSON.stringify(parsedData, null, 2);
       generateGraphWrapper(graphString);
       navigate("/analyze");
+      setInfo(graphString);
     }
   }, [parsedData]);
 
@@ -53,13 +55,11 @@ const DragAndDrop: React.FC<DragAndDropProps> = ({ onHideDragAndDrop }) => {
         <section className={"droparea"}>
           <div className={"draganddrop-header"}>
             <p className={"title"}>Upload package.json File</p>
-            <i className={"close-button"} onClick={onHideDragAndDrop}>
-              x
-            </i>
+            <button className="i-ic-sharp-close" onClick={onHideDragAndDrop} />
           </div>
           <div {...getRootProps({ className: "border" })}>
             <input {...getInputProps()} />
-            <i className={"icon"}>x</i>
+            <div className="i-bi-filetype-json" />
             <p className={"text"}>
               Drag 'n' drop some files here, or click to select files
             </p>

@@ -12,12 +12,14 @@
     ".": {
       "import": "./dist/tsup/index.js",
       "require": "./dist/tsup/index.cjs"
-    }
+    },
+    "./dist": "./dist/vite"
   },
   "scripts": {
     "build": "pnpm run build:vite & pnpm run build:tsup",
-    "build:vite": "vite build",
+    "build:vite": "vite build --mode offline",
     "build:tsup": "tsup",
+    "build:online": "vite build --mode online",
     "tsup-build": "tsup --watch",
     "vite-build": "vite build --watch",
     "vite-static": "cross-env VITE_STATIC=static vite build",
@@ -44,6 +46,8 @@
     "@vitejs/plugin-react": "^4.0.4",
     "d3": "^7.8.5",
     "i18next": "^23.4.4",
+    "lodash": "^4.17.21",
+    "lodash-es": "^4.17.21",
     "react": "^18.2.0",
     "react-autosuggest": "^10.1.0",
     "react-dom": "^18.2.0",
