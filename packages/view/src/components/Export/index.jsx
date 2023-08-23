@@ -1,8 +1,7 @@
-// import html2canvas from "html2canvas";
-// import canvg from "canvg";
 import * as d3 from "d3";
 import { useRef } from "react";
 import useLanguage from "@/i18n/hooks/useLanguage";
+import saveSvg from "save-svg-as-png";
 import "./index.scss";
 
 export function Export({ svgRef, width, height, json }) {
@@ -15,7 +14,7 @@ export function Export({ svgRef, width, height, json }) {
     const selectedType = select.options[select.selectedIndex].value;
     current.fileTypeRef = selectedType;
   };
-
+  // 缩放获取完整svg d3 矢量
   const zoomScreen = (type) => {
     function zoomed(e) {
       d3.selectAll("#resizing").attr("transform", e.transform);
@@ -24,7 +23,7 @@ export function Export({ svgRef, width, height, json }) {
     if (type == "Full")
       d3.select(svgRef.current).call(
         zoom.transform,
-        d3.zoomIdentity.translate(width / 100, height / 100).scale(0.1),
+        d3.zoomIdentity.translate(width / 100, height / 2).scale(0.1),
       );
     else if (type == "Reset")
       d3.select(svgRef.current).call(zoom.transform, d3.zoomIdentity);
@@ -66,8 +65,8 @@ export function Export({ svgRef, width, height, json }) {
       "viewBox",
       bb.x + " " + bb.y + " " + bb.width + " " + bb.height,
     );
-    toExport.setAttribute("width", bb.width);
-    toExport.setAttribute("height", bb.height);
+    toExport.setAttribute("width", bb.width * 20);
+    toExport.setAttribute("height", bb.height * 20);
     const source =
       '<?xml version="1.0" standalone="no"?>\r\n' +
       serializer.serializeToString(toExport);
@@ -78,38 +77,22 @@ export function Export({ svgRef, width, height, json }) {
     ); // 下载
     zoomScreen("Reset");
   }
-
   const onSaveImage = (format) => {
     zoomScreen("Full");
     const svgDom = document.querySelector("svg");
-    const serializer = new XMLSerializer();
     const toExport = svgDom.cloneNode(true);
     const bb = svgDom.getBBox();
     toExport.setAttribute(
       "viewBox",
-      bb.x + " " + bb.y + " " + bb.width * 200 + " " + bb.height * 200,
+      `${bb.x}" "${-bb.y}" "${bb.width}" "${bb.height}`,
     );
-    toExport.setAttribute("width", bb.width * 200);
-    toExport.setAttribute("height", bb.height * 200);
-    const source =
-      '<?xml version="1.0" standalone="no"?>\r\n' +
-      serializer.serializeToString(toExport);
-    const image = new Image();
-    image.src =
-      "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
-    const canvas = document.createElement("canvas");
-    canvas.width = bb.width;
-    canvas.height = bb.height;
-    const context = canvas.getContext("2d");
-    context.fillStyle = "#fff"; //#fff设置保存后的PNG 是白色的
-    context.fillRect(0, 0, 10000, 10000);
-    image.onload = function () {
-      context.drawImage(image, 0, 0);
-      var a = document.createElement("a");
-      a.download = `${json.name}${t("section.dependences")}.${format}`;
-      a.href = canvas.toDataURL(`image/${format}`);
-      a.click();
-    };
+    toExport.setAttribute("width", bb.width * 1.2);
+    toExport.setAttribute("height", bb.height * 1.2);
+    saveSvg.saveSvgAsPng(
+      toExport,
+      `${json.name}${t("section.dependences")}.${format}`,
+      { scale: 10 },
+    );
     zoomScreen("Reset");
   };
   const onSaveJson = () => {

@@ -24,7 +24,9 @@
       "maxDepth": "最大深度",
       "expand": "展开",
       "collapse": "折叠",
-      "dependences": "-依赖分析"
+      "dependences": "-依赖分析",
+      "alertexp":"请先选择导出文件类型!",
+      "jsonexp":"JSON数据为空!"
     },
     "aside": {
         "search": {
