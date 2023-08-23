@@ -10,12 +10,14 @@ import { useStore } from "./contexts";
 function App() {
   const routeElement = [
     { path: "search", element: <SearchPage /> },
-    { path: "analyze?:URLSearchname?", element: <AnalyzePage /> },
+    { path: "analyze", element: <AnalyzePage /> },
     {
       path: "*",
       element: (
         <Navigate
-          to={import.meta.env.VITE_ONLINE == "online" ? "/search" : "/analyze"}
+          to={
+            import.meta.env.VITE_BUILD_MODE == "online" ? "/search" : "/analyze"
+          }
         />
       ),
     },
