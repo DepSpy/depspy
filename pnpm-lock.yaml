@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -62,6 +62,9 @@ importers:
       stylelint-prettier:
         specifier: ^4.0.2
         version: 4.0.2(prettier@3.0.0)(stylelint@15.10.2)
+      stylelint-scss:
+        specifier: ^5.1.0
+        version: 5.1.0(stylelint@15.10.2)
       vitest:
         specifier: ^0.33.0
         version: 0.33.0
@@ -5946,6 +5949,10 @@ packages:
       yaml: 2.3.1
     dev: true
 
+  /postcss-media-query-parser@0.2.3:
+    resolution: {integrity: sha512-3sOlxmbKcSHMjlUXQZKQ06jOswE7oVkXPxmZdoB1r5l0q6gTFTQSHxNxOrCccElbW7dxNytifNEo8qidX2Vsig==}
+    dev: false
+
   /postcss-resolve-nested-selector@0.1.1:
     resolution: {integrity: sha512-HvExULSwLqHLgUy1rl3ANIqCsvMS0WHss2UOsXhXnQaZ9VCc2oBvIpXrl00IUFT5ZDITME0o6oiXeiHr2SAIfw==}
     dev: false
@@ -6836,6 +6843,18 @@ packages:
     dependencies:
       prettier: 3.0.0
       prettier-linter-helpers: 1.0.0
+      stylelint: 15.10.2
+    dev: false
+
+  /stylelint-scss@5.1.0(stylelint@15.10.2):
+    resolution: {integrity: sha512-E+KlQFXv1Euha43qw3q+wKBSli557wxbbo6/39DWhRNXlUa9Cz+FYrcgz+PT6ag0l6UisCYjAGCNhoSl4FcwlA==}
+    peerDependencies:
+      stylelint: ^14.5.1 || ^15.0.0
+    dependencies:
+      postcss-media-query-parser: 0.2.3
+      postcss-resolve-nested-selector: 0.1.1
+      postcss-selector-parser: 6.0.13
+      postcss-value-parser: 4.2.0
       stylelint: 15.10.2
     dev: false
 

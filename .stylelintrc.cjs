@@ -8,6 +8,7 @@ module.exports = {
     "stylelint-config-standard",
     // // standard 规则集合的 scss 版本
     // "stylelint-config-standard-scss",
+    "stylelint-scss",
     // 样式属性顺序规则
     "stylelint-config-recess-order",
     // 接入 Prettier 规则
@@ -18,5 +19,6 @@ module.exports = {
   rules: {
     // 开启 Prettier 自动格式化功能
     "prettier/prettier": true,
+    "at-rule-no-unknown": null,
   },
 };
