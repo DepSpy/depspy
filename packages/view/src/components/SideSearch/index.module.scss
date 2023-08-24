@@ -22,8 +22,13 @@ $input-h: 2.4rem;
   width: $side-w;
   background-color: white;
 
+  & > div {
+    margin-top: 0.8rem;
+  }
+
   h1 {
-    font-size: 22px;
+    height: 3rem;
+    font-size: 1rem;
     font-weight: normal;
   }
 
@@ -31,7 +36,6 @@ $input-h: 2.4rem;
     h1 {
       @include flex-center(left, center);
 
-      height: 4rem;
       padding-left: $side-l-padding;
     }
 
@@ -74,6 +78,7 @@ $input-h: 2.4rem;
       margin: 0.2rem;
       line-height: calc($li-h - 2 * $li-border-stroke-w);
       list-style: none;
+      cursor: pointer;
       border: solid $li-border-stroke-w var(--color-border);
       border-radius: 4px;
       transition-duration: 0.3s;
