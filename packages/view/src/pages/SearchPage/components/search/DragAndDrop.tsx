@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import "./DragAndDrop.scss";
-import { generateGraphWrapper } from "../../util/GenerateGraphWrapper";
+// import { generateGraphWrapper } from "../../util/GenerateGraphWrapper";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "@/contexts";
 
@@ -43,7 +43,7 @@ const DragAndDrop: React.FC<DragAndDropProps> = ({ onHideDragAndDrop }) => {
   useEffect(() => {
     if (parsedData) {
       const graphString = JSON.stringify(parsedData, null, 2);
-      generateGraphWrapper(graphString);
+      // generateGraphWrapper(graphString);
       navigate("/analyze");
       setInfo(graphString);
     }
