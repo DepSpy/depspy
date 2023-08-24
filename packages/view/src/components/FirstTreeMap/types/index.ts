@@ -1,3 +1,5 @@
+import { ReactElement } from "react";
+
 // import { Node } from "../../../../types/types";
 export interface Data {
   name: string;
@@ -16,6 +18,7 @@ export interface DrawSVGProps {
   margin?: number;
   padding?: number;
   RectFontSize?: number;
+  loading?: ReactElement;
 }
 // export interface JSONData {
 //   name: string;

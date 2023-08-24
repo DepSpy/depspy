@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { ReactElement, useContext, useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { useState } from "react";
 import { useRef } from "react";
 import { Data } from "./types";
@@ -7,9 +7,8 @@ import { context } from "./store/context";
 import { Tooltip } from "./Tooltip";
 interface DrawRectProps {
   treeMap: d3.HierarchyRectangularNode<Data>;
-  RectFontSize?: number;
 }
-function DrawRect({ treeMap, RectFontSize }: DrawRectProps) {
+function DrawRect({ treeMap }: DrawRectProps) {
   /*
     treeMap.leaves()
       [{  data:{name,size,children,_children},
@@ -39,7 +38,6 @@ function DrawRect({ treeMap, RectFontSize }: DrawRectProps) {
               data={data}
               key={value || 0}
               color={colorScale(i)}
-              RectFontSize={RectFontSize}
             ></DrawChildrenRect>
           );
         },
@@ -56,7 +54,6 @@ interface DrawChildrenRectProps {
   data: Data;
   // handle_rect_click:(data: Data) => () => void;
   color: string;
-  RectFontSize: number;
 }
 export const DrawChildrenRect = ({
   x0,
@@ -65,12 +62,11 @@ export const DrawChildrenRect = ({
   y1,
   data,
   color,
-  RectFontSize,
 }: DrawChildrenRectProps) => {
   const ref = useRef<HTMLDivElement>(null);
-  const [hidden, setHidden] = useState<string>("false");
-
-  const handle_rect_click = useContext(context);
+  const [hidden, setHidden] = useState<boolean>(false);
+  const [show, setShow] = useState<boolean>(false);
+  const { handle_rect_click, loading, RectFontSize } = useContext(context);
   useEffect(() => {
     if (!ref || !ref.current) return;
     const { current } = ref;
@@ -78,19 +74,39 @@ export const DrawChildrenRect = ({
       current.scrollWidth > current.clientWidth ||
       current.scrollHeight > current.clientHeight
     ) {
-      setHidden(hidden === "true" ? "false" : "true");
+      setHidden(!hidden);
     }
   }, [ref, hidden]);
-  const hiddenMode: Record<string, undefined | ReactElement> = {
-    true: (
-      <Tooltip
-        content={
-          <>
-            <div>name: {data.name}</div>
-            <div>size: {data.size}</div>
-          </>
-        }
-      >
+
+  return (
+    <>
+      {hidden && (
+        <Tooltip
+          content={
+            <>
+              <div>name: {data.name}</div>
+              <div>size: {data.size}</div>
+            </>
+          }
+        >
+          <div
+            style={{
+              position: "absolute",
+              backgroundColor: color,
+              left: x0,
+              top: y0,
+              width: x1 - x0,
+              height: y1 - y0,
+              overflow: "auto",
+              boxShadow:
+                "0 0 0 1px rgba(16, 22, 26, 0.04), 0 1px 3px 0 rgba(16, 22, 26, 0.12)",
+            }}
+            ref={ref}
+            onClick={handle_rect_click ? handle_rect_click(data) : void 0}
+          ></div>
+        </Tooltip>
+      )}
+      {!hidden && (
         <div
           style={{
             position: "absolute",
@@ -100,33 +116,34 @@ export const DrawChildrenRect = ({
             width: x1 - x0,
             height: y1 - y0,
             overflow: "auto",
+            fontSize: RectFontSize,
+            padding: "0.3rem",
+            boxShadow: show
+              ? "0 0 0 3px rgba(16, 22, 26, 0.1), 0 1px 3px 0 rgba(16, 22, 26, 0.12)"
+              : "0 0 0 1px rgba(16, 22, 26, 0.04), 0 1px 3px 0 rgba(16, 22, 26, 0.12)",
+          }}
+          onMouseMove={() => {
+            console.log("enter", show);
+
+            setShow(true);
+          }}
+          onMouseLeave={() => {
+            console.log("leave");
+            setShow(false);
           }}
           ref={ref}
           onClick={handle_rect_click ? handle_rect_click(data) : void 0}
-        ></div>
-      </Tooltip>
-    ),
-    false: (
-      <div
-        style={{
-          position: "absolute",
-          backgroundColor: color,
-          left: x0,
-          top: y0,
-          width: x1 - x0,
-          height: y1 - y0,
-          overflow: "auto",
-          fontSize: RectFontSize,
-          padding: "0.3rem",
-        }}
-        ref={ref}
-        onClick={handle_rect_click ? handle_rect_click(data) : void 0}
-      >
-        <div>name: {data.name}</div>
-        <div>size: {data.size}</div>
-      </div>
-    ),
-  };
-
-  return hiddenMode[hidden];
+        >
+          {data.size ? (
+            <>
+              <div>name: {data.name}</div>
+              <div>size: {data.size}</div>
+            </>
+          ) : (
+            loading
+          )}
+        </div>
+      )}
+    </>
+  );
 };
