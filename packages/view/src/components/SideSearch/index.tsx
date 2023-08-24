@@ -86,6 +86,7 @@ export default function SideSearch() {
         </div>
       </div>
       <div className={styles["result"]}>
+        <h1>{t("aside.search.results")}</h1>
         {!!state.nodes.length && searchResults}
       </div>
     </div>
