@@ -9,6 +9,7 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: VITE_BUILD_MODE == "online" ? "dist/online" : "dist/vite",
     },
+    base: VITE_BUILD_MODE == "online" ? "/depspy" : "/",
     envDir: "./env",
     plugins: [reactPlugin(), UnoCSS()],
     resolve: {
