@@ -3,7 +3,7 @@ import ora from "ora";
 import { blue, green, yellow } from "chalk";
 import { generateGraph } from "@dep-spy/core";
 import { conformConfig } from "./conformConfig";
-import { createServer } from "@dep-spy/view";
+import { createServer } from "./createServer";
 const cli = cac();
 cli
   .command("[analysis,ana]", "解析本地项目依赖关系图")
@@ -32,20 +32,13 @@ cli
     const spinner = ora(blue(" 🕵️  <<<正在潜入🚀>>>")).start();
     const startTime = Date.now();
     options = await conformConfig(options);
-    const graph = await generateGraph("", options);
+    const graph = generateGraph("", options);
     await graph.outputToFile();
     spinner.stop();
     console.log(green(`破解完成,耗时 ${yellow(Date.now() - startTime)} ms`));
     // 如果开启 ui，则启动可视化界面
     if (options.ui) {
-      const [root, codependency, circularDependency] = await Promise.all([
-        graph.getGraph(),
-        graph.getCodependency(),
-        graph.getCircularDependency(),
-      ]);
-      const graphData = { root, codependency, circularDependency };
-
-      createServer(graphData);
+      createServer(graph, options);
     }
   });
 

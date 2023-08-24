@@ -2,10 +2,10 @@ import { defaultConfig } from "./constant";
 import { Config } from "./constant";
 import { Graph } from "./graph";
 
-export async function generateGraph(
+export function generateGraph(
   info: string,
   config: Config = defaultConfig,
-): Promise<Graph> {
+): Graph {
   let graph: Graph | null = null;
   // 本地模式，info 为 ""
   if (!info) {

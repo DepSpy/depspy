@@ -3,6 +3,7 @@
     "outDir": "dist",
     "target": "ESNext",
     "module": "ESNext",
+    "lib": ["DOM"],
     "rootDir": ".",
     "jsx": "react-jsx",
     "moduleResolution": "node",

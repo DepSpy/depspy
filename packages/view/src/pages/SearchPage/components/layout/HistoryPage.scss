@@ -1,0 +1,98 @@
+.panel {
+  position: absolute;
+  top: 30px;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+  height: 450px;
+  padding: 0 11px 11px;
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #fff;
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+
+  .panel-header {
+    display: flex;
+    height: 48px;
+    border-bottom: 2px solid var(--color-border);
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+
+      .header-title {
+        justify-content: start;
+        margin-right: auto;
+        font-size: large;
+        color: var(--color-text);
+      }
+
+      /* stylelint-disable-next-line property-no-unknown */
+      .i-ic-outline-delete-sweep {
+        --un-icon: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 24 24' width='1.2em' height='1.2em' xmlns='http://www.w3.org/2000/svg' %3E%3Cpath fill='currentColor' d='M15 16h4v2h-4zm0-8h7v2h-7zm0 4h6v2h-6zM3 18c0 1.1.9 2 2 2h6c1.1 0 2-.9 2-2V8H3v10zm2-8h6v8H5v-8zm5-6H6L5 5H2v2h12V5h-3z'/%3E%3C/svg%3E");
+
+        justify-content: end;
+        width: 24px;
+        height: 24px;
+        color: inherit;
+        background-color: currentcolor;
+        mask: var(--un-icon) no-repeat;
+        mask-size: 100% 100%;
+      }
+    }
+  }
+
+  .history-panel {
+    display: flex;
+    max-width: 278px;
+    max-height: 402px;
+    overflow-x: auto;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      width: 6px;
+      margin: 11px 3px 3px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--color-border);
+      border-radius: 3px;
+    }
+  }
+
+  .history-panel ul {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    justify-content: center;
+    margin-left: -2rem;
+    list-style: none;
+  }
+
+  .history-panel li {
+    display: flex;
+    align-items: center;
+    min-height: 32px;
+    color: var(--color-text);
+    text-align: left;
+    cursor: pointer;
+  }
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgb(0 0 0 / 0%);
+}

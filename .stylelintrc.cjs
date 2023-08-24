@@ -14,11 +14,14 @@ module.exports = {
     // 接入 Prettier 规则
     "stylelint-config-prettier",
     "stylelint-prettier/recommended",
+    "stylelint-config-standard-scss",
   ],
   // 配置 rules
   rules: {
     // 开启 Prettier 自动格式化功能
     "prettier/prettier": true,
     "at-rule-no-unknown": null,
+    "scss/at-rule-no-unknown": true,
+    "scss/operator-no-unspaced": null
   },
 };
