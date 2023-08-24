@@ -33,7 +33,7 @@ export const useStore = createWithEqualityFn<Store>()(
       set({ theme: theme === "light" ? "dark" : "light" });
     },
     setGraphRes: async (info, depth) => {
-      const graph = generateGraph(info, { depth });
+      const graph = generateGraph(info, { depth, online: true });
       const res = await combineRes(graph, depth);
       set(res);
     },

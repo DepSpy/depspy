@@ -133,7 +133,7 @@ const FirstTreeMap = ({
               hideRoot.push((data as Data).name);
             }
           });
-        console.log(hideRoot, data);
+        // console.log(hideRoot, data);
         if (hideRoot.length > 0) {
           const newData = {
             name: data.name,
