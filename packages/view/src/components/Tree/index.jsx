@@ -2,6 +2,7 @@ import * as d3 from "d3";
 import { useEffect, useState, useRef, useReducer, forwardRef } from "react";
 import { shallow } from "zustand/shallow";
 import { useStore } from "../../contexts";
+import SvgComponents from "./SvgComponents";
 function Tree({ width = window.innerWidth }, svg) {
   //➡️全局数据
   const {
@@ -222,6 +223,9 @@ function Tree({ width = window.innerWidth }, svg) {
                 </foreignObject>
                 {Object.values(originDeps).length && depth && (
                   <g
+                    fill={
+                      d.data.highlight ? "rgb(91, 46, 238)" : "rgb(167,167,167)"
+                    }
                     transform={`translate(${width / 2 + 2},${-32})`}
                     onClick={() => {
                       const currentNode = findDepBypath(d.data.path, data[0]);
@@ -233,30 +237,15 @@ function Tree({ width = window.innerWidth }, svg) {
                       setData([...data]);
                     }}
                   >
-                    <rect
-                      fill="none"
-                      stroke={
-                        d.data.highlight
-                          ? "rgb(91, 46, 238)"
-                          : "rgb(167,167,167)"
-                      }
-                      strokeWidth={2}
-                      width={13}
-                      height={13}
-                    ></rect>
-                    <text
-                      fontSize={collapseFlag == "-" ? 27 : 15}
-                      fill={
-                        d.data.highlight
-                          ? "rgb(91, 46, 238)"
-                          : "rgb(167,167,167)"
-                      }
-                      transform={`translate(${0.5},${
-                        collapseFlag == "-" ? 15 : 11.5
-                      })`}
-                    >
-                      {collapseFlag}
-                    </text>
+                    {collapseFlag == "+" ? (
+                      <use href="#carbon-add-alt" width={25} height={25}></use>
+                    ) : (
+                      <use
+                        href="#carbon-subtract-alt"
+                        width={25}
+                        height={25}
+                      ></use>
+                    )}
                   </g>
                 )}
               </g>
@@ -269,77 +258,7 @@ function Tree({ width = window.innerWidth }, svg) {
           ></path>
         </g>
       </svg>
-      <svg
-        width={0}
-        height={0}
-        viewBox="0 0 120 120"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          <marker
-            id="triangle"
-            viewBox="0 0 8 8"
-            refX="8"
-            refY="4"
-            markerUnits="strokeWidth"
-            markerWidth="8"
-            markerHeight="8"
-            orient="auto"
-          >
-            <path
-              d="M 0 0 L 8 4 L 0 8 "
-              fill="none"
-              stroke="rgb(169, 169, 169)"
-            />
-          </marker>
-        </defs>
-      </svg>
-      <svg
-        width={0}
-        height={0}
-        viewBox="0 0 120 120"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          <marker
-            id="triangleBlue"
-            viewBox="0 0 8 8"
-            refX="8"
-            refY="4"
-            markerUnits="strokeWidth"
-            markerWidth="8"
-            markerHeight="8"
-            orient="auto"
-          >
-            <path
-              d="M 0 0 L 8 4 L 0 8 "
-              fill="none"
-              stroke="rgb(91, 46, 238)"
-            />
-          </marker>
-        </defs>
-      </svg>
-      <svg
-        width={0}
-        height={0}
-        viewBox="0 0 120 120"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          <marker
-            id="triangleRed"
-            viewBox="0 0 8 8"
-            refX="8"
-            refY="4"
-            markerUnits="strokeWidth"
-            markerWidth="8"
-            markerHeight="8"
-            orient="auto"
-          >
-            <path d="M 0 0 L 8 4 L 0 8 " fill="none" stroke="red" />
-          </marker>
-        </defs>
-      </svg>
+      <SvgComponents />
     </>
   );
 }
