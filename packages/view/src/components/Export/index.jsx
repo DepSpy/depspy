@@ -27,12 +27,7 @@ export function Export({ svgRef, width, height, json }) {
     }
     const zoom = d3.zoom().on("zoom", zoomed);
     if (type == "Full") {
-      // console.log("width", width);
-      // console.log("heigth", height);
-      // console.log("heigth2", height / sb.height);
-      // console.log("width2", width / sb.width);
-      // console.log(depth);
-      const divide = collapse ? 1 : Math.pow(3, depth - 1);
+      const divide = collapse ? 1 : depth < 3 ? 1 : Math.pow(2.1, depth);
       d3.select(svgRef.current).call(
         zoom.transform,
         d3.zoomIdentity
@@ -75,7 +70,7 @@ export function Export({ svgRef, width, height, json }) {
     zoomScreen("Full", sb);
     const toExport = svgDom.cloneNode(true);
     const bb = svgDom.getBBox();
-    // console.log(sb, bb);
+    console.log(sb, bb);
     const serializer = new XMLSerializer();
     toExport.setAttribute(
       "viewBox",
@@ -95,6 +90,8 @@ export function Export({ svgRef, width, height, json }) {
   }
   const onSaveImage = (format) => {
     const svgDom = document.querySelector("svg");
+    const sb = svgDom.getBBox();
+    zoomScreen("Full", sb);
     const toExport = svgDom.cloneNode(true);
     const bb = svgDom.getBBox();
     const view = `${bb.x * 50} ${bb.y * 50} ${bb.width * 1.2} ${
