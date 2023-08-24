@@ -22,7 +22,9 @@ jobs:
           pnpm run build
           cd ./packages/view
           pnpm run build:online
-      - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          folder: ./packages/view/dist/online
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          publish_dir: ./packages/view/dist/online
