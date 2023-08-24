@@ -74,6 +74,9 @@ importers:
       stylelint-prettier:
         specifier: ^4.0.2
         version: 4.0.2(prettier@3.0.0)(stylelint@15.10.2)
+      stylelint-scss:
+        specifier: ^5.1.0
+        version: 5.1.0(stylelint@15.10.2)
       vitest:
         specifier: ^0.33.0
         version: 0.33.0
@@ -7320,7 +7323,10 @@ packages:
       postcss-selector-parser: 6.0.13
       postcss-value-parser: 4.2.0
       stylelint: 15.10.2
+<<<<<<< HEAD
     dev: true
+=======
+>>>>>>> pr/seasonHL/54
 
   /stylelint@15.10.2:
     resolution: {integrity: sha512-UxqSb3hB74g4DTO45QhUHkJMjKKU//lNUAOWyvPBVPZbCknJ5HjOWWZo+UDuhHa9FLeVdHBZXxu43eXkjyIPWg==}

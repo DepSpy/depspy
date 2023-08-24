@@ -1,9 +1,9 @@
-import { useNavigate } from "react-router-dom";
 import { useStore } from "@/contexts";
-import { useEffect, useReducer } from "react";
+import { useEffect, useMemo, useReducer } from "react";
 import { Node } from "~/types";
 import { ReducerType } from "~/searchSide";
 import styles from "./index.module.scss";
+import useLanguage from "@/i18n/hooks/useLanguage";
 
 const reducer: ReducerType = (state, action) => {
   const newState = { ...state };
@@ -16,16 +16,13 @@ const reducer: ReducerType = (state, action) => {
 };
 
 export default function SideSearch() {
+  const { t } = useLanguage();
   const { root, setSelectNode, searchNode } = useStore();
   const [state, dispatch] = useReducer<ReducerType>(reducer, {
     keywords: "",
     loading: true,
     nodes: [],
   });
-  const navigate = useNavigate();
-  const handleClick = () => {
-    navigate("/search");
-  };
   const searchHandler = (node: Node) => {
     if (node !== null) setSelectNode(node);
     dispatch([
@@ -33,6 +30,18 @@ export default function SideSearch() {
       { type: "nodes", value: [] },
     ]);
   };
+  const searchResults = useMemo(
+    () => (
+      <ul>
+        {state.nodes.map((v, i) => (
+          <li key={i} onClick={() => searchHandler(v)}>
+            {v.name}
+          </li>
+        ))}
+      </ul>
+    ),
+    [state.nodes],
+  );
   useEffect(() => {
     if (state.keywords) {
       const suggestions = searchNode(root, state.keywords);
@@ -44,7 +53,7 @@ export default function SideSearch() {
   return (
     <div className={styles["side-search"]}>
       <div className={styles["find"]}>
-        <h1>Find Modules</h1>
+        <h1>{t("aside.search.find")}</h1>
         <div className={styles["search-bar"]}>
           <input
             onChange={(e) =>
@@ -54,20 +63,14 @@ export default function SideSearch() {
             type="text"
             name="search"
             autoComplete="off"
+            placeholder={t("search.searchHis")}
           />
         </div>
       </div>
       <div className={styles["result"]}>
-        <h1>Similar Result</h1>
-        <ul>
-          {state.nodes.map((v, i) => (
-            <li key={i} onClick={() => searchHandler(v)}>
-              {v.name}
-            </li>
-          ))}
-        </ul>
+        <h1>{t("aside.search.results")}</h1>
+        {!!state.nodes.length && searchResults}
       </div>
-      <div onClick={() => handleClick()}>back to SearchPage</div>
     </div>
   );
 }

@@ -1,7 +1,25 @@
-$li-h: 22px;
+$li-h: 2.2rem;
 $li-border-stroke-w: 2px;
+$side-l-padding: 0.75rem;
+$side-w: 24rem;
+$input-h: 2.4rem;
+
+@mixin flex-center($row, $col) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @if $row {
+    justify-content: $row;
+  }
+
+  @if $col {
+    align-items: $col;
+  }
+}
 
 .side-search {
+  width: $side-w;
   background-color: white;
 
   h1 {
@@ -11,23 +29,58 @@ $li-border-stroke-w: 2px;
 
   .find {
     h1 {
-      height: 40px;
-    }
-    .result {
-      ul {
-        display: flex;
-        flex-wrap: wrap;
-        width: 252px;
-      }
+      @include flex-center(left, center);
 
-      li {
-        width: fit-content;
-        height: $li-h;
-        padding: 0 8px;
-        margin: 2px;
-        line-height: $li-h - 2 * $li-border-stroke-w;
-        list-style: none;
-        border: solid $li-border-stroke-w gray;
+      height: 4rem;
+      padding-left: $side-l-padding;
+    }
+
+    .search-bar {
+      @include flex-center(center, center);
+
+      height: 4.8rem;
+      padding-left: $side-l-padding;
+      background-color: var(--color-bg-layout);
+
+      input {
+        width: 22rem;
+        height: $input-h;
+        padding: 0 calc($input-h / 2);
+        font-size: 1.2rem;
+        border: var(--color-border) solid $li-border-stroke-w;
+        border-radius: $input-h;
+        outline: none;
+      }
+    }
+  }
+
+  .result {
+    h1 {
+      padding-left: $side-l-padding;
+    }
+
+    ul {
+      display: flex;
+      flex-wrap: wrap;
+      width: $side-w;
+      padding: 0.2rem 0 0.2rem $side-l-padding;
+      background-color: var(--color-bg-layout);
+    }
+
+    li {
+      width: fit-content;
+      height: $li-h;
+      padding: 0 8px;
+      margin: 0.2rem;
+      line-height: calc($li-h - 2 * $li-border-stroke-w);
+      list-style: none;
+      border: solid $li-border-stroke-w var(--color-border);
+      border-radius: 4px;
+      transition-duration: 0.3s;
+
+      &:hover {
+        color: var(--color-bg-container);
+        background-color: var(--color-primary-base);
       }
     }
   }
