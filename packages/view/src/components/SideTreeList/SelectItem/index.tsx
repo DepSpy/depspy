@@ -43,7 +43,7 @@ export default function SelectItem({
   return (
     <div>
       <div
-        className="select-list-item"
+        className="select-list-item hover:bg-item-bg-hover"
         style={{
           paddingLeft: `0.8rem`,
         }}
@@ -53,7 +53,7 @@ export default function SelectItem({
       >
         {Object.keys(node.dependencies).length !== 0 ? (
           <div
-            className="treelist-selected-arc"
+            className="treelist-selected-arc border-border"
             style={{
               transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
             }}

@@ -38,7 +38,7 @@ export default function Side({
           setShowSideAll((showSideAll) => !showSideAll);
         }}
       >
-        <div className="rounded-lg border-solid p-1 mt-2 border-border text-icon">
+        <div className="rounded-lg border-solid p-1 mt-2 border-border text-text bg-bg-container">
           {showSideAll ? (
             <div className="i-carbon-arrow-right" />
           ) : (

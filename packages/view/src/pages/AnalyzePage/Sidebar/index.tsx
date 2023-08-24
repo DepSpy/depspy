@@ -27,7 +27,7 @@ export default function Side() {
 
   return (
     <div
-      className="sidebar"
+      className="sidebar border-solid border-border bg-bg-container text-text"
       style={{
         transform: `translateX(${showSideAll ? "0" : "25rem"})`,
         transition: "transform 0.5s",
