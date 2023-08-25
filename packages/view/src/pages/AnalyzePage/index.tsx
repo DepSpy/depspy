@@ -39,13 +39,13 @@ export default function AnalyzePage() {
         flex="items-end"
       >
         <Depth></Depth>
-        <Collapse></Collapse>
         <Export
           svgRef={svg}
           width={innerWidth}
           height={innerHeight}
           json={root}
         />
+        <Collapse></Collapse>
       </section>
     </>
   );
