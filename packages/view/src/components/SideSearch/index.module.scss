@@ -1,7 +1,7 @@
 $li-h: 2.2rem;
-$li-border-stroke-w: 2px;
+$li-border-stroke-w: 1px;
 $side-l-padding: 0.75rem;
-$side-w: 24rem;
+$side-w: 25rem;
 $input-h: 2.4rem;
 
 @mixin flex-center($row, $col) {
@@ -20,21 +20,23 @@ $input-h: 2.4rem;
 
 .side-search {
   width: $side-w;
-  background-color: white;
+  overflow: hidden;
 
-  & > div {
-    margin-top: 0.8rem;
-  }
-
-  h1 {
-    height: 3rem;
-    font-size: 1rem;
-    font-weight: normal;
+  .title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 3rem;
+    padding: 0 0.75rem;
+    background-color: var(--color-bg-layout);
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
   }
 
   .find {
     h1 {
       @include flex-center(left, center);
+
       height: 4rem;
       padding-left: $side-l-padding;
     }
@@ -44,7 +46,8 @@ $input-h: 2.4rem;
 
       height: 4.8rem;
       padding-left: $side-l-padding;
-      background-color: var(--color-bg-layout);
+      background-color: var(--color-bg-container);
+      border-bottom: 1px solid var(--color-border);
 
       input {
         width: 22rem;
@@ -68,7 +71,7 @@ $input-h: 2.4rem;
       flex-wrap: wrap;
       width: $side-w;
       padding: 0.2rem 0 0.2rem $side-l-padding;
-      background-color: var(--color-bg-layout);
+      background-color: var(--color-bg-container);
     }
 
     li {
@@ -78,15 +81,38 @@ $input-h: 2.4rem;
       margin: 0.2rem;
       line-height: calc($li-h - 2 * $li-border-stroke-w);
       list-style: none;
-      cursor: pointer;
+      user-select: none;
       border: solid $li-border-stroke-w var(--color-border);
       border-radius: 4px;
       transition-duration: 0.3s;
 
       &:hover {
-        color: var(--color-bg-container);
+        color: white;
         background-color: var(--color-primary-base);
       }
     }
+  }
+
+  .mainpage-title {
+    position: absolute;
+    bottom: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20rem;
+    min-height: 3rem;
+    padding: 0 0.75rem;
+    margin-left: 2.5rem;
+    color: var(--color-text);
+    user-select: none;
+    background-color: var(--color-bg-layout);
+    border: 1px solid var(--color-border);
+    border-radius: 1rem;
+    transition: 200ms;
+  }
+
+  .mainpage-title:hover {
+    color: white;
+    background-color: var(--color-primary-base);
   }
 }

@@ -4,6 +4,7 @@ import { Node } from "~/types";
 import { ReducerType } from "~/searchSide";
 import styles from "./index.module.scss";
 import useLanguage from "@/i18n/hooks/useLanguage";
+import { useNavigate } from "react-router-dom";
 
 const reducer: ReducerType = (state, action) => {
   const newState = { ...state };
@@ -24,6 +25,7 @@ export default function SideSearch() {
     nodes: [],
     searchHistory: JSON.parse(localStorage.getItem("suggestionHistory")) ?? [],
   });
+  const navigation = useNavigate();
   const searchHandler = (node: Node) => {
     if (node !== null) setSelectNode(node);
     dispatch([
@@ -71,7 +73,7 @@ export default function SideSearch() {
   return (
     <div className={styles["side-search"]}>
       <div className={styles["find"]}>
-        <h1>{t("aside.search.find")}</h1>
+        <div className={styles["title"]}>{t("aside.search.title")}</div>
         <div className={styles["search-bar"]}>
           <input
             onChange={(e) =>
@@ -81,13 +83,23 @@ export default function SideSearch() {
             type="text"
             name="search"
             autoComplete="off"
-            placeholder={t("search.searchHis")}
+            placeholder={t("aside.search.find")}
           />
         </div>
       </div>
-      <div className={styles["result"]}>
-        <h1>{t("aside.search.results")}</h1>
-        {!!state.nodes.length && searchResults}
+      {!!state.nodes.length && (
+        <div className={styles["result"]}>
+          <div className={styles["title"]}>{t("aside.search.results")}</div>
+          {!!state.nodes.length && searchResults}
+        </div>
+      )}
+      <div
+        className={styles["mainpage-title"]}
+        onClick={() => {
+          navigation("/search");
+        }}
+      >
+        <span>{t("aside.search.mainpage")}</span>
       </div>
     </div>
   );

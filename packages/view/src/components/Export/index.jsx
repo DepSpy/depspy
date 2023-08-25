@@ -2,7 +2,6 @@ import * as d3 from "d3";
 import { useRef } from "react";
 import useLanguage from "@/i18n/hooks/useLanguage";
 import saveSvg from "save-svg-as-png";
-import "./index.scss";
 
 export function Export({ svgRef, width, height, json }) {
   const { t } = useLanguage();
@@ -122,34 +121,46 @@ export function Export({ svgRef, width, height, json }) {
   return (
     <>
       <div>
-        <div className="flex exporter">
-          <select
-            className="flex w-20 h-8 lh-8"
-            border="solid 2 rd-0.5rem primary-border hover:primary-border-hover"
-            onChange={handleSelectChange}
-          >
-            <option value={null} disabled selected hidden>
-              {t("section.select")}
-            </option>
-            {options.map((opt, optId) => {
-              return (
-                <option value={opt.val} key={`selector-opt-${optId}`}>
-                  {opt.name}
-                </option>
-              );
-            })}
-          </select>
+        <div className="flex exporter align-middle">
           <div
-            className="flex flex-row fs-24 
-            c-primary-border hover:c-primary-border-hover"
-            onClick={handleDownload}
+            id={`${t("section.fileType")}`}
+            className={`relative
+      hover:after:(absolute flex c-primary-hover text-nowrap left-50% transform-translate-x--50%
+      content-[attr(id)])`}
           >
-            <div> {t("section.export")} </div>
+            <select
+              className="flex w-20 h-8 lh-8 bg-bg-container text-text"
+              border="solid 2 rd-0.5rem primary-border-hover"
+              onChange={handleSelectChange}
+            >
+              <option value={null} disabled selected hidden>
+                {t("section.select")}
+              </option>
+              {options.map((opt, optId) => {
+                return (
+                  <option value={opt.val} key={`selector-opt-${optId}`}>
+                    {opt.name}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+          <div
+            id={`${t("section.export")}`}
+            className={`relative p-l-3
+      hover:after:(absolute flex c-primary-hover text-nowrap left-50% transform-translate-x--50%
+      content-[attr(id)])`}
+          >
             <div
-              className={`
+              className="flex flex-row fs-24 c-primary-border-hover"
+              onClick={handleDownload}
+            >
+              <div
+                className={`
               i-carbon-logout
               text-1.5rem `}
-            ></div>
+              ></div>
+            </div>
           </div>
         </div>
       </div>
