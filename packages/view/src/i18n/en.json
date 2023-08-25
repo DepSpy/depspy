@@ -32,7 +32,8 @@
         "search": {
             "title": "SEARCH",
             "find": "FIND MODULE",
-            "results": "SIMILAR SEARCH RESULTS"
+            "results": "SIMILAR SEARCH RESULTS",
+            "mainpage": "MAIN PAGE"
         },
         "list": {
             "title": "LIST",

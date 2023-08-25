@@ -21,7 +21,6 @@ $input-h: 2.4rem;
 .side-search {
   width: $side-w;
   overflow: hidden;
-  background-color: white;
 
   .title {
     display: flex;
@@ -92,5 +91,28 @@ $input-h: 2.4rem;
         background-color: var(--color-primary-base);
       }
     }
+  }
+
+  .mainpage-title {
+    position: absolute;
+    bottom: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20rem;
+    min-height: 3rem;
+    padding: 0 0.75rem;
+    margin-left: 2.5rem;
+    color: var(--color-text);
+    user-select: none;
+    background-color: var(--color-bg-layout);
+    border: 1px solid var(--color-border);
+    border-radius: 1rem;
+    transition: 200ms;
+  }
+
+  .mainpage-title:hover {
+    color: white;
+    background-color: var(--color-primary-base);
   }
 }

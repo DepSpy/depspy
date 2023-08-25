@@ -32,7 +32,8 @@
         "search": {
             "title": "搜索",
             "find": "搜索依赖",
-            "results": "相似搜索结果"
+            "results": "相似搜索结果",
+            "mainpage": "返回主页"
         },
         "list": {
             "title": "列表",

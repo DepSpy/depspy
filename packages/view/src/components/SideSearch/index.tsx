@@ -4,6 +4,7 @@ import { Node } from "~/types";
 import { ReducerType } from "~/searchSide";
 import styles from "./index.module.scss";
 import useLanguage from "@/i18n/hooks/useLanguage";
+import { useNavigate } from "react-router-dom";
 
 const reducer: ReducerType = (state, action) => {
   const newState = { ...state };
@@ -23,6 +24,7 @@ export default function SideSearch() {
     loading: true,
     nodes: [],
   });
+  const navigation = useNavigate();
   const searchHandler = (node: Node) => {
     if (node !== null) setSelectNode(node);
     dispatch([
@@ -73,6 +75,14 @@ export default function SideSearch() {
           {!!state.nodes.length && searchResults}
         </div>
       )}
+      <div
+        className={styles["mainpage-title"]}
+        onClick={() => {
+          navigation("/search");
+        }}
+      >
+        <span>{t("aside.search.mainpage")}</span>
+      </div>
     </div>
   );
 }
