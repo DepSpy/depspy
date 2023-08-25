@@ -1,6 +1,12 @@
 import "./index.scss";
 
-export default function Side({ setShowName, typeName, showName }) {
+export default function Side({
+  setShowName,
+  typeName,
+  showName,
+  setShowSideAll,
+  showSideAll,
+}) {
   function handleClick(name: string) {
     setShowName(name);
   }
@@ -15,11 +21,31 @@ export default function Side({ setShowName, typeName, showName }) {
               ? "sidebar-choose-item-active"
               : "sidebar-choose-item"
           }
-          onClick={() => handleClick(name)}
+          onClick={() => {
+            handleClick(name);
+            if (name === showName && showSideAll) {
+              setShowSideAll(false);
+            } else {
+              setShowSideAll(true);
+            }
+          }}
         >
           {name}
         </div>
       ))}
+      <div
+        onClick={() => {
+          setShowSideAll((showSideAll) => !showSideAll);
+        }}
+      >
+        <div className="rounded-lg border-solid p-1 mt-2 border-border text-text bg-bg-container">
+          {showSideAll ? (
+            <div className="i-carbon-arrow-right" />
+          ) : (
+            <div className="i-carbon-arrow-left" />
+          )}
+        </div>
+      </div>
     </div>
   );
 }

@@ -16,7 +16,7 @@ const SwitchButton: React.FC<SwitchProps> = ({ onDisplayDragAndDrop }) => {
 
   const addHistoryHandler = () => {
     if (info.length > 0) {
-      console.log("search name is:", info);
+      // console.log("search name is:", info);
       ctx.onHistoryUpdate(info);
       generateGraphWrapper(info);
       navigate(`/analyze?q=${info}`);

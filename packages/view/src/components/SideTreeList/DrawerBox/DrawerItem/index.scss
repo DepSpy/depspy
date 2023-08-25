@@ -2,7 +2,8 @@
   position: absolute;
   z-index: 99;
   padding: 0.25rem;
-  color: white;
-  background-color: var(--control-item-bg-hover);
+  color: var(--text);
+  background-color: var(--color-bg-container);
+  border: 1px solid var(--color-border);
   border-radius: 0.5rem;
 }
