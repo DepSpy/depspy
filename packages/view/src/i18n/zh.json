@@ -16,23 +16,23 @@
         "format": "只接受*.json文件"
     },
     "section": {
-      "title": "依赖间谍",
-      "depth": "深度",
-      "export": "导出",
-      "fileType": "文件类型",
-      "select": "选择",
-      "maxDepth": "最大深度",
-      "expand": "展开",
-      "collapse": "折叠",
-      "dependences": "-依赖分析",
-      "alertexp":"请先选择导出文件类型!",
-      "jsonexp":"JSON数据为空!"
+        "title": "依赖间谍",
+        "depth": "深度",
+        "export": "导出",
+        "fileType": "文件类型",
+        "select": "选择",
+        "maxDepth": "最大深度",
+        "expand": "展开",
+        "collapse": "折叠",
+        "dependences": "-依赖分析",
+        "alertexp": "请先选择导出文件类型!",
+        "jsonexp": "JSON数据为空!"
     },
     "aside": {
         "search": {
             "title": "搜索",
-            "find": "搜索包",
-            "results": "所有类似搜索结果"
+            "find": "搜索依赖",
+            "results": "相似搜索结果"
         },
         "list": {
             "title": "列表",

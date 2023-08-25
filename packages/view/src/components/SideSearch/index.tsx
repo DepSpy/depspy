@@ -53,7 +53,7 @@ export default function SideSearch() {
   return (
     <div className={styles["side-search"]}>
       <div className={styles["find"]}>
-        <h1>{t("aside.search.find")}</h1>
+        <div className={styles["title"]}>{t("aside.search.title")}</div>
         <div className={styles["search-bar"]}>
           <input
             onChange={(e) =>
@@ -63,14 +63,16 @@ export default function SideSearch() {
             type="text"
             name="search"
             autoComplete="off"
-            placeholder={t("search.searchHis")}
+            placeholder={t("aside.search.find")}
           />
         </div>
       </div>
-      <div className={styles["result"]}>
-        <h1>{t("aside.search.results")}</h1>
-        {!!state.nodes.length && searchResults}
-      </div>
+      {!!state.nodes.length && (
+        <div className={styles["result"]}>
+          <div className={styles["title"]}>{t("aside.search.results")}</div>
+          {!!state.nodes.length && searchResults}
+        </div>
+      )}
     </div>
   );
 }

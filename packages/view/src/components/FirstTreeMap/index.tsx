@@ -200,6 +200,7 @@ const FirstTreeMap = ({
           height: height,
           backgroundColor: "var(--color-border)",
         }}
+        className="text-dark-500"
       >
         <SwitchTransition mode="out-in">
           <CSSTransition classNames={"fade"} key={state} timeout={500}>
