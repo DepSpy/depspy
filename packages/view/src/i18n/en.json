@@ -53,5 +53,8 @@
             "graph": "BUNDLE GRAPH",
             "source": "Data source"
         }
+    },
+    "skeleton":{
+        "tip":"Network request is slow, please be patient 😇"
     }
 }
