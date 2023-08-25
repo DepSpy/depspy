@@ -24,7 +24,7 @@ export const Tooltip: React.FC<ITooltipsProps> = ({ content, children }) => {
     const { width: tooltipWidth, height: tooltipHeight } =
       tooltip.getBoundingClientRect();
     // console.log(tooltip.getBoundingClientRect());
-    console.log(document.documentElement.scrollTop);
+    // console.log(document.documentElement.scrollTop);
 
     setPosition({
       left:

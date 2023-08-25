@@ -42,7 +42,7 @@ export default function AnalyzePage() {
         <button onClick={toggleMode}>切换模式</button>
         <p className={`bg-primary-bg c-text`}>{t("section.depth")}</p>
       </div>
-      <div className="flex h-screen overflow-hidden">
+      <div className="flex h-screen overflow-hidden bg-bg-container">
         <Tree ref={svg}></Tree>
         <Sidebar />
       </div>
