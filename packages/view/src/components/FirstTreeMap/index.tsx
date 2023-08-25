@@ -16,6 +16,8 @@ import { useStore } from "../../contexts";
  }
 */
 function changeData(data: Node): Data | undefined {
+  // console.log("11", data);
+
   if (!data) {
     return void 0;
   }
@@ -61,6 +63,7 @@ const FirstTreeMap = ({
   margin = 0,
   padding = 2,
   RectFontSize = 14,
+  loading = <>loading...</>,
 }: DrawSVGProps) => {
   const [state, setState] = useState<number>(0); // control transition
   const [data, setData] = useState<Data>();
@@ -188,7 +191,7 @@ const FirstTreeMap = ({
   };
 
   return (
-    <DrawStore value={handle_rect_click}>
+    <DrawStore value={{ handle_rect_click, loading, RectFontSize }}>
       <div
         // className={`relative w-[${width}px] h-[${height}px] bg-[#1a3055ff]`}
         style={{
@@ -201,12 +204,7 @@ const FirstTreeMap = ({
         <SwitchTransition mode="out-in">
           <CSSTransition classNames={"fade"} key={state} timeout={500}>
             <div style={{ position: "absolute", left: margin, top: margin }}>
-              {treeMap && (
-                <DrawRect
-                  RectFontSize={RectFontSize}
-                  treeMap={treeMap}
-                ></DrawRect>
-              )}
+              {treeMap && <DrawRect treeMap={treeMap}></DrawRect>}
             </div>
           </CSSTransition>
         </SwitchTransition>
