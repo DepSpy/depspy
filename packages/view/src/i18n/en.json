@@ -16,23 +16,24 @@
         "format": "Only *.json file will be accepted"
     },
     "section": {
-      "title": "DepSpy",
-      "depth": "depth",
-      "export": "Export",
-      "fileType": "export file type",
-      "select": "Select",
-      "maxDepth": "Max Depth",
-      "expand": "Expand",
-      "collapse": "Collapse",
-      "dependences": "-dependences-analysis",
-      "alertexp":"Please select the export file type first!",
-      "jsonexp":"JSON data is null!"
+        "title": "DepSpy",
+        "depth": "depth",
+        "export": "Export",
+        "fileType": "export file type",
+        "select": "Select",
+        "maxDepth": "Max Depth",
+        "expand": "Expand",
+        "collapse": "Collapse",
+        "dependences": "-dependences-analysis",
+        "alertexp": "Please select the export file type first!",
+        "jsonexp": "JSON data is null!"
     },
     "aside": {
         "search": {
             "title": "SEARCH",
             "find": "FIND MODULE",
-            "results": "SIMILAR SEARCH RESULTS"
+            "results": "SIMILAR SEARCH RESULTS",
+            "mainpage": "MAIN PAGE"
         },
         "list": {
             "title": "LIST",

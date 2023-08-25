@@ -22,7 +22,7 @@ export default function Collapse() {
               : "i-carbon-collapse-categories"
           }
           text-1.5rem 
-          c-primary-border 
+          c-primary-border-hover
           hover:c-primary-border-hover`}
       ></div>
     </section>
