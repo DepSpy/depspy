@@ -2,8 +2,6 @@ name: Build and Deploy
 on:
   push:
     branches: [master]
-  pull_request:
-    branches: [master]
 permissions:
   contents: write
 jobs:
@@ -23,10 +21,9 @@ jobs:
           cd ./packages/view
           pnpm run build:online
       - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          personal_token: ${{secrets.ACTIONS_DEPLOY_KEY}}
-          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./packages/view/dist/online
+          token: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          ssh-key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          folder: ./packages/view/dist/online
           
