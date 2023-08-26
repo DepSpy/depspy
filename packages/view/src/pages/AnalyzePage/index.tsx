@@ -4,7 +4,7 @@ import Sidebar from "./Sidebar";
 import Depth from "@/components/Depth";
 import Collapse from "@/components/Collapse";
 import { Export } from "@/components/Export";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { shallow } from "zustand/shallow";
 import { LanguageIcon, ThemeIcon } from "../../components/icon/index";
@@ -16,13 +16,17 @@ export default function AnalyzePage() {
     shallow,
   );
   const svg = useRef(null);
+  const [isLoading, setLoading] = useState(false);
   useEffect(() => {
     if (import.meta.env.VITE_BUILD_MODE == "online") {
-      setGraphRes(searchParams.get("q") || info, depth);
+      setLoading(true);
+      setGraphRes(searchParams.get("q") || info, depth).then(() => {
+        setLoading(false);
+      });
     }
   }, [depth, info]);
 
-  if (!root) {
+  if (isLoading || !root) {
     return <Skeleton></Skeleton>;
   }
   return (

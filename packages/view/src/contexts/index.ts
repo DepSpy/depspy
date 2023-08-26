@@ -9,7 +9,7 @@ import { combineRes } from "./combineRes";
 
 export const useStore = createWithEqualityFn<Store>()(
   subscribeWithSelector((set) => ({
-    theme: "light",
+    theme: localStorage.getItem("theme") || "light",
     info: "",
     root: null,
     depth: 3,
@@ -30,7 +30,9 @@ export const useStore = createWithEqualityFn<Store>()(
     searchNode,
     setCollapse: (collapse) => set({ collapse }),
     setTheme: (theme: string) => {
-      set({ theme: theme === "light" ? "dark" : "light" });
+      const newTheme = theme === "light" ? "dark" : "light";
+      set({ theme: newTheme });
+      localStorage.setItem("theme", newTheme);
     },
     setGraphRes: async (info, depth) => {
       const graph = generateGraph(info, { depth, online: true });
@@ -90,5 +92,5 @@ export interface Store {
   searchNode: (root: Node, target: string) => Node[];
   setCollapse: (flag: boolean) => void;
   setTheme: (theme: string) => void;
-  setGraphRes: (name: string, depth: number) => void;
+  setGraphRes: (name: string, depth: number) => Promise<void>;
 }
