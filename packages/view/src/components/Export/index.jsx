@@ -121,7 +121,7 @@ export function Export({ svgRef, width, height, json }) {
   return (
     <>
       <div>
-        <div className="flex exporter align-middle">
+        <div className="flex flex-items-end exporter align-middle">
           <div
             id={`${t("section.fileType")}`}
             className={`relative
@@ -129,7 +129,7 @@ export function Export({ svgRef, width, height, json }) {
       content-[attr(id)])`}
           >
             <select
-              className="flex w-20 h-8 lh-8 bg-bg-container text-text"
+              className="flex w-20 h-8 lh-8 bg-bg-container text-text text-center"
               border="solid 2 rd-0.5rem primary-border-hover"
               onChange={handleSelectChange}
             >

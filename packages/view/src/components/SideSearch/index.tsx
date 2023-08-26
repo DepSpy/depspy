@@ -23,6 +23,7 @@ export default function SideSearch() {
     keywords: "",
     loading: true,
     nodes: [],
+    searchHistory: JSON.parse(localStorage.getItem("suggestionHistory")) ?? [],
   });
   const navigation = useNavigate();
   const searchHandler = (node: Node) => {
@@ -30,17 +31,24 @@ export default function SideSearch() {
     dispatch([
       { type: "keywords", value: "" },
       { type: "nodes", value: [] },
+      {
+        type: "searchHistory",
+        value: [...new Set([...state.searchHistory, node.name])],
+      },
     ]);
   };
   const searchResults = useMemo(
     () => (
-      <ul>
-        {state.nodes.map((v, i) => (
-          <li key={i} onClick={() => searchHandler(v)}>
-            {v.name}
-          </li>
-        ))}
-      </ul>
+      <>
+        <h1>{t("aside.search.results")}</h1>
+        <ul>
+          {state.nodes.map((v, i) => (
+            <li key={i} onClick={() => searchHandler(v)}>
+              {v.name}
+            </li>
+          ))}
+        </ul>
+      </>
     ),
     [state.nodes],
   );
@@ -52,6 +60,16 @@ export default function SideSearch() {
       dispatch({ type: "nodes", value: [] });
     } else dispatch({ type: "nodes", value: false });
   }, [state.keywords]);
+  useEffect(() => {
+    if (!state.loading)
+      localStorage.setItem(
+        "suggestionHistory",
+        JSON.stringify(state.searchHistory),
+      );
+  }, [state.searchHistory]);
+  useEffect(() => {
+    dispatch({ type: "loading", value: false });
+  }, []);
   return (
     <div className={styles["side-search"]}>
       <div className={styles["find"]}>
