@@ -50,6 +50,8 @@ function Tree({ width = window.innerWidth }, svg) {
   useEffect(() => {
     if (selectedCircularDependency) {
       setSelectNode(findDepBypath(selectedCircularDependency.path, root));
+    } else {
+      setCirclePath("");
     }
   }, [selectedCircularDependency]);
   //将循环节点连接
@@ -76,8 +78,6 @@ function Tree({ width = window.innerWidth }, svg) {
       path.moveTo(x1, y1);
       path.lineTo(x2, y2);
       setCirclePath(path.toString());
-    } else {
-      setCirclePath("");
     }
   }, [offsetY]);
   //➡️
