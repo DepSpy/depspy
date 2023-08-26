@@ -80,6 +80,8 @@ function Tree({ width = window.innerWidth }, svg) {
       path.moveTo(x1, y1);
       path.lineTo(x2, y2);
       setCirclePath(path.toString());
+    } else {
+      setCirclePath("");
     }
   }, [offsetY]);
   //➡️
