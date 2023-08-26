@@ -3,7 +3,7 @@ import { createWithEqualityFn } from "zustand/traditional";
 import { subscribeWithSelector } from "zustand/middleware";
 import type { Node } from "../../types/types";
 import { linkContext } from "./linkContext";
-import { searchNode } from "./searchNode";
+import { searchNode, searchNodePath } from "./searchNode";
 import { generateGraph } from "@dep-spy/core";
 import { combineRes } from "./combineRes";
 
@@ -94,17 +94,35 @@ if (import.meta.env.VITE_BUILD_MODE == "offline") {
       useStore.subscribe(
         (state) => state.depth,
         (newDepth) => {
-          ws.send(newDepth + "");
+          ws.send(JSON.stringify({ type: "depth", newDepth }));
         },
       );
+      ws.send(JSON.stringify({ type: "size", newDepth: depth }));
     },
-    ({ root, circularDependency, codependency }) => {
-      //更新回调
+    ({ root, circularDependency, codependency }, ws) => {
+      // 更新depth回调
+      // 找到新 tree 中的 selectedNode
+      const { selectedNode } = useStore.getState();
+      const tempNode = searchNodePath(root, selectedNode.path);
       useStore.setState({
         root,
         circularDependency,
         codependency,
-        selectedNode: root,
+        selectedNode: tempNode,
+      });
+      // 更新完 depth 后，需要重新获取 size
+      const { depth } = useStore.getState();
+      ws.send(JSON.stringify({ type: "size", newDepth: depth }));
+    },
+    ({ root, circularDependency, codependency }) => {
+      // 更新size回调
+      const { selectedNode } = useStore.getState();
+      const tempNode = searchNodePath(root, selectedNode.path);
+      useStore.setState({
+        root,
+        selectedNode: tempNode,
+        circularDependency,
+        codependency,
       });
     },
   );
