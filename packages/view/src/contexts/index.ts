@@ -9,7 +9,8 @@ import { combineRes } from "./combineRes";
 
 export const useStore = createWithEqualityFn<Store>()(
   subscribeWithSelector((set) => ({
-    theme: localStorage.getItem("theme") || "light",
+    theme: localStorage.getItem("theme") || "dark",
+    language: localStorage.getItem("language") || "en",
     info: "",
     root: null,
     depth: 3,
@@ -35,9 +36,12 @@ export const useStore = createWithEqualityFn<Store>()(
     searchNode,
     setCollapse: (collapse) => set({ collapse }),
     setTheme: (theme: string) => {
-      const newTheme = theme === "light" ? "dark" : "light";
-      set({ theme: newTheme });
-      localStorage.setItem("theme", newTheme);
+      localStorage.setItem("theme", theme === "light" ? "dark" : "light");
+      set({ theme: theme === "light" ? "dark" : "light" });
+    },
+    setLanguage: (language: string) => {
+      localStorage.setItem("language", language);
+      set({ language });
     },
     setGraphRes: async (info, depth) => {
       const graph = generateGraph(info, { depth, online: true });
@@ -108,6 +112,7 @@ if (import.meta.env.VITE_BUILD_MODE == "offline") {
 
 export interface Store {
   theme: string;
+  language: string;
   root: Node;
   info: string;
   depth: number;
@@ -127,7 +132,8 @@ export interface Store {
   searchNode: (root: Node, target: string) => Node[];
   setCollapse: (flag: boolean) => void;
   setTheme: (theme: string) => void;
-  setGraphRes: (name: string, depth: number) => Promise<void>;
+  setLanguage: (language: string) => void;
+  setGraphRes: (name: string, depth: number) => void;
   setSelectNodeHistory: (node: Node) => void;
   setPreSelectNode: () => void;
 }

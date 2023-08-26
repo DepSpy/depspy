@@ -9,6 +9,7 @@ import { useSearchParams } from "react-router-dom";
 import { shallow } from "zustand/shallow";
 import { LanguageIcon, ThemeIcon } from "../../components/icon/index";
 import Skeleton from "@/components/Skeleton";
+
 export default function AnalyzePage() {
   const [searchParams] = useSearchParams();
   const { root, info, depth, setGraphRes, setPreSelectNode } = useStore(
@@ -28,6 +29,7 @@ export default function AnalyzePage() {
   if (isLoading || !root) {
     return <Skeleton></Skeleton>;
   }
+
   return (
     <>
       <div className="fixed flex p-5">
