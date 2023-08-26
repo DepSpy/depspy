@@ -26,6 +26,7 @@ export default function AnalyzePage() {
   if (!root) {
     return <Skeleton></Skeleton>;
   }
+
   return (
     <>
       <div className="fixed flex p-5">

@@ -9,7 +9,7 @@ import { combineRes } from "./combineRes";
 
 export const useStore = createWithEqualityFn<Store>()(
   subscribeWithSelector((set) => ({
-    theme: "light",
+    theme: localStorage.getItem("theme") || "dark",
     info: "",
     root: null,
     depth: 3,
@@ -35,6 +35,8 @@ export const useStore = createWithEqualityFn<Store>()(
     searchNode,
     setCollapse: (collapse) => set({ collapse }),
     setTheme: (theme: string) => {
+      // 保存主题到本地
+      localStorage.setItem("theme", theme === "light" ? "dark" : "light");
       set({ theme: theme === "light" ? "dark" : "light" });
     },
     setGraphRes: async (info, depth) => {

@@ -40,7 +40,6 @@ export default function SideSearch() {
   const searchResults = useMemo(
     () => (
       <>
-        <h1>{t("aside.search.results")}</h1>
         <ul>
           {state.nodes.map((v, i) => (
             <li key={i} onClick={() => searchHandler(v)}>
