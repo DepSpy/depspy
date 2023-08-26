@@ -11,7 +11,7 @@ import { LanguageIcon, ThemeIcon } from "../../components/icon/index";
 import Skeleton from "@/components/Skeleton";
 export default function AnalyzePage() {
   const [searchParams] = useSearchParams();
-  const { root, info, depth, setGraphRes } = useStore(
+  const { root, info, depth, setGraphRes, setPreSelectNode } = useStore(
     (state) => state,
     shallow,
   );
@@ -25,7 +25,6 @@ export default function AnalyzePage() {
       });
     }
   }, [depth, info]);
-
   if (isLoading || !root) {
     return <Skeleton></Skeleton>;
   }
@@ -38,6 +37,17 @@ export default function AnalyzePage() {
       <div className="flex h-screen overflow-hidden bg-bg-container">
         <Tree ref={svg}></Tree>
         <Sidebar />
+        <div
+          className="absolute flex right-105 top-5
+           z-10 p-2 w-15 h-15
+           bg-bg-container
+           border border-solid border-border rounded-full hover:border-primary-base"
+          onClick={() => {
+            setPreSelectNode();
+          }}
+        >
+          <div className="i-carbon-direction-loop-left w-full h-full text-icon"></div>
+        </div>
       </div>
       <section
         className="fixed flex left-2rem bottom-2rem gap-4 h-2rem"

@@ -19,10 +19,15 @@ export const useStore = createWithEqualityFn<Store>()(
     selectedNode: null, // 默认选中根节点
     selectedCodependency: [],
     selectedCircularDependency: null,
+    selectedNodeHistory: [],
     setRoot: (root: Node) => set({ root }),
     setDepth: (depth: number) => set({ depth }),
     setInfo: (info: string) => set({ info }),
-    setSelectNode: (selectedNode: Node) => set({ selectedNode }),
+    setSelectNode: (selectedNode: Node) => {
+      const { setSelectNodeHistory } = useStore.getState();
+      setSelectNodeHistory(selectedNode);
+      set({ selectedNode });
+    },
     setSelectCodependency: (selectedCodependency: Node[]) =>
       set({ selectedCodependency }),
     setSelectCircularDependency: (selectedCircularDependency: Node) =>
@@ -39,6 +44,34 @@ export const useStore = createWithEqualityFn<Store>()(
       const res = await combineRes(graph, depth);
       set(res);
     },
+    setSelectNodeHistory: (node) => {
+      const { selectedNodeHistory } = useStore.getState();
+      // 当前节点不在历史记录的最后一个，且历史记录长度大于10时，删除最早的一条记录
+      if (selectedNodeHistory[selectedNodeHistory.length - 1] !== node) {
+        if (selectedNodeHistory.length < 10) {
+          set({
+            selectedNodeHistory: [...selectedNodeHistory, node],
+          });
+        } else if (selectedNodeHistory.length >= 10) {
+          set({
+            selectedNodeHistory: [...selectedNodeHistory.slice(1), node],
+          });
+        }
+      }
+    },
+    setPreSelectNode: () => {
+      const { selectedNodeHistory } = useStore.getState();
+      if (selectedNodeHistory.length > 1) {
+        const preNode = selectedNodeHistory[selectedNodeHistory.length - 2];
+        set({
+          selectedNode: preNode,
+          selectedNodeHistory: selectedNodeHistory.slice(
+            0,
+            selectedNodeHistory.length - 1,
+          ),
+        });
+      }
+    },
   })),
   shallow,
 );
@@ -52,6 +85,7 @@ if (import.meta.env.VITE_BUILD_MODE == "offline") {
         codependency,
         selectedNode: root,
         depth,
+        selectedNodeHistory: [root],
       });
       useStore.subscribe(
         (state) => state.depth,
@@ -83,6 +117,7 @@ export interface Store {
   selectedNode: Node;
   selectedCodependency: Node[] | [];
   selectedCircularDependency: Node | null;
+  selectedNodeHistory: Node[];
   setRoot: (root: Node) => void;
   setInfo: (info: string) => void;
   setDepth: (depth: number) => void;
@@ -93,4 +128,7 @@ export interface Store {
   setCollapse: (flag: boolean) => void;
   setTheme: (theme: string) => void;
   setGraphRes: (name: string, depth: number) => Promise<void>;
+  setSelectNodeHistory: (node: Node) => void;
+  setPreSelectNode: () => void;
+
 }
