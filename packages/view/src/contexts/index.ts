@@ -130,5 +130,4 @@ export interface Store {
   setGraphRes: (name: string, depth: number) => Promise<void>;
   setSelectNodeHistory: (node: Node) => void;
   setPreSelectNode: () => void;
-
 }
