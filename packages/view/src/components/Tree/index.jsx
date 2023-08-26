@@ -291,6 +291,9 @@ function generateTree(data) {
   const offsetY = {};
   const links = [];
   const rootLinks = root.links();
+  if (!rootLinks.length) {
+    offsetY[root.data.path.join()] = root;
+  }
   //将单一引用改为两个，便于始末节点的分离
   for (let i = 0; i < rootLinks.length; i++) {
     const d = rootLinks[i];
