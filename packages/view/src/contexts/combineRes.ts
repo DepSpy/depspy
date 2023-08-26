@@ -7,5 +7,7 @@ export async function combineRes(graph: Graph, depth: number) {
     circularDependency: await graph.getCircularDependency(),
     depth,
     selectedNode: await graph.getGraph(),
+    selectedCodependency: [],
+    selectedCircularDependency: null,
   };
 }

@@ -25,9 +25,7 @@ function App() {
     },
   ];
 
-  const router = createBrowserRouter(routeElement, {
-    basename: import.meta.env.VITE_BUILD_MODE === "online" ? "/depspy" : "/",
-  });
+  const router = createBrowserRouter(routeElement);
 
   const theme = useStore((state) => state.theme);
   const { initLanguage } = useLanguage();
