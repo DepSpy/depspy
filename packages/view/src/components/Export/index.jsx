@@ -133,9 +133,9 @@ export function Export({ svgRef, width, height, json }) {
               border="solid 2 rd-0.5rem primary-border-hover"
               onChange={handleSelectChange}
             >
-              {/* <option value={null} disabled selected hidden>
+              <option value={null} disabled selected hidden>
                 {t("section.select")}
-              </option> */}
+              </option>
               {options.map((opt, optId) => {
                 return (
                   <option value={opt.val} key={`selector-opt-${optId}`}>
