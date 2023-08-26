@@ -11,9 +11,7 @@ export default function DrawerBox({
   setFn,
 }) {
   function clickHandler(node) {
-    if (Array.isArray(node)) {
-      setFn(node[0]);
-    } else if (objSame(node, selectedNode || {})) {
+    if (objSame(node, selectedNode || {})) {
       setFn(null);
     } else {
       setFn(node);
@@ -31,8 +29,8 @@ export default function DrawerBox({
     >
       <div className="title">
         {title === "Circular Dependency"
-          ? t("aside.list.duplicated")
-          : t("aside.list.circular")}
+          ? t("aside.list.circular")
+          : t("aside.list.duplicated")}
       </div>
       <div
         className="content"
