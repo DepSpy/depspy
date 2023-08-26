@@ -1,20 +1,29 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import "../config";
+import { useStore } from "@/contexts";
 
 const useLanguage = () => {
+  const { language, setLanguage: setContextLanguage } = useStore(
+    (state) => state,
+  );
   const { t, i18n } = useTranslation();
-  const [, setLanguage] = useState("en");
 
   function toggleLanguage() {
-    setLanguage((prevLanguage) => {
-      const newLanguage = prevLanguage === "zh" ? "en" : "zh";
-      i18n.changeLanguage(newLanguage);
-      return newLanguage;
-    });
+    const prevLanguage = language;
+    const newLanguage = prevLanguage === "zh" ? "en" : "zh";
+    setContextLanguage(newLanguage);
+    i18n.changeLanguage(newLanguage);
   }
 
-  return { t, toggleLanguage };
+  function initLanguage() {
+    const language = localStorage.getItem("language");
+    if (language) {
+      setContextLanguage(language);
+      i18n.changeLanguage(language);
+    }
+  }
+
+  return { t, toggleLanguage, initLanguage };
 };
 
 export default useLanguage;

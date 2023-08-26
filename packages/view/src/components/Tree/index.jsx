@@ -49,7 +49,9 @@ function Tree({ width = window.innerWidth }, svg) {
   //将循环的路径上的节点展开并高亮循环节点
   useEffect(() => {
     if (selectedCircularDependency) {
-      setSelectNode(findDepBypath(selectedCircularDependency.path, root));
+      setSelectNode({
+        ...findDepBypath(selectedCircularDependency.path, root),
+      });
     } else {
       setCirclePath("");
     }

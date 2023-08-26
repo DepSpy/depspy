@@ -4,6 +4,7 @@ import { useStore } from "@/contexts";
 
 export function LanguageIcon() {
   const { t, toggleLanguage } = useLanguage();
+
   return (
     <button
       className={`i-icon-park-outline-${
