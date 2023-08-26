@@ -20,6 +20,7 @@
   --control-item-bg-active-hover: #cabef3;
   --color-border: #00000026;
   --color-border-secondary: #0000000f;
+  --color-skeleton-bg: #d9d9d9;
 }
 
 .app[data-theme="dark"] {
@@ -44,4 +45,5 @@
   --control-item-bg-active-hover: #1d0763;
   --color-border: #424242;
   --color-border-secondary: #303030;
+  --color-skeleton-bg: #d9d9d9;
 }

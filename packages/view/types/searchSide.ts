@@ -4,6 +4,7 @@ export interface StateType {
   keywords: string;
   loading: boolean;
   nodes: Node[];
+  searchHistory: string[];
 }
 export interface ActionType {
   type: keyof StateType;

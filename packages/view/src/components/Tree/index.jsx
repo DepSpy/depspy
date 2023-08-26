@@ -6,6 +6,7 @@ import SvgComponents from "./SvgComponents";
 function Tree({ width = window.innerWidth }, svg) {
   //➡️全局数据
   const {
+    theme,
     root,
     setSelectNode,
     collapse,
@@ -14,6 +15,7 @@ function Tree({ width = window.innerWidth }, svg) {
     selectedCircularDependency,
   } = useStore(
     (state) => ({
+      theme: state.theme,
       root: state.root,
       setSelectNode: state.setSelectNode,
       collapse: state.collapse,
@@ -43,7 +45,7 @@ function Tree({ width = window.innerWidth }, svg) {
   }, [data]);
   //➡️
   //循环
-  const [, setCirclePath] = useState("");
+  const [circlePath, setCirclePath] = useState("");
   //将循环的路径上的节点展开并高亮循环节点
   useEffect(() => {
     if (selectedCircularDependency) {
@@ -205,7 +207,7 @@ function Tree({ width = window.innerWidth }, svg) {
                     style={{
                       display: "inline-block",
                       textAlign: "center",
-                      color: isCo ? "white" : "black",
+                      color: isCo | (theme == "dark") ? "white" : "black",
                       lineHeight: 1,
                       padding: 7.5,
                       width,
@@ -252,6 +254,7 @@ function Tree({ width = window.innerWidth }, svg) {
             );
           })}
           <path
+            d={circlePath}
             strokeWidth={2}
             stroke="red"
             markerEnd="url(#triangleRed)"
