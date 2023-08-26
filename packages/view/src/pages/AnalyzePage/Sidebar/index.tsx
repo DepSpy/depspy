@@ -19,7 +19,9 @@ export default function Side() {
 
   const [showName, setShowName] = useState(typeName[1]);
   const [showSide, setShowSide] = useState(typeList[showName]);
-  const [showSideAll, setShowSideAll] = useState(true);
+  const [showSideAll, setShowSideAll] = useState(() =>
+    innerWidth > 768 ? true : false,
+  );
 
   useEffect(() => {
     setShowSide(typeList[showName]);
