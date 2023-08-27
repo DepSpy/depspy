@@ -192,6 +192,9 @@ function Tree({ width = window.innerWidth }, svg) {
               <g
                 cursor={"pointer"}
                 transform={`translate(${y + width / 2},${x})`}
+                onClick={() => {
+                  setSelectNode(findDepBypath(d.data.path, root));
+                }}
               >
                 <g>
                   {Object.values(originDeps).length && depth && (
