@@ -151,7 +151,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         if (pendingDependency.length !== 0) {
           sendQuery(trimmedInputValue);
         } else {
-          console.log("Non-exist dependency, please search another one");
+          console.log("Non-exist dependency, please search another one.");
           return;
         }
       } else if (event.key === "Escape") {
