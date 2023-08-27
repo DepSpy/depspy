@@ -18,7 +18,6 @@ export interface Config {
     codependency?: string;
   };
   size?: boolean;
-  online?: boolean;
 }
 
 export const defaultConfig = {
@@ -29,5 +28,4 @@ export const defaultConfig = {
     circularDependency: "ds.circular.json",
     codependency: "ds.co.json",
   },
-  online: typeof window !== "undefined" ? true : false,
 };

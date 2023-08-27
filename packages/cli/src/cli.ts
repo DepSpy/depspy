@@ -7,22 +7,23 @@ import { createServer } from "./createServer";
 const cli = cac();
 cli
   .command("[analysis,ana]", "解析本地项目依赖关系图")
-  .option("--depth <depth>", "依赖图最大深度", {
+  .option("--d,--depth <depth>", "依赖图最大深度", {
     type: ["number"],
   })
-  .option("--graph <outDir>", "输出依赖图的文件路径", {
+  .option("--graph <graph>", "输出依赖图的文件路径", {
     type: ["string"],
   })
-  .option("--codependency <outDir>", "输出相同依赖的文件路径", {
+  .option("--co,--codependency <codependency>", "输出相同依赖的文件路径", {
     type: ["string"],
   })
-  .option("--circularDependency <outDir>", "输出循环依赖的文件路径", {
-    type: ["string"],
-  })
-  .option("--online [online]", "是否在线分析", {
-    type: ["boolean"],
-  })
-  .option("--size [size]", "是否计算文件大小", {
+  .option(
+    "--cir,--circularDependency <circularDependency>",
+    "输出循环依赖的文件路径",
+    {
+      type: ["string"],
+    },
+  )
+  .option("--s,--size [size]", "是否计算文件大小", {
     type: ["boolean"],
   })
   .option("--ui", "是否启动可视化界面", {

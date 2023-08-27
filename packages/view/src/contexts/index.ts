@@ -44,7 +44,7 @@ export const useStore = createWithEqualityFn<Store>()(
       set({ language });
     },
     setGraphRes: async (info, depth) => {
-      const graph = generateGraph(info, { depth, online: true });
+      const graph = generateGraph(info, { depth });
       const res = await combineRes(graph, depth);
       set(res);
     },
