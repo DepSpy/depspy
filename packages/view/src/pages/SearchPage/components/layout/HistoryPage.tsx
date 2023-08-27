@@ -3,6 +3,7 @@ import "./HistoryPage.scss";
 import MainPageContext from "../store/MainPageContext";
 import { useNavigate } from "react-router-dom";
 import { generateGraphWrapper } from "../../util/GenerateGraphWrapper";
+import { useStore } from "@/contexts";
 
 interface HistoryPageProps {
   onDisplayHistory: () => void;
@@ -12,15 +13,12 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ onDisplayHistory }) => {
   const ctx = useContext(MainPageContext);
   const historyArr: string[] = ctx.history;
   const navigate = useNavigate();
+  const setInfo = useStore((state) => state.setInfo);
 
   const loadHistoryHandler = (item: string) => {
     generateGraphWrapper(item);
-    navigate("/analyze", {
-      state: {
-        searchname: item,
-        json: "",
-      },
-    });
+    setInfo(item);
+    navigate(`/analyze?q=${item}`);
   };
 
   return (

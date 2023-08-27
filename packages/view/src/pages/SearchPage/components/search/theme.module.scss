@@ -86,6 +86,10 @@
             background-color: var(--control-item-bg-hover);
           }
 
+          .selected {
+            background-color: var(--control-item-bg-hover);
+          }
+
           .leftsection {
             display: flex;
             flex-direction: column;

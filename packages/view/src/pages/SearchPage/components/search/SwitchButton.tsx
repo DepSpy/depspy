@@ -4,22 +4,36 @@ import MainPageContext from "../store/MainPageContext";
 import { useNavigate } from "react-router-dom";
 import { generateGraphWrapper } from "../../util/GenerateGraphWrapper";
 import { useStore } from "@/contexts";
+import fetchPackageNames from "../../util/FetchPackageNames";
+
 interface SwitchProps {
   onDisplayDragAndDrop: () => void;
+  newValue: string;
 }
 
-const SwitchButton: React.FC<SwitchProps> = ({ onDisplayDragAndDrop }) => {
+const SwitchButton: React.FC<SwitchProps> = ({
+  onDisplayDragAndDrop,
+  newValue,
+}) => {
   const navigate = useNavigate();
   const ctx = useContext(MainPageContext);
   const setInfo = useStore((state) => state.setInfo);
-  const info = ctx.info;
 
-  const addHistoryHandler = () => {
-    if (info.length > 0) {
-      ctx.onHistoryUpdate(info);
-      generateGraphWrapper(info);
-      navigate(`/analyze?q=${info}`);
-      setInfo(info);
+  const findDependencyHandler = async () => {
+    const trimmedInputValue = newValue.trim().toLowerCase();
+    if (trimmedInputValue === "") {
+      console.log("Can't search empty dependency");
+      return;
+    }
+    const pendingDependency = await fetchPackageNames(trimmedInputValue);
+    if (pendingDependency.length !== 0) {
+      setInfo(trimmedInputValue);
+      ctx.onHistoryUpdate(trimmedInputValue);
+      generateGraphWrapper(trimmedInputValue);
+      navigate(`/analyze?q=${trimmedInputValue}`);
+    } else {
+      console.log("None-exist dependency, please search another one.");
+      return;
     }
   };
 
@@ -28,7 +42,7 @@ const SwitchButton: React.FC<SwitchProps> = ({ onDisplayDragAndDrop }) => {
       <div className={"button-container"}>
         <button
           className={"button-large-important"}
-          onClick={addHistoryHandler}
+          onClick={findDependencyHandler}
         >
           {ctx.t("search.findDep")}
         </button>
