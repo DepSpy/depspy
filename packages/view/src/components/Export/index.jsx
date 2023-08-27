@@ -36,10 +36,10 @@ export function Export({ svgRef, width, height, json }) {
       val: "svg",
       name: ".svg",
     },
-    // {
-    //   val: "png",
-    //   name: ".png",
-    // },
+    {
+      val: "png",
+      name: ".png",
+    },
   ];
   function onDownload(data, type, name) {
     const blob = new Blob([data], { type }); // 返回一个新创建的 Blob 对象，其内容由参数中给定的数组串联组成。

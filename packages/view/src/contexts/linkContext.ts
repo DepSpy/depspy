@@ -4,6 +4,7 @@ const wsPath = "ws://localhost:822";
 export function linkContext(
   init: (data: generateGraphRes, ws: WebSocket) => void,
   update: (data: generateGraphRes, ws: WebSocket) => void,
+  setSize: (data: generateGraphRes, ws: WebSocket) => void,
 ) {
   if (!online) {
     const ws = new WebSocket(wsPath);
@@ -13,8 +14,10 @@ export function linkContext(
         const { type, data } = parseMes(result.data);
         if (type == "init") {
           init(JSON.parse(data), ws);
-        } else {
+        } else if (type == "update") {
           update(JSON.parse(data), ws);
+        } else if (type == "size") {
+          setSize(JSON.parse(data), ws);
         }
       });
     });

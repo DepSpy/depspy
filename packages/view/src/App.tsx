@@ -26,6 +26,7 @@ function App() {
   ];
 
   const router = createBrowserRouter(routeElement);
+
   const theme = useStore((state) => state.theme);
   const { initLanguage } = useLanguage();
 
