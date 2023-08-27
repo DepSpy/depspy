@@ -3,9 +3,11 @@ import { useEffect, useState, useRef, useReducer, forwardRef } from "react";
 import { shallow } from "zustand/shallow";
 import { useStore } from "../../contexts";
 import SvgComponents from "./SvgComponents";
+import "./index.scss";
 function Tree({ width = window.innerWidth }, svg) {
   //➡️全局数据
   const {
+    theme,
     root,
     setSelectNode,
     collapse,
@@ -14,6 +16,7 @@ function Tree({ width = window.innerWidth }, svg) {
     selectedCircularDependency,
   } = useStore(
     (state) => ({
+      theme: state.theme,
       root: state.root,
       setSelectNode: state.setSelectNode,
       collapse: state.collapse,
@@ -43,11 +46,15 @@ function Tree({ width = window.innerWidth }, svg) {
   }, [data]);
   //➡️
   //循环
-  const [, setCirclePath] = useState("");
+  const [circlePath, setCirclePath] = useState("");
   //将循环的路径上的节点展开并高亮循环节点
   useEffect(() => {
     if (selectedCircularDependency) {
-      setSelectNode(findDepBypath(selectedCircularDependency.path, root));
+      setSelectNode({
+        ...findDepBypath(selectedCircularDependency.path, root),
+      });
+    } else {
+      setCirclePath("");
     }
   }, [selectedCircularDependency]);
   //将循环节点连接
@@ -164,6 +171,10 @@ function Tree({ width = window.innerWidth }, svg) {
             const id = `${name}@${version}`;
             const coId = `${selectedCodependency[0]?.name}@${selectedCodependency[0]?.version}`;
             const isCo = coId == id;
+            const hoverText = `${id}(${declarationVersion || version})`;
+            const hoverTextLength = getActualWidthOfChars(hoverText);
+            const text = textOverflow(declarationId, 130);
+            const textLength = getActualWidthOfChars(text);
             const collapseFlag = Object.values(originDeps).length
               ? Object.values(dependencies).length
                 ? "-"
@@ -180,78 +191,90 @@ function Tree({ width = window.innerWidth }, svg) {
             return (
               <g
                 cursor={"pointer"}
+                transform={`translate(${y + width / 2},${x})`}
                 onClick={() => {
                   setSelectNode(findDepBypath(d.data.path, root));
                 }}
-                transform={`translate(${y + width / 2},${x})`}
               >
-                <title>
-                  {id}({declarationVersion})
-                </title>
-                <rect
-                  fill={isCo ? "rgb(91, 46, 238)" : "none"}
-                  stroke={
-                    highlight || isCo ? "rgb(91, 46, 238)" : "rgb(167,167,167)"
-                  }
-                  strokeWidth={2}
-                  width={width}
-                  height={30}
-                  rx={5}
-                  ry={5}
-                  transform={`translate(${-width / 2},${-15})`}
-                ></rect>
-                <foreignObject x={-width / 2} y="-15" width={width} height="30">
-                  <div
-                    style={{
-                      display: "inline-block",
-                      textAlign: "center",
-                      color: isCo ? "white" : "black",
-                      lineHeight: 1,
-                      padding: 7.5,
-                      width,
-                      fontSize: 15,
-                      height: 30,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                    xmlns="http://www.w3.org/1999/xhtml"
-                  >
-                    {declarationId}
-                  </div>
-                  <div xmlns="http://www.w3.org/1999/xhtml"></div>
-                </foreignObject>
-                {Object.values(originDeps).length && depth && (
-                  <g
-                    fill={
-                      d.data.highlight ? "rgb(91, 46, 238)" : "rgb(167,167,167)"
-                    }
-                    transform={`translate(${width / 2 + 2},${-32})`}
-                    onClick={() => {
-                      const currentNode = findDepBypath(d.data.path, data[0]);
-                      if (collapseFlag == "+") {
-                        currentNode.dependencies = currentNode.originDeps;
-                      } else {
-                        currentNode.dependencies = {};
+                <g>
+                  {Object.values(originDeps).length && depth && (
+                    <g
+                      fill={
+                        d.data.highlight
+                          ? "rgb(91, 46, 238)"
+                          : "rgb(167,167,167)"
                       }
-                      setData([...data]);
-                    }}
+                      pointerEvents={"auto"}
+                      transform={`translate(${width / 2 + 2},${-32})`}
+                      onClick={() => {
+                        const currentNode = findDepBypath(d.data.path, data[0]);
+                        if (collapseFlag == "+") {
+                          currentNode.dependencies = currentNode.originDeps;
+                        } else {
+                          currentNode.dependencies = {};
+                        }
+                        setData([...data]);
+                      }}
+                    >
+                      {collapseFlag == "+" ? (
+                        <use
+                          href="#carbon-add-alt"
+                          width={25}
+                          height={25}
+                        ></use>
+                      ) : (
+                        <use
+                          href="#carbon-subtract-alt"
+                          width={25}
+                          height={25}
+                        ></use>
+                      )}
+                    </g>
+                  )}
+                </g>
+                <g className="tip">
+                  <rect
+                    fill={isCo ? "rgb(91, 46, 238)" : "transparent"}
+                    stroke={
+                      highlight || isCo
+                        ? "rgb(91, 46, 238)"
+                        : "rgb(167,167,167)"
+                    }
+                    strokeWidth={2}
+                    width={width}
+                    height={30}
+                    rx={5}
+                    ry={5}
+                    transform={`translate(${-width / 2},${-15})`}
+                  ></rect>
+                  <text
+                    transform={`translate(${-textLength / 2},${6.5})`}
+                    stroke="none"
+                    fill={isCo | (theme == "dark") ? "white" : "black"}
                   >
-                    {collapseFlag == "+" ? (
-                      <use href="#carbon-add-alt" width={25} height={25}></use>
-                    ) : (
-                      <use
-                        href="#carbon-subtract-alt"
-                        width={25}
-                        height={25}
-                      ></use>
-                    )}
+                    {text}
+                  </text>
+                  <g>
+                    <text
+                      fill="none"
+                      strokeWidth={5}
+                      transform={`translate(${-hoverTextLength / 2},${-20})`}
+                    >
+                      {hoverText}
+                    </text>
+                    <text
+                      stroke="none"
+                      transform={`translate(${-hoverTextLength / 2},${-20})`}
+                    >
+                      {hoverText}
+                    </text>
                   </g>
-                )}
+                </g>
               </g>
             );
           })}
           <path
+            d={circlePath}
             strokeWidth={2}
             stroke="red"
             markerEnd="url(#triangleRed)"
@@ -288,6 +311,9 @@ function generateTree(data) {
   const offsetY = {};
   const links = [];
   const rootLinks = root.links();
+  if (!rootLinks.length) {
+    offsetY[root.data.path.join()] = root;
+  }
   //将单一引用改为两个，便于始末节点的分离
   for (let i = 0; i < rootLinks.length; i++) {
     const d = rootLinks[i];
@@ -357,5 +383,27 @@ const throttle = (func, delay = 500) => {
     }, delay);
   };
 };
-
+//获取文本长度
+function getActualWidthOfChars(text, options = {}) {
+  const { size = 16, family = "Playfair Display" } = options;
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  ctx.font = `${size}px ${family}`;
+  const metrics = ctx.measureText(text);
+  const actual =
+    Math.abs(metrics.actualBoundingBoxLeft) +
+    Math.abs(metrics.actualBoundingBoxRight);
+  return Math.max(metrics.width, actual);
+}
+//模拟text-overflow: ellipsis;
+function textOverflow(input, maxLength) {
+  if (getActualWidthOfChars(input) <= maxLength) {
+    return input;
+  } else {
+    while (getActualWidthOfChars(input.concat("...")) >= maxLength) {
+      input = input.slice(0, -1);
+    }
+    return input.concat("...");
+  }
+}
 export default forwardRef(Tree);

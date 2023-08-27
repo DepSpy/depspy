@@ -13,7 +13,9 @@ export default function CircleDepList() {
         title={"Circular Dependency"}
         dependencies={circularDependency}
         selectedNode={selectedCircularDependency}
-        setFn={setSelectCircularDependency}
+        setFn={(node) => {
+          setSelectCircularDependency(node);
+        }}
       />
     </div>
   );

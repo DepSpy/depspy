@@ -1,31 +1,39 @@
 import * as d3 from "d3";
 import { useRef } from "react";
+import { useStore } from "@/contexts";
 import useLanguage from "@/i18n/hooks/useLanguage";
 import saveSvg from "save-svg-as-png";
-import "./index.scss";
 
 export function Export({ svgRef, width, height, json }) {
   const { t } = useLanguage();
   let { current } = useRef({
     fileTypeRef: "",
   });
+  const [depth] = useStore((state) => [state.depth, state.setDepth]);
+  const { collapse } = useStore((state) => ({
+    collapse: state.collapse,
+    setCollapse: state.setCollapse,
+  }));
   const handleSelectChange = () => {
     const select = document.getElementsByTagName("select")[0];
     const selectedType = select.options[select.selectedIndex].value;
     current.fileTypeRef = selectedType;
   };
   // 缩放获取完整svg d3 矢量
-  const zoomScreen = (type) => {
+  const zoomScreen = (type, sb = {}) => {
     function zoomed(e) {
       d3.selectAll("#resizing").attr("transform", e.transform);
     }
-    const zoom = d3.zoom().scaleExtent([1, 0.1]).on("zoom", zoomed);
-    if (type == "Full")
+    const zoom = d3.zoom().on("zoom", zoomed);
+    if (type == "Full") {
+      const divide = collapse ? 1 : depth < 3 ? 1 : Math.pow(2.1, depth);
       d3.select(svgRef.current).call(
         zoom.transform,
-        d3.zoomIdentity.translate(width / 100, height / 2).scale(0.1),
+        d3.zoomIdentity
+          .translate(width / sb.width, height / (100 / divide))
+          .scale(0.01),
       );
-    else if (type == "Reset")
+    } else if (type == "Reset")
       d3.select(svgRef.current).call(zoom.transform, d3.zoomIdentity);
   };
   const options = [
@@ -56,17 +64,19 @@ export function Export({ svgRef, width, height, json }) {
   }
 
   function onSaveSvg() {
-    zoomScreen("Full");
     const svgDom = document.querySelector("svg");
-    const serializer = new XMLSerializer();
+    const sb = svgDom.getBBox();
+    zoomScreen("Full", sb);
     const toExport = svgDom.cloneNode(true);
     const bb = svgDom.getBBox();
+    console.log(sb, bb);
+    const serializer = new XMLSerializer();
     toExport.setAttribute(
       "viewBox",
       bb.x + " " + bb.y + " " + bb.width + " " + bb.height,
     );
-    toExport.setAttribute("width", bb.width * 20);
-    toExport.setAttribute("height", bb.height * 20);
+    toExport.setAttribute("width", bb.width * 250);
+    toExport.setAttribute("height", bb.height * 250);
     const source =
       '<?xml version="1.0" standalone="no"?>\r\n' +
       serializer.serializeToString(toExport);
@@ -78,20 +88,21 @@ export function Export({ svgRef, width, height, json }) {
     zoomScreen("Reset");
   }
   const onSaveImage = (format) => {
-    zoomScreen("Full");
     const svgDom = document.querySelector("svg");
+    const sb = svgDom.getBBox();
+    zoomScreen("Full", sb);
     const toExport = svgDom.cloneNode(true);
     const bb = svgDom.getBBox();
-    toExport.setAttribute(
-      "viewBox",
-      `${bb.x}" "${-bb.y}" "${bb.width}" "${bb.height}`,
-    );
-    toExport.setAttribute("width", bb.width * 1.2);
-    toExport.setAttribute("height", bb.height * 1.2);
+    const view = `${bb.x * 50} ${bb.y * 50} ${bb.width * 1.2} ${
+      bb.height * 1.3
+    }`;
+    toExport.setAttribute("viewBox", view);
+    toExport.setAttribute("width", bb.width * 250);
+    toExport.setAttribute("height", bb.height * 250);
     saveSvg.saveSvgAsPng(
       toExport,
       `${json.name}${t("section.dependences")}.${format}`,
-      { scale: 10 },
+      { scale: 80 },
     );
     zoomScreen("Reset");
   };
@@ -122,34 +133,46 @@ export function Export({ svgRef, width, height, json }) {
   return (
     <>
       <div>
-        <div className="flex exporter">
-          <select
-            className="flex w-20 h-8 lh-8"
-            border="solid 2 rd-0.5rem primary-border hover:primary-border-hover"
-            onChange={handleSelectChange}
-          >
-            <option value={null} disabled selected hidden>
-              {t("section.select")}
-            </option>
-            {options.map((opt, optId) => {
-              return (
-                <option value={opt.val} key={`selector-opt-${optId}`}>
-                  {opt.name}
-                </option>
-              );
-            })}
-          </select>
+        <div className="flex flex-items-end exporter align-middle">
           <div
-            className="flex flex-row fs-24 
-            c-primary-border hover:c-primary-border-hover"
-            onClick={handleDownload}
+            id={`${t("section.fileType")}`}
+            className={`relative
+      hover:after:(absolute flex c-primary-hover text-nowrap left-50% transform-translate-x--50%
+      content-[attr(id)])`}
           >
-            <div> {t("section.export")} </div>
+            <select
+              className="flex w-20 h-8 lh-8 bg-bg-container text-text text-center"
+              border="solid 2 rd-0.5rem primary-border-hover"
+              onChange={handleSelectChange}
+            >
+              <option value={null} disabled selected hidden>
+                {t("section.select")}
+              </option>
+              {options.map((opt, optId) => {
+                return (
+                  <option value={opt.val} key={`selector-opt-${optId}`}>
+                    {opt.name}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+          <div
+            id={`${t("section.export")}`}
+            className={`relative p-l-3
+      hover:after:(absolute flex c-primary-hover text-nowrap left-50% transform-translate-x--50%
+      content-[attr(id)])`}
+          >
             <div
-              className={`
+              className="flex flex-row fs-24 c-primary-border-hover"
+              onClick={handleDownload}
+            >
+              <div
+                className={`
               i-carbon-logout
               text-1.5rem `}
-            ></div>
+              ></div>
+            </div>
           </div>
         </div>
       </div>

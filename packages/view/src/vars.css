@@ -20,6 +20,7 @@
   --control-item-bg-active-hover: #cabef3;
   --color-border: #00000026;
   --color-border-secondary: #0000000f;
+  --color-skeleton-bg: #d9d9d9;
 }
 
 .app[data-theme="dark"] {
@@ -27,7 +28,7 @@
   --color-primary-bg-hover: #1d0763;
   --color-primary-border: #260a84;
   --color-primary-border-hover: #8f71f3;
-  --color-primary-hover: #5b2eee;
+  --color-primary-hover: #8463f1;
   --color-primary-base: #7550f1;
   --color-primary-active: #8f71f3;
   --color-primary-text-hover: #a992f6;
@@ -37,11 +38,12 @@
   --color-text-description: #ffffff73;
   --color-icon: #ffffff73;
   --color-icon-hover: #ffffffd9;
-  --color-bg-container: #141414;
-  --color-bg-layout: #000;
+  --color-bg-container: #252529;
+  --color-bg-layout: #161618;
   --control-item-bg-hover: #ffffff14;
   --control-item-bg-active: #130542;
   --control-item-bg-active-hover: #1d0763;
   --color-border: #424242;
   --color-border-secondary: #303030;
+  --color-skeleton-bg: #d9d9d9;
 }

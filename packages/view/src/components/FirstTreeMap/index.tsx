@@ -136,7 +136,7 @@ const FirstTreeMap = ({
               hideRoot.push((data as Data).name);
             }
           });
-        console.log(hideRoot, data);
+        // console.log(hideRoot, data);
         if (hideRoot.length > 0) {
           const newData = {
             name: data.name,
@@ -200,6 +200,7 @@ const FirstTreeMap = ({
           height: height,
           backgroundColor: "var(--color-border)",
         }}
+        className="text-dark-500"
       >
         <SwitchTransition mode="out-in">
           <CSSTransition classNames={"fade"} key={state} timeout={500}>

@@ -123,12 +123,11 @@ export const DrawChildrenRect = ({
               : "0 0 0 1px rgba(16, 22, 26, 0.04), 0 1px 3px 0 rgba(16, 22, 26, 0.12)",
           }}
           onMouseMove={() => {
-            console.log("enter", show);
-
+            // console.log("enter", show);
             setShow(true);
           }}
           onMouseLeave={() => {
-            console.log("leave");
+            // console.log("leave");
             setShow(false);
           }}
           ref={ref}

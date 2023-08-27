@@ -19,17 +19,28 @@ export default function Side() {
 
   const [showName, setShowName] = useState(typeName[1]);
   const [showSide, setShowSide] = useState(typeList[showName]);
+  const [showSideAll, setShowSideAll] = useState(() =>
+    innerWidth > 768 ? true : false,
+  );
 
   useEffect(() => {
     setShowSide(typeList[showName]);
   }, [showName]);
 
   return (
-    <div className="sidebar">
+    <div
+      className="sidebar border-l-solid border-l-border bg-bg-container text-text"
+      style={{
+        transform: `translateX(${showSideAll ? "0" : "25rem"})`,
+        transition: "transform 0.5s",
+      }}
+    >
       <ChooseItem
         setShowName={setShowName}
         typeName={typeName}
         showName={showName}
+        setShowSideAll={setShowSideAll}
+        showSideAll={showSideAll}
       />
       <div className="sidebar-container">{showSide}</div>
     </div>

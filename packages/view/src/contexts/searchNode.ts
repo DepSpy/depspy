@@ -20,3 +20,12 @@ export const searchNode = (root: Node, target: string) => {
     return res.slice(0, 10);
   }
 };
+
+export const searchNodePath = (root: Node, path: string[] = []) => {
+  let currentNode = root;
+  for (let i = 1; i < path.length; i++) {
+    currentNode = currentNode.dependencies[path[i]];
+  }
+  console.log(currentNode);
+  return currentNode;
+};

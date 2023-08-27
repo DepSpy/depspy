@@ -17,6 +17,10 @@ export default function CoDepList() {
         dependencies={dependencies}
         selectedNode={selectedCodependency[0]}
         setFn={(node) => {
+          if (node === null) {
+            setSelectCodependency([]);
+            return;
+          }
           setSelectCodependency(codependency[node.name + node.version]);
         }}
       />

@@ -11,7 +11,6 @@ import {
 } from "./constant";
 import * as fs from "fs";
 import * as path from "path";
-import axios from "axios";
 const inBrowser = typeof window !== "undefined";
 //给定想要获取模块的info，输出指定模块的详情
 export default async function getModuleInfo(
@@ -53,7 +52,7 @@ async function getNpmOnlineInfo(packageName: string) {
   } else {
     url = `${NPM_DOMAIN}/${packageName}/latest`;
   }
-  return await axios.get(url).then((res) => res.data);
+  return await fetch(url).then((res) => res.json());
 }
 //获取本地某模块的package.json信息💻
 async function getNpmLocalInfo(info: string, baseDir: string, size: boolean) {
