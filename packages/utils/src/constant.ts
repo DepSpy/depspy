@@ -15,7 +15,6 @@ export const MODULE_INFO = [
   "description",
   "dependencies",
   "peerDependencies",
-  "devDependencies",
 ];
 
 export enum INFO_TYPES {
@@ -31,13 +30,11 @@ export type MODULE_INFO_TYPE = {
   resolvePath: string;
   description?: string;
   dependencies?: Record<string, string>;
-  devDependencies?: Record<string, string>;
   peerDependencies?: Record<string, string>;
 };
 export type Package_TYPE = MODULE_INFO_TYPE & Record<string, unknown>;
 
 export interface CONFIG {
   baseDir?: string;
-  online?: boolean;
   size?: boolean;
 }

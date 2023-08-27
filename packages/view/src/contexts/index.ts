@@ -44,7 +44,7 @@ export const useStore = createWithEqualityFn<Store>()(
       set({ language });
     },
     setGraphRes: async (info, depth) => {
-      const graph = generateGraph(info, { depth, online: true });
+      const graph = generateGraph(info, { depth });
       const res = await combineRes(graph, depth);
       set(res);
     },
@@ -151,7 +151,7 @@ export interface Store {
   setCollapse: (flag: boolean) => void;
   setTheme: (theme: string) => void;
   setLanguage: (language: string) => void;
-  setGraphRes: (name: string, depth: number) => void;
+  setGraphRes: (name: string, depth: number) => Promise<void>;
   setSelectNodeHistory: (node: Node) => void;
   setPreSelectNode: () => void;
 }
