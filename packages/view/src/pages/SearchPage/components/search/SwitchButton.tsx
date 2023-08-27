@@ -32,7 +32,7 @@ const SwitchButton: React.FC<SwitchProps> = ({
       generateGraphWrapper(trimmedInputValue);
       navigate(`/analyze?q=${trimmedInputValue}`);
     } else {
-      console.log("Non-exist dependency, please search another one.");
+      console.log("Non-exist dependency, please search another one");
       return;
     }
   };
