@@ -25,7 +25,7 @@ export const searchNodePath = (root: Node, path: string[] = []) => {
   let currentNode = root;
   for (let i = 1; i < path.length; i++) {
     currentNode = currentNode.dependencies[path[i]];
+    if (!currentNode.dependencies[path[i]]) return currentNode;
   }
-  console.log(currentNode);
   return currentNode;
 };

@@ -70,8 +70,8 @@ const FirstTreeMap = ({
   const [treeMap, setTreeMap] = useState<d3.HierarchyRectangularNode<Data>>();
   const { selectedNode, setSelectNode } = useStore((store) => {
     return {
-      selectedNode: store.selectedNode,
-      setSelectNode: store.setSelectNode,
+      selectedNode: store.selectedSizeNode,
+      setSelectNode: store.setSelectSizeNode,
     };
   });
   // init
