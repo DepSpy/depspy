@@ -10,6 +10,7 @@
     width: 552px;
     border: 2px solid var(--color-border);
     border-radius: 23px;
+    color: var(--color-text);
 
     .inputlayout {
       display: flex;
@@ -34,12 +35,6 @@
       }
       /* stylelint-enable */
 
-      .icon {
-        width: 24px;
-        height: 24px;
-        background-color: aqua;
-      }
-
       .input {
         flex-grow: 1;
         padding: 3px 3px 3px 15px;
@@ -47,6 +42,7 @@
         font-size: medium;
         background-color: transparent;
         border-color: transparent;
+        color: var(--color-text);
       }
 
       input.input:focus {

@@ -16,7 +16,6 @@ const SwitchButton: React.FC<SwitchProps> = ({ onDisplayDragAndDrop }) => {
 
   const addHistoryHandler = () => {
     if (info.length > 0) {
-      // console.log("search name is:", info);
       ctx.onHistoryUpdate(info);
       generateGraphWrapper(info);
       navigate(`/analyze?q=${info}`);
@@ -31,13 +30,13 @@ const SwitchButton: React.FC<SwitchProps> = ({ onDisplayDragAndDrop }) => {
           className={"button-large-important"}
           onClick={addHistoryHandler}
         >
-          Find Package
+          {ctx.t("search.findDep")}
         </button>
         <button
           className={"button-large-default"}
           onClick={onDisplayDragAndDrop}
         >
-          Upload package.json File
+          {ctx.t("search.upload")}
         </button>
       </div>
     </div>

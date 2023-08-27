@@ -28,7 +28,7 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ onDisplayHistory }) => {
       <div className="panel">
         <div className={"panel-header"}>
           <div className={"header-content"}>
-            <p className={"header-title"}>History</p>
+            <p className={"header-title"}>{ctx.t("search.history")}</p>
             <button
               className="i-ic-outline-delete-sweep"
               onClick={ctx.onClearHistory}

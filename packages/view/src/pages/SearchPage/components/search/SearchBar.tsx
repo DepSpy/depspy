@@ -15,6 +15,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onHideButton,
 }) => {
   const ctx = useContext(MainPageContext);
+  const language = ctx.t("mode.language") as string;
   const [value, setValue] = useState<string>("");
   const [suggestions, setSuggestions] = useState<
     Array<{ name: string; description: string; version: string }>
@@ -32,20 +33,20 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
     try {
       const newSuggestions = await fetchPackageNames(trimmedInputValue);
-      setSuggestions(newSuggestions);
-
       if (newSuggestions.length === 0) {
         onShowButton();
       } else {
         onHideButton();
       }
+
+      setSuggestions(newSuggestions);
     } catch (error) {
       console.error("Error fetching suggestions:", error);
     }
   };
 
   const debouncedSuggestionsFetch = useRef(
-    debounce(suggestionsFetchRequestedHandler, 100),
+    debounce(suggestionsFetchRequestedHandler, 600),
   ).current;
 
   useEffect(() => {
@@ -89,7 +90,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   const inputProps = {
-    placeholder: "Search packages",
+    placeholder:
+      language === "ENGLISH" ? "Search dependencies" : "请输入依赖名",
     value,
     onChange: (
       event: React.FormEvent<HTMLElement>,

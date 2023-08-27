@@ -8,9 +8,8 @@
     },
     "search": {
         "history": "历史记录",
-        "searchHis": "搜索历史记录",
-        "searchPkg": "搜素包文件",
-        "search": "搜索",
+        "findDep": "搜索依赖",
+        "searchDeps": "输入依赖名",
         "upload": "上传包文件",
         "drag": "点击或拖动文件到此处进行上传",
         "format": "只接受*.json文件"
@@ -54,7 +53,7 @@
             "source": "数据源"
         }
     },
-    "skeleton":{
-        "tip":"网络请求较慢，请耐心等待 😇"
+    "skeleton": {
+        "tip": "网络请求较慢，请耐心等待 😇"
     }
 }
