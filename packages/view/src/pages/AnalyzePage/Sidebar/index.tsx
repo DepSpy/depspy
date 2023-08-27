@@ -5,7 +5,6 @@ import SideSearch from "../../../components/SideSearch";
 import SideModule from "../../../components/SideModule";
 import "./index.scss";
 import useLanguage from "../../../i18n/hooks/useLanguage";
-
 export default function Side() {
   const { t } = useLanguage();
   const typeList = {
@@ -19,9 +18,7 @@ export default function Side() {
 
   const [showName, setShowName] = useState(typeName[1]);
   const [showSide, setShowSide] = useState(typeList[showName]);
-  const [showSideAll, setShowSideAll] = useState(() =>
-    innerWidth > 768 ? true : false,
-  );
+  const [showSideAll, setShowSideAll] = useState(false);
 
   useEffect(() => {
     setShowSide(typeList[showName]);

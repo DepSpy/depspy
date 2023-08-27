@@ -1,5 +1,5 @@
 import "./index.scss";
-
+import Back from "@/components/Back";
 export default function Side({
   setShowName,
   typeName,
@@ -13,6 +13,7 @@ export default function Side({
 
   return (
     <div className="sidebar-choose">
+      <Back></Back>
       {typeName.map((name: string) => (
         <div
           key={name}

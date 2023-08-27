@@ -21,7 +21,6 @@ export class Graph {
     const { name, version, size, resolvePath, dependencies, description } =
       await getModuleInfo(info, {
         baseDir: this.resolvePaths.slice(-1)[0], //指定解析的根目录
-        online: this.config.online,
         size: this.config.size,
       });
     const id = name + version;
