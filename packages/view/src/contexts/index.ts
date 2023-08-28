@@ -12,6 +12,9 @@ export const useStore = createWithEqualityFn<Store>()(
     theme: localStorage.getItem("theme") || "dark",
     language: localStorage.getItem("language") || "en",
     info: "",
+    sizeTree: false,
+    sizeLoading: true,
+    rootLoading: true,
     root: null,
     sizeRoot: null,
     depth: 3,
@@ -27,6 +30,9 @@ export const useStore = createWithEqualityFn<Store>()(
     setSizeRoot: (sizeRoot: Node) => set({ sizeRoot }),
     setDepth: (depth: number) => set({ depth }),
     setInfo: (info: string) => set({ info }),
+    setSizeTree: (sizeTree: boolean) => set({ sizeTree }),
+    setSizeLoading: (sizeLoading: boolean) => set({ sizeLoading }),
+    setRootLoading: (rootLoading: boolean) => set({ rootLoading }),
     setSelectNode: (selectedNode: Node) => {
       const { setSelectNodeHistory } = useStore.getState();
       setSelectNodeHistory(selectedNode);
@@ -146,6 +152,7 @@ if (import.meta.env.VITE_BUILD_MODE == "offline") {
         codependency,
       });
     },
+    useStore,
   );
 }
 
@@ -154,7 +161,10 @@ export interface Store {
   language: string;
   root: Node;
   sizeRoot: Node;
+  sizeTree: boolean;
   info: string;
+  sizeLoading: boolean;
+  rootLoading: boolean;
   depth: number;
   collapse: boolean;
   codependency: Record<string, Node[]>;
@@ -168,6 +178,9 @@ export interface Store {
   setSizeRoot: (sizeRoot: Node) => void;
   setInfo: (info: string) => void;
   setDepth: (depth: number) => void;
+  setSizeTree: (sizeTree: boolean) => void;
+  setSizeLoading: (sizeLoading: boolean) => void;
+  setRootLoading: (rootLoading: boolean) => void;
   setSelectNode: (selectedNode: Node) => void;
   setSelectSizeNode: (selectedSizeNode: Node) => void;
   setSelectCodependency: (selectedCodependency: Node[]) => void;

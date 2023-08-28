@@ -8,9 +8,9 @@
     flex-direction: column;
     justify-content: center;
     width: 552px;
+    color: var(--color-text);
     border: 2px solid var(--color-border);
     border-radius: 23px;
-    color: var(--color-text);
 
     .inputlayout {
       display: flex;
@@ -40,9 +40,9 @@
         padding: 3px 3px 3px 15px;
         margin-left: auto;
         font-size: medium;
+        color: var(--color-text);
         background-color: transparent;
         border-color: transparent;
-        color: var(--color-text);
       }
 
       input.input:focus {
