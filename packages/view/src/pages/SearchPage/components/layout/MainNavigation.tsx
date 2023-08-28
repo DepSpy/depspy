@@ -23,6 +23,14 @@ const MainNavigation = () => {
       <ul>
         <li>
           <button
+            className="i-carbon-logo-github text-icon h-24px w-24px hover:text-icon-hover m-2"
+            onClick={() => {
+              window.open("https://github.com/DepSpy/depspy", "_blank");
+            }}
+          />
+        </li>
+        <li>
+          <button
             className={`i-icon-park-outline-${
               language === "ENGLISH" ? "english" : "chinese"
             }`}
