@@ -8,6 +8,7 @@ import DrawStore from "./store";
 import "./index.scss";
 import { useStore } from "../../contexts";
 import Loading from "../Loading";
+import { throttle } from "@/utils/throttle";
 /*
  @return {
     name: string;
@@ -63,6 +64,7 @@ const FirstTreeMap = ({
   margin = 0,
   padding = 2,
   RectFontSize = 14,
+  fullScreen = false,
   loading = (
     <div
       style={{
@@ -77,6 +79,11 @@ const FirstTreeMap = ({
     </div>
   ),
 }: DrawSVGProps) => {
+  if (fullScreen) {
+    width = window.innerWidth;
+    height = window.innerHeight;
+  }
+
   const [state, setState] = useState<number>(0); // control transition
   const [data, setData] = useState<Data>();
   const [treeMap, setTreeMap] = useState<d3.HierarchyRectangularNode<Data>>();
@@ -86,11 +93,15 @@ const FirstTreeMap = ({
       setSelectNode: store.setSelectSizeNode,
     };
   });
+  const [innerWidth, setInnerWidth] = useState(width);
+  const [innerHeight, setInnerHeight] = useState(height);
+
   // init
   useEffect(() => {
     if (!selectedNode) setTreeMap(void 0);
     setData(changeData(selectedNode));
   }, [selectedNode]);
+
   const updateTreeMap = useCallback(
     (data: Data) => {
       if (!data) return;
@@ -175,10 +186,12 @@ const FirstTreeMap = ({
     },
     [height, margin, width],
   );
+
   // data change options
   useEffect(() => {
     if (data) updateTreeMap(data);
   }, [data, updateTreeMap]);
+
   const handle_rect_click = (data: Data) => {
     /*data:{name,size,children,_children} */
     return () => {
@@ -198,14 +211,26 @@ const FirstTreeMap = ({
     };
   };
 
+  useEffect(() => {
+    // 监听窗口大小变化
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        setInnerWidth(window.innerWidth);
+        setInnerHeight(window.innerHeight);
+      }),
+      false,
+    );
+  }, []);
+
   return (
     <DrawStore value={{ handle_rect_click, loading, RectFontSize }}>
       <div
         // className={`relative w-[${width}px] h-[${height}px] bg-[#1a3055ff]`}
         style={{
           position: "relative",
-          width: width,
-          height: height,
+          width: innerWidth,
+          height: innerHeight,
           backgroundColor: "var(--color-border)",
         }}
         className="text-dark-500"

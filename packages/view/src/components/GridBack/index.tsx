@@ -1,17 +1,28 @@
 import { useStore } from "@/contexts";
-import React, { useEffect, useRef } from "react";
+import { throttle } from "@/utils/throttle";
+import React, { useEffect, useRef, useState } from "react";
 
-function GridBackground({ width, height }) {
+function GridBackground() {
   const canvasRef = useRef(null);
   const { theme } = useStore((state) => state);
+  const [innerWidth, setInnerWidth] = useState(window.innerWidth);
+  const [innerHeight, setInnerHeight] = useState(window.innerHeight);
 
   useEffect(() => {
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        setInnerWidth(window.innerWidth);
+        setInnerHeight(window.innerHeight);
+      }),
+    );
+
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
 
     // 设置Canvas的宽度和高度
-    canvas.width = width;
-    canvas.height = height;
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
 
     // 定义格子的大小和间隔
     const gridSpacing = 30;
@@ -37,7 +48,7 @@ function GridBackground({ width, height }) {
       ctx.lineTo(canvas.width, y);
       ctx.stroke();
     }
-  }, [theme]);
+  }, [theme, innerWidth, innerHeight]);
 
   return (
     <div>
