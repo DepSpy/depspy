@@ -5,8 +5,11 @@ import path from "path";
 import express from "express";
 import ws from "ws";
 import { blueBright, green } from "chalk";
+import chokidar from "chokidar";
+import { readFile } from "fs";
 
-const root = path.join(staticPath, "online");
+const root = path.join(staticPath, "vite");
+const pkgRoot = path.join(process.cwd(), "package.json");
 
 export function createServer(graph: Graph, option: Config) {
   createWs(graph, option);
@@ -41,6 +44,31 @@ function createWs(graph: Graph, option: Config) {
         });
         ws.send(formatMes("update", await combineRes(graph, option)));
       }
+      // 项目根目录下的 ppackage.json 发生变化时，重新生成依赖图
+      let prePkgJSON = null;
+      readFile(pkgRoot, "utf-8", async (err, data) => {
+        if (err) {
+          console.log(err);
+          return;
+        }
+        prePkgJSON = analysePkgInfo(data);
+      });
+      chokidar.watch(pkgRoot).on("change", async () => {
+        // 读取 package.json 中的 dependencies
+        readFile(pkgRoot, "utf-8", async (err, data) => {
+          if (err) {
+            console.log(err);
+            return;
+          }
+          const newPkgJSON = analysePkgInfo(data);
+          if (newPkgJSON !== prePkgJSON) {
+            prePkgJSON = newPkgJSON;
+            const graph = generateGraph("", option);
+            ws.send(formatMes("update", await combineRes(graph, option)));
+            console.log(green("实时更新成功"));
+          }
+        });
+      });
     });
   });
 }
@@ -57,4 +85,14 @@ async function combineRes(graph: Graph, option: Config = {}) {
 
 function formatMes(type: string, data: unknown) {
   return JSON.stringify({ type, data });
+}
+
+function analysePkgInfo(data) {
+  const { dependencies, name, version, description } = JSON.parse(data);
+  return JSON.stringify({
+    dependencies,
+    name,
+    version,
+    description,
+  });
 }

@@ -8,6 +8,7 @@
     flex-direction: column;
     justify-content: center;
     width: 552px;
+    color: var(--color-text);
     border: 2px solid var(--color-border);
     border-radius: 23px;
 
@@ -34,17 +35,12 @@
       }
       /* stylelint-enable */
 
-      .icon {
-        width: 24px;
-        height: 24px;
-        background-color: aqua;
-      }
-
       .input {
         flex-grow: 1;
         padding: 3px 3px 3px 15px;
         margin-left: auto;
         font-size: medium;
+        color: var(--color-text);
         background-color: transparent;
         border-color: transparent;
       }
@@ -87,6 +83,10 @@
           cursor: pointer;
 
           &:hover {
+            background-color: var(--control-item-bg-hover);
+          }
+
+          .selected {
             background-color: var(--control-item-bg-hover);
           }
 

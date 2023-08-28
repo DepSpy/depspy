@@ -15,15 +15,18 @@ export const useStore = createWithEqualityFn<Store>()(
     sizeLoading: true,
     rootLoading: true,
     root: null,
+    sizeRoot: null,
     depth: 3,
     collapse: true,
     codependency: {},
     circularDependency: [],
     selectedNode: null, // 默认选中根节点
+    selectedSizeNode: null,
     selectedCodependency: [],
     selectedCircularDependency: null,
     selectedNodeHistory: [],
     setRoot: (root: Node) => set({ root }),
+    setSizeRoot: (sizeRoot: Node) => set({ sizeRoot }),
     setDepth: (depth: number) => set({ depth }),
     setInfo: (info: string) => set({ info }),
     setSizeLoading: (sizeLoading: boolean) => set({ sizeLoading }),
@@ -32,6 +35,19 @@ export const useStore = createWithEqualityFn<Store>()(
       const { setSelectNodeHistory } = useStore.getState();
       setSelectNodeHistory(selectedNode);
       set({ selectedNode });
+      const tempNode = searchNodePath(
+        useStore.getState().sizeRoot,
+        selectedNode.path,
+      );
+      set({ selectedSizeNode: tempNode });
+    },
+    setSelectSizeNode: (selectedSizeNode: Node) => {
+      set({ selectedSizeNode });
+
+      const { setSelectNodeHistory } = useStore.getState();
+      delete selectedSizeNode.size;
+      set({ selectedNode: selectedSizeNode });
+      setSelectNodeHistory(selectedSizeNode);
     },
     setSelectCodependency: (selectedCodependency: Node[]) =>
       set({ selectedCodependency }),
@@ -71,8 +87,13 @@ export const useStore = createWithEqualityFn<Store>()(
       const { selectedNodeHistory } = useStore.getState();
       if (selectedNodeHistory.length > 1) {
         const preNode = selectedNodeHistory[selectedNodeHistory.length - 2];
+        const tempNode = searchNodePath(
+          useStore.getState().sizeRoot,
+          preNode.path,
+        );
         set({
           selectedNode: preNode,
+          selectedSizeNode: tempNode,
           selectedNodeHistory: selectedNodeHistory.slice(
             0,
             selectedNodeHistory.length - 1,
@@ -104,7 +125,7 @@ if (import.meta.env.VITE_BUILD_MODE == "offline") {
       ws.send(JSON.stringify({ type: "size", newDepth: depth }));
     },
     ({ root, circularDependency, codependency }, ws) => {
-      // 更新depth回调
+      // 更新 depth 回调
       // 找到新 tree 中的 selectedNode
       const { selectedNode } = useStore.getState();
       const tempNode = searchNodePath(root, selectedNode.path);
@@ -119,12 +140,12 @@ if (import.meta.env.VITE_BUILD_MODE == "offline") {
       ws.send(JSON.stringify({ type: "size", newDepth: depth }));
     },
     ({ root, circularDependency, codependency }) => {
-      // 更新size回调
+      // 更新 size 回调
       const { selectedNode } = useStore.getState();
       const tempNode = searchNodePath(root, selectedNode.path);
       useStore.setState({
-        root,
-        selectedNode: tempNode,
+        sizeRoot: root,
+        selectedSizeNode: tempNode,
         circularDependency,
         codependency,
       });
@@ -137,6 +158,7 @@ export interface Store {
   theme: string;
   language: string;
   root: Node;
+  sizeRoot: Node;
   info: string;
   sizeLoading: boolean;
   rootLoading: boolean;
@@ -145,15 +167,18 @@ export interface Store {
   codependency: Record<string, Node[]>;
   circularDependency: Node[];
   selectedNode: Node;
+  selectedSizeNode: Node;
   selectedCodependency: Node[] | [];
   selectedCircularDependency: Node | null;
   selectedNodeHistory: Node[];
   setRoot: (root: Node) => void;
+  setSizeRoot: (sizeRoot: Node) => void;
   setInfo: (info: string) => void;
   setDepth: (depth: number) => void;
   setSizeLoading: (sizeLoading: boolean) => void;
   setRootLoading: (rootLoading: boolean) => void;
   setSelectNode: (selectedNode: Node) => void;
+  setSelectSizeNode: (selectedSizeNode: Node) => void;
   setSelectCodependency: (selectedCodependency: Node[]) => void;
   setSelectCircularDependency: (selectedCircularDependency: Node) => void;
   searchNode: (root: Node, target: string) => Node[];
