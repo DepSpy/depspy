@@ -30,7 +30,6 @@ $ pnpm install dep-spy/cli -D
 {
   "scripts": {
     "ds": "ds"
-    // 或者 "ds": "depspy"
   }
 }
 ```
@@ -41,7 +40,7 @@ $ pnpm install dep-spy/cli -D
 $ pnpm run ds
 ```
 
-如果需要届时开启 UI 页面，请格外传入 `--ui` 参数（对于更多配置参数，或使用配置文件进行配置，请查看[相关配置](#配置)）：
+如果需要届时开启 UI 页面，请格外传入 `--ui` 参数（对于更多配置参数，或使用配置文件进行配置，请查看[配置](#配置)）：
 
 ```bash
 $ pnpm run ds --ui
