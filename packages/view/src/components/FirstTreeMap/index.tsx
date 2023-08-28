@@ -87,6 +87,8 @@ const FirstTreeMap = ({
   });
   // init
   useEffect(() => {
+    console.log(selectedNode);
+
     setData(changeData(selectedNode));
   }, [selectedNode]);
   const updateTreeMap = useCallback(
@@ -180,16 +182,11 @@ const FirstTreeMap = ({
   const handle_rect_click = (data: Data) => {
     /*data:{name,size,children,_children} */
     return () => {
+      // console.log(data);
+
       if (!data._children || !data._children.length) return;
       setState(state ? 0 : 1);
       data.children = data._children;
-      // if (
-      //   selectedNode.dependencies[
-      //     data.name.split("@")[0]
-      //       ? data.name.split("@")[0]
-      //       : `@${data.name.split("@")[1]}`
-      //   ] !== void 0
-      // )
       setSelectNode(
         selectedNode.dependencies[
           data.name.split("@")[0]

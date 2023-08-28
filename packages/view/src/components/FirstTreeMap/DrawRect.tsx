@@ -66,8 +66,12 @@ export const DrawChildrenRect = ({
   const ref = useRef<HTMLDivElement>(null);
   const [hidden, setHidden] = useState<boolean>(false);
   const [show, setShow] = useState<boolean>(false);
+  const [leaves, setLeaves] = useState<boolean>(false);
   const { handle_rect_click, loading, RectFontSize } = useContext(context);
   useEffect(() => {
+    if (!data._children || data._children.length === 0) {
+      setLeaves(true);
+    }
     if (!ref || !ref.current) return;
     const { current } = ref;
     if (
@@ -77,10 +81,14 @@ export const DrawChildrenRect = ({
       setHidden(!hidden);
     }
   }, [ref, hidden]);
-
+  const rectClick = (e) => {
+    console.log(data);
+    if (!data._children || data._children.length === 0) return;
+    handle_rect_click(data)(e);
+  };
   return (
     <>
-      {hidden && (
+      {hidden ? (
         <Tooltip
           content={
             <>
@@ -97,7 +105,71 @@ export const DrawChildrenRect = ({
               top: y0,
               width: x1 - x0,
               height: y1 - y0,
-              overflow: "auto",
+              overflow: "hidden",
+              cursor: leaves ? "not-allowed" : "default",
+              boxShadow:
+                "0 0 0 1px rgba(16, 22, 26, 0.04), 0 1px 3px 0 rgba(16, 22, 26, 0.12)",
+            }}
+            ref={ref}
+            onClick={rectClick}
+          ></div>
+        </Tooltip>
+      ) : (
+        <div
+          style={{
+            position: "absolute",
+            backgroundColor: color,
+            left: x0,
+            top: y0,
+            width: x1 - x0,
+            height: y1 - y0,
+            overflow: "hidden",
+            fontSize: RectFontSize,
+            padding: "0.3rem",
+            cursor: leaves ? "not-allowed" : "default",
+            boxShadow: show
+              ? "0 0 0 3px rgba(16, 22, 26, 0.1), 0 1px 3px 0 rgba(16, 22, 26, 0.12)"
+              : "0 0 0 1px rgba(16, 22, 26, 0.04), 0 1px 3px 0 rgba(16, 22, 26, 0.12)",
+          }}
+          onMouseMove={() => {
+            // console.log("enter", show);
+            setShow(true);
+          }}
+          onMouseLeave={() => {
+            // console.log("leave");
+            setShow(false);
+          }}
+          ref={ref}
+          onClick={rectClick}
+        >
+          {data.size ? (
+            <>
+              <div>name: {data.name}</div>
+              <div>size: {data.size}</div>
+            </>
+          ) : (
+            loading
+          )}
+        </div>
+      )}
+      {/* {hidden && (
+        <Tooltip
+          content={
+            <>
+              <div>name: {data.name}</div>
+              <div>size: {data.size}</div>
+            </>
+          }
+        >
+          <div
+            style={{
+              position: "absolute",
+              backgroundColor: color,
+              left: x0,
+              top: y0,
+              width: x1 - x0,
+              height: y1 - y0,
+              overflow: "hidden",
               boxShadow:
                 "0 0 0 1px rgba(16, 22, 26, 0.04), 0 1px 3px 0 rgba(16, 22, 26, 0.12)",
             }}
@@ -115,7 +187,7 @@ export const DrawChildrenRect = ({
             top: y0,
             width: x1 - x0,
             height: y1 - y0,
-            overflow: "auto",
+            overflow: "hidden",
             fontSize: RectFontSize,
             padding: "0.3rem",
             boxShadow: show
@@ -142,7 +214,7 @@ export const DrawChildrenRect = ({
             loading
           )}
         </div>
-      )}
+      )} */}
     </>
   );
 };
