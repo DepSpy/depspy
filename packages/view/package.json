@@ -12,8 +12,7 @@
     ".": {
       "import": "./dist/tsup/index.js",
       "require": "./dist/tsup/index.cjs"
-    },
-    "./dist": "./dist/vite"
+    }
   },
   "scripts": {
     "build": "pnpm run build:vite & pnpm run build:tsup",
