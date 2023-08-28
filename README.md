@@ -1,5 +1,6 @@
-![logo](https://cheerioinf-img.oss-cn-beijing.aliyuncs.com/img/logo_light_small.svg)
-
+<p align="center">
+  <img src="https://cheerioinf-img.oss-cn-beijing.aliyuncs.com/img/logo_light_small.svg" alt="logo" width="400" />
+  
 ## 简介
 
 `DepSpy` 意为**依赖间谍** [ **Dep**endence **Spy** ]，能够按照任意深度 [ **Dep**th ] 潜入分析和监视其他 `npm` 依赖的能力，并提供状态同步的各类可视化交互页面。
