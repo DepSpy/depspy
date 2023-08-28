@@ -95,7 +95,11 @@ export default function SideSearch() {
       <div
         className={styles["mainpage-title"]}
         onClick={() => {
-          navigation("/search");
+          if (import.meta.env.VITE_BUILD_MODE == "offline") {
+            window.open("https://depspy.github.io/search", "_blank");
+          } else {
+            navigation("/search");
+          }
         }}
       >
         <span>{t("aside.search.mainpage")}</span>
