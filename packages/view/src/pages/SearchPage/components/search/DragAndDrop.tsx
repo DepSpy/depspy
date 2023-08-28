@@ -1,15 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useDropzone } from "react-dropzone";
 import "./DragAndDrop.scss";
 import { generateGraphWrapper } from "../../util/GenerateGraphWrapper";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "@/contexts";
+import MainPageContext from "../store/MainPageContext";
 
 interface DragAndDropProps {
   onHideDragAndDrop: () => void;
 }
 
 const DragAndDrop: React.FC<DragAndDropProps> = ({ onHideDragAndDrop }) => {
+  const ctx = useContext(MainPageContext);
   const navigate = useNavigate();
   const setInfo = useStore((state) => state.setInfo);
   const { getRootProps, getInputProps } = useDropzone({
@@ -54,16 +56,14 @@ const DragAndDrop: React.FC<DragAndDropProps> = ({ onHideDragAndDrop }) => {
       <div className={"content-area"}>
         <section className={"droparea"}>
           <div className={"draganddrop-header"}>
-            <p className={"title"}>Upload package.json File</p>
+            <p className={"title"}>{ctx.t("search.upload")}</p>
             <button className="i-ic-sharp-close" onClick={onHideDragAndDrop} />
           </div>
           <div {...getRootProps({ className: "border" })}>
             <input {...getInputProps()} />
             <div className="i-bi-filetype-json" />
-            <p className={"text"}>
-              Drag 'n' drop some files here, or click to select files
-            </p>
-            <em className={"text-type"}>(Only *.json file will be accepted)</em>
+            <p className={"text"}>{ctx.t("search.drag")}</p>
+            <em className={"text-type"}>{ctx.t("search.format")}</em>
           </div>
         </section>
       </div>

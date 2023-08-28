@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from "react";
+import useLanguage from "@/i18n/hooks/useLanguage";
 
 const MainPageContext = React.createContext({
-  info: "vitest",
+  info: "",
   history: [] as string[],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  t: (preset: string) => "",
+  toggleLanguage: () => {},
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onHistoryUpdate: (suggestion: string) => {},
   onClearHistory: () => {},
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onHistoryCollection: (suggestion: string) => {},
 });
 
 export const MainPageContextProvider = (props) => {
   const [history, setHistory] = useState<string[]>([]);
-  const [info, setInfo] = useState<string>("vitest");
-
-  const historyCollectionHander = (suggestion: string) => {
-    setInfo(suggestion);
-  };
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [info, setInfo] = useState<string>("");
+  const { t, toggleLanguage } = useLanguage();
 
   const historyUpdateHandler = (suggestion: string) => {
     const updatedHistory = [
@@ -44,9 +44,10 @@ export const MainPageContextProvider = (props) => {
       value={{
         info: info,
         history: history,
+        t: t,
+        toggleLanguage: toggleLanguage,
         onHistoryUpdate: historyUpdateHandler,
         onClearHistory: clearHistoryHandler,
-        onHistoryCollection: historyCollectionHander,
       }}
     >
       {props.children}

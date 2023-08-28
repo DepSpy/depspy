@@ -3,49 +3,60 @@ import Autosuggest, { ChangeEvent } from "react-autosuggest";
 import theme from "./theme.module.scss";
 import MainPageContext from "../store/MainPageContext";
 import fetchPackageNames from "../../util/FetchPackageNames";
+import { generateGraphWrapper } from "../../util/GenerateGraphWrapper";
 import { debounce } from "lodash-es";
+import { useNavigate } from "react-router-dom";
+import { useStore } from "@/contexts";
 
 interface SearchBarProps {
   onShowButton: () => void;
   onHideButton: () => void;
+  onNewValue: (newValue: string) => void;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
   onShowButton,
   onHideButton,
+  onNewValue,
 }) => {
   const ctx = useContext(MainPageContext);
+  const navigate = useNavigate();
+  const setInfo = useStore((state) => state.setInfo);
+  let suggestionSelected = false;
+
+  const language = ctx.t("mode.language") as string;
   const [value, setValue] = useState<string>("");
   const [suggestions, setSuggestions] = useState<
     Array<{ name: string; description: string; version: string }>
   >([]);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
 
-  const suggestionsFetchRequestedHandler = async ({
-    value,
-  }: {
-    value: string;
-  }) => {
+  const sendQuery = (val: string) => {
+    ctx.onHistoryUpdate(val);
+    generateGraphWrapper(val);
+    navigate(`/analyze?q=${val}`);
+    setInfo(val);
+  };
+
+  const suggestionsFetchRequestedHandler = async ({ value }) => {
     const trimmedInputValue = value.trim().toLowerCase();
-    if (trimmedInputValue === "") {
-      return [];
-    }
 
     try {
       const newSuggestions = await fetchPackageNames(trimmedInputValue);
-      setSuggestions(newSuggestions);
-
       if (newSuggestions.length === 0) {
         onShowButton();
       } else {
         onHideButton();
       }
+
+      setSuggestions(newSuggestions);
     } catch (error) {
       console.error("Error fetching suggestions:", error);
     }
   };
 
   const debouncedSuggestionsFetch = useRef(
-    debounce(suggestionsFetchRequestedHandler, 100),
+    debounce(suggestionsFetchRequestedHandler, 600),
   ).current;
 
   useEffect(() => {
@@ -66,19 +77,28 @@ const SearchBar: React.FC<SearchBarProps> = ({
   ) => {
     const newVal = suggestion.name;
     setValue(newVal);
+    setSelectedSuggestionIndex(-1);
     onShowButton();
-    ctx.onHistoryCollection(newVal);
+    suggestionSelected = true;
+    sendQuery(newVal);
   };
 
   const getSuggestionValueHandler = (suggestion: string): string => suggestion;
 
-  const renderSuggestionHandler = (suggestion: {
-    name: string;
-    description: string;
-    version: string;
-  }) => {
+  const renderSuggestionHandler = (
+    suggestion: {
+      name: string;
+      description: string;
+      version: string;
+    },
+    isHighlighted: boolean,
+  ) => {
+    const suggestionClasses = isHighlighted
+      ? `${theme.suggestion} ${theme.selected}`
+      : theme.suggestion;
+
     return (
-      <div className={theme.suggestion}>
+      <div className={suggestionClasses}>
         <div className={theme.leftsection}>
           <div className={theme.name}>{suggestion.name}</div>
           <div className={theme.description}>{suggestion.description}</div>
@@ -89,21 +109,55 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   const inputProps = {
-    placeholder: "Search packages",
+    placeholder:
+      language === "ENGLISH" ? "Search dependencies" : "请输入依赖名",
     value,
-    onChange: (
+    onChange: async (
       event: React.FormEvent<HTMLElement>,
-      { newValue }: ChangeEvent,
+      { newValue, method }: ChangeEvent,
     ) => {
-      setValue(newValue);
-      if (newValue === "") {
-        onShowButton();
-      } else {
-        onHideButton();
+      if (method === "type") {
+        onNewValue(newValue);
+        setValue(newValue);
+
+        if (newValue.trim() === "") {
+          onShowButton();
+        } else {
+          onHideButton();
+        }
+      } else if (method === "up") {
+        if (selectedSuggestionIndex > 0) {
+          setSelectedSuggestionIndex(selectedSuggestionIndex - 1);
+        }
+      } else if (method === "down") {
+        if (selectedSuggestionIndex < suggestions.length - 1) {
+          setSelectedSuggestionIndex(selectedSuggestionIndex + 1);
+        }
       }
     },
+
     onBlur: () => {
       onShowButton();
+    },
+
+    onKeyDown: async (event) => {
+      if (event.key === "Enter" && !suggestionSelected) {
+        const trimmedInputValue = value.trim().toLowerCase();
+        if (trimmedInputValue === "") {
+          console.log("Can't search empty dependency");
+          return;
+        }
+        const pendingDependency = await fetchPackageNames(trimmedInputValue);
+        if (pendingDependency.length !== 0) {
+          sendQuery(trimmedInputValue);
+        } else {
+          console.log("Non-exist dependency, please search another one.");
+          return;
+        }
+      } else if (event.key === "Escape") {
+        onShowButton();
+      }
+      suggestionSelected = false;
     },
   };
 
@@ -124,9 +178,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
         onSuggestionSelected={suggestionSelectedHandler}
         getSuggestionValue={getSuggestionValueHandler}
         renderInputComponent={renderInputComponentHandler}
-        renderSuggestion={renderSuggestionHandler}
+        renderSuggestion={(suggestion, { isHighlighted }) =>
+          renderSuggestionHandler(suggestion, isHighlighted)
+        }
         inputProps={inputProps}
-        highlightFirstSuggestion={true}
       />
     </div>
   );
