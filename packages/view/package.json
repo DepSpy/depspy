@@ -1,6 +1,6 @@
 {
   "name": "@dep-spy/view",
-  "version": "1.4.1",
+  "version": "2.0.0",
   "description": "",
   "main": "./dist/tsup/index.js",
   "type": "module",
