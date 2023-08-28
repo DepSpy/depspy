@@ -12,6 +12,8 @@ export const useStore = createWithEqualityFn<Store>()(
     theme: localStorage.getItem("theme") || "dark",
     language: localStorage.getItem("language") || "en",
     info: "",
+    sizeLoading: true,
+    rootLoading: true,
     root: null,
     depth: 3,
     collapse: true,
@@ -24,6 +26,8 @@ export const useStore = createWithEqualityFn<Store>()(
     setRoot: (root: Node) => set({ root }),
     setDepth: (depth: number) => set({ depth }),
     setInfo: (info: string) => set({ info }),
+    setSizeLoading: (sizeLoading: boolean) => set({ sizeLoading }),
+    setRootLoading: (rootLoading: boolean) => set({ rootLoading }),
     setSelectNode: (selectedNode: Node) => {
       const { setSelectNodeHistory } = useStore.getState();
       setSelectNodeHistory(selectedNode);
@@ -125,6 +129,7 @@ if (import.meta.env.VITE_BUILD_MODE == "offline") {
         codependency,
       });
     },
+    useStore,
   );
 }
 
@@ -133,6 +138,8 @@ export interface Store {
   language: string;
   root: Node;
   info: string;
+  sizeLoading: boolean;
+  rootLoading: boolean;
   depth: number;
   collapse: boolean;
   codependency: Record<string, Node[]>;
@@ -144,6 +151,8 @@ export interface Store {
   setRoot: (root: Node) => void;
   setInfo: (info: string) => void;
   setDepth: (depth: number) => void;
+  setSizeLoading: (sizeLoading: boolean) => void;
+  setRootLoading: (rootLoading: boolean) => void;
   setSelectNode: (selectedNode: Node) => void;
   setSelectCodependency: (selectedCodependency: Node[]) => void;
   setSelectCircularDependency: (selectedCircularDependency: Node) => void;

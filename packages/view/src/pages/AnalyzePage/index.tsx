@@ -4,7 +4,7 @@ import Sidebar from "./Sidebar";
 import Depth from "@/components/Depth";
 import Collapse from "@/components/Collapse";
 import { Export } from "@/components/Export";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { shallow } from "zustand/shallow";
 import { LanguageIcon, ThemeIcon } from "../../components/icon/index";
@@ -12,21 +12,31 @@ import Skeleton from "@/components/Skeleton";
 
 export default function AnalyzePage() {
   const [searchParams] = useSearchParams();
-  const { root, info, depth, setGraphRes } = useStore(
-    (state) => state,
-    shallow,
-  );
+  const {
+    root,
+    info,
+    depth,
+    setRoot,
+    setGraphRes,
+    rootLoading,
+    setRootLoading,
+    setSizeLoading,
+  } = useStore((state) => state, shallow);
   const svg = useRef(null);
-  const [isLoading, setLoading] = useState(false);
   useEffect(() => {
     if (import.meta.env.VITE_BUILD_MODE == "online") {
-      setLoading(true);
+      setRootLoading(true);
+      setSizeLoading(true);
       setGraphRes(searchParams.get("q") || info, depth).then(() => {
-        setLoading(false);
+        setRootLoading(false);
+        setSizeLoading(false);
       });
     }
   }, [depth, info]);
-  if (isLoading || !root) {
+  useEffect(() => {
+    setRoot(null);
+  }, [info]);
+  if (rootLoading && !root) {
     return <Skeleton></Skeleton>;
   }
 
