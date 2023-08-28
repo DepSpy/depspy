@@ -1,7 +1,7 @@
 import { useStore } from "@/contexts";
 import React, { useEffect, useRef } from "react";
 
-function GridBackground() {
+function GridBackground({ width, height }) {
   const canvasRef = useRef(null);
   const { theme } = useStore((state) => state);
 
@@ -10,8 +10,8 @@ function GridBackground() {
     const ctx = canvas.getContext("2d");
 
     // 设置Canvas的宽度和高度
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
 
     // 定义格子的大小和间隔
     const gridSpacing = 30;

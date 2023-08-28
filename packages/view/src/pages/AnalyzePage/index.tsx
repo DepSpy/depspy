@@ -59,7 +59,10 @@ export default function AnalyzePage() {
         )}
       </div>
       <div className="fixed -z-50 bg-bg-container">
-        <GridBackground></GridBackground>
+        <GridBackground
+          width={innerWidth}
+          height={innerHeight}
+        ></GridBackground>
       </div>
       <Sidebar />
       <div className="fixed flex p-5">
