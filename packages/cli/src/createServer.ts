@@ -36,7 +36,9 @@ function createWs(graph: Graph, option: Config) {
           size: true,
           depth: Number(wsData.newDepth),
         });
+        // setTimeout(async () => {
         ws.send(formatMes("size", await combineRes(graph)));
+        // }, 5000);
       } else if (wsData.type === "depth") {
         const graph = generateGraph("", {
           ...option,

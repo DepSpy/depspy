@@ -7,6 +7,7 @@ import { Node } from "../../../types/types";
 import DrawStore from "./store";
 import "./index.scss";
 import { useStore } from "../../contexts";
+import Loading from "../Loading";
 /*
  @return {
     name: string;
@@ -72,7 +73,7 @@ const FirstTreeMap = ({
         alignItems: "center",
       }}
     >
-      loading...
+      <Loading />
     </div>
   ),
 }: DrawSVGProps) => {
@@ -87,6 +88,7 @@ const FirstTreeMap = ({
   });
   // init
   useEffect(() => {
+    if (!selectedNode) setTreeMap(void 0);
     setData(changeData(selectedNode));
   }, [selectedNode]);
   const updateTreeMap = useCallback(
