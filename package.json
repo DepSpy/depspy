@@ -11,7 +11,10 @@
     "publish": "lerna publish",
     "test": "vitest --no-threads",
     "dev": "node ./scripts/index.mjs",
-    "build": "lerna run build"
+    "build": "lerna run build",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "keywords": [],
   "author": "",
@@ -50,6 +53,7 @@
     "stylelint-config-standard": "^34.0.0",
     "stylelint-prettier": "^4.0.2",
     "stylelint-scss": "^5.1.0",
+    "vitepress": "1.0.0-rc.10",
     "vitest": "^0.33.0"
   },
   "devDependencies": {
