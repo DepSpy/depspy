@@ -65,7 +65,7 @@ $ pnpm run ds --ui
 
 对于不同依赖引入了相同的子依赖（依赖 + 版本都相同），这些子依赖被称为相同依赖。
 
-![image-20230828230956388](https://cheerioinf-img.oss-cn-beijing.aliyuncs.com/img/image-20230828230956388.png)
+![co](https://cheerioinf-img.oss-cn-beijing.aliyuncs.com/img/image-20230828230956388.png)
 
 如图 `vite-node@0.34.3` 和 `@vitest/snapshot@0.34.3` 都引入了 `pathe@^1.1.1`，那么我们就称 `pathe@1.1.1` 为相同依赖。
 
@@ -79,7 +79,7 @@ $ pnpm run ds --ui
 
 对于一个依赖，如果这个依赖或依赖的子依赖，又依赖了本身，那么我们称为循环依赖。
 
-![image-20230828231818539](https://cheerioinf-img.oss-cn-beijing.aliyuncs.com/img/image-20230828231818539.png)
+![circle](https://cheerioinf-img.oss-cn-beijing.aliyuncs.com/img/image-20230828231818539.png)
 
 如图，`mlly@1.4.1` 的子依赖又依赖了 `mlly@1.4.1`，此时我们在侧边栏 `LIST -> CIRCULAR DEPENDENCY` 中选中后，会**在树状渲染区使靠后的循环依赖节点指向前面的循环依赖节点**。
 
