@@ -18,6 +18,7 @@ export interface DrawSVGProps {
   margin?: number;
   padding?: number;
   RectFontSize?: number;
+  fullScreen?: boolean;
   loading?: ReactElement;
 }
 // export interface JSONData {

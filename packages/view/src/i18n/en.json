@@ -15,19 +15,19 @@
         "format": "Only *.json file will be accepted"
     },
     "section": {
-      "title": "DepSpy",
-      "depth": "depth",
-      "export": "Export",
-      "fileType": "export file type",
-      "select": "Select",
-      "maxDepth": "Max Depth",
-      "expand": "Expand",
-      "collapse": "Collapse",
-      "dependences": "-dependences-analysis",
-      "alertexp": "Please select the export file type first!",
-      "jsonexp": "JSON data is null!",
-      "rectTree": "Chart treemap",
-      "plainTree": "Decision tree"
+        "title": "DepSpy",
+        "depth": "depth",
+        "export": "Export",
+        "fileType": "export file type",
+        "select": "Select",
+        "maxDepth": "Max Depth",
+        "expand": "Expand",
+        "collapse": "Collapse",
+        "dependences": "-dependences-analysis",
+        "alertexp": "Please select the export file type first!",
+        "jsonexp": "JSON data is null!",
+        "rectTree": "Chart treemap",
+        "plainTree": "Decision tree"
     },
     "aside": {
         "search": {
@@ -52,10 +52,13 @@
             "description": "DESCRIPTION",
             "size": "BUNDLE SIZE",
             "graph": "BUNDLE GRAPH",
-            "source": "Data source"
+            "source": "Data source",
+            "cache": "DUPLICATED DEPENDENCY",
+            "dependencies": "DEPENDENCIES COUNT",
+            "circlePath": "CIRCULAR DEPENDENCY"
         }
     },
-    "skeleton":{
-        "tip":"Network request is slow, please be patient 😇"
+    "skeleton": {
+        "tip": "Network request is slow, please be patient 😇"
     }
 }

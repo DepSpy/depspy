@@ -49,3 +49,20 @@
   margin-bottom: 0.75rem;
   font-size: 1.1rem;
 }
+
+.module-dep-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 1.5rem;
+  padding: 0.25rem;
+  margin: 0.75rem;
+  font-size: 1rem;
+  line-height: 2rem;
+  color: white;
+  color: green;
+  text-align: center;
+  background-color: #e2f4e3;
+  border-radius: 0.5rem;
+}
