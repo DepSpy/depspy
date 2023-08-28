@@ -49,7 +49,7 @@ $ pnpm run ds --ui
 
 接着你能通过 `http://localhost:2023/analyze` 访问 DepSpy UI 页面：
 
-![image-20230828225639712](https://cheerioinf-img.oss-cn-beijing.aliyuncs.com/img/image-20230828225639712.png)
+![ui](https://cheerioinf-img.oss-cn-beijing.aliyuncs.com/img/image-20230828225639712%202.png)
 
 推荐使用上述方法，但也支持使用 `npx dep-spy/cli` 来直接运行 DepSpy。
 
