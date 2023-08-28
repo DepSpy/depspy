@@ -1,0 +1,18 @@
+:root {
+  /* 标题 */
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: #5b2eee;
+  --vp-home-hero-image-filter: blur(150px);
+
+  /* 顶部导航 */
+  --vp-c-brand-1: #5b2eee;
+
+  /* brand按钮 */
+  --vp-button-brand-border: gray;
+  --vp-button-brand-text: white;
+  --vp-button-brand-bg: #5b2eee;
+  --vp-button-brand-hover-border: white;
+  --vp-button-brand-hover-text: #fff;
+  --vp-button-brand-hover-bg: #5b2eee;
+  --vp-button-brand-active-border: white;
+}
