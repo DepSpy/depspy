@@ -15,6 +15,9 @@ import {
 import Skeleton from "@/components/Skeleton";
 import FirstTreeMap from "@/components/FirstTreeMap";
 import SizeTree from "@/components/SizeTree";
+import "./index.scss";
+import GridBackground from "@/components/GridBack";
+
 export default function AnalyzePage() {
   const [searchParams] = useSearchParams();
   const {
@@ -47,13 +50,16 @@ export default function AnalyzePage() {
   }
 
   return (
-    <main className="w-screen h-screen overflow-hidden  bg-bg-container">
+    <main className="w-screen h-screen overflow-hidden">
       <div className="fixed">
         {sizeTree ? (
           <FirstTreeMap width={innerWidth} height={innerHeight}></FirstTreeMap>
         ) : (
           <Tree ref={svg}></Tree>
         )}
+      </div>
+      <div className="fixed -z-50 bg-bg-container">
+        <GridBackground></GridBackground>
       </div>
       <Sidebar />
       <div className="fixed flex p-5">
