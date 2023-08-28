@@ -12,6 +12,7 @@ export const useStore = createWithEqualityFn<Store>()(
     theme: localStorage.getItem("theme") || "dark",
     language: localStorage.getItem("language") || "en",
     info: "",
+    sizeTree: false,
     sizeLoading: true,
     rootLoading: true,
     root: null,
@@ -29,6 +30,7 @@ export const useStore = createWithEqualityFn<Store>()(
     setSizeRoot: (sizeRoot: Node) => set({ sizeRoot }),
     setDepth: (depth: number) => set({ depth }),
     setInfo: (info: string) => set({ info }),
+    setSizeTree: (sizeTree: boolean) => set({ sizeTree }),
     setSizeLoading: (sizeLoading: boolean) => set({ sizeLoading }),
     setRootLoading: (rootLoading: boolean) => set({ rootLoading }),
     setSelectNode: (selectedNode: Node) => {
@@ -159,6 +161,7 @@ export interface Store {
   language: string;
   root: Node;
   sizeRoot: Node;
+  sizeTree: boolean;
   info: string;
   sizeLoading: boolean;
   rootLoading: boolean;
@@ -175,6 +178,7 @@ export interface Store {
   setSizeRoot: (sizeRoot: Node) => void;
   setInfo: (info: string) => void;
   setDepth: (depth: number) => void;
+  setSizeTree: (sizeTree: boolean) => void;
   setSizeLoading: (sizeLoading: boolean) => void;
   setRootLoading: (rootLoading: boolean) => void;
   setSelectNode: (selectedNode: Node) => void;

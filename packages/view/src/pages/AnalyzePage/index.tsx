@@ -9,13 +9,15 @@ import { useSearchParams } from "react-router-dom";
 import { shallow } from "zustand/shallow";
 import { LanguageIcon, ThemeIcon } from "../../components/icon/index";
 import Skeleton from "@/components/Skeleton";
-
+import FirstTreeMap from "@/components/FirstTreeMap";
+import SizeTree from "@/components/SizeTree";
 export default function AnalyzePage() {
   const [searchParams] = useSearchParams();
   const {
     root,
     info,
     depth,
+    sizeTree,
     setRoot,
     setGraphRes,
     rootLoading,
@@ -43,7 +45,11 @@ export default function AnalyzePage() {
   return (
     <main className="w-screen h-screen overflow-hidden  bg-bg-container">
       <div className="fixed">
-        <Tree ref={svg}></Tree>
+        {sizeTree ? (
+          <FirstTreeMap width={innerWidth} height={innerHeight}></FirstTreeMap>
+        ) : (
+          <Tree ref={svg}></Tree>
+        )}
       </div>
       <Sidebar />
       <div className="fixed flex p-5">
@@ -62,6 +68,7 @@ export default function AnalyzePage() {
           json={root}
         />
         <Collapse></Collapse>
+        <SizeTree></SizeTree>
       </section>
     </main>
   );
