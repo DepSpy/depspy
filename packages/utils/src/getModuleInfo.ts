@@ -5,7 +5,6 @@ import {
   MODULE_INFO_TYPE,
   Package_TYPE,
   MODULE_INFO,
-  // JSDELIVR_API,
   NPM_DOMAIN,
   CONFIG,
 } from "./constant";
@@ -17,7 +16,7 @@ export default async function getModuleInfo(
   info: string = "",
   config: CONFIG = {},
 ): Promise<MODULE_INFO_TYPE> {
-  const { online, size, baseDir } = config;
+  const { size, baseDir } = config;
   let pak: Package_TYPE;
   switch (transformInfo(info)) {
     case INFO_TYPES.GITHUB:
@@ -34,7 +33,7 @@ export default async function getModuleInfo(
       if (inBrowser) throw new Error("invalid parameter");
       pak = getRootInfo();
   }
-  return transformPackage(pak, online);
+  return transformPackage(pak);
 }
 //获取根目录的package.json信息🌳
 function getRootInfo() {
@@ -138,10 +137,8 @@ function isPnpm(): boolean {
   return fs.existsSync(pnpmCachePath);
 }
 // 选出需要的数据
-function transformPackage(
-  pkg: Package_TYPE,
-  online: boolean,
-): MODULE_INFO_TYPE {
+function transformPackage(pkg: Package_TYPE): MODULE_INFO_TYPE {
+  const online = typeof window !== "undefined";
   const result = {};
   MODULE_INFO.forEach((key) => {
     // 对于本地命令行在线模式，当前项目本身没有 dist 属性

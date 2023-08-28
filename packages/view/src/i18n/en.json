@@ -7,26 +7,27 @@
         }
     },
     "search": {
-        "history": "HISTORY",
-        "searchHis": "Search History",
-        "searchPkg": "Search Package",
-        "search": "Search",
+        "history": "History",
+        "findDep": "Find Dependency",
+        "searchDeps": "Search dependencies",
         "upload": "Upload package.json File",
-        "drag": "Click or drag file to this area to upload",
+        "drag": " Drag and drop .json files here, or click to select files",
         "format": "Only *.json file will be accepted"
     },
     "section": {
-        "title": "DepSpy",
-        "depth": "depth",
-        "export": "Export",
-        "fileType": "export file type",
-        "select": "Select",
-        "maxDepth": "Max Depth",
-        "expand": "Expand",
-        "collapse": "Collapse",
-        "dependences": "-dependences-analysis",
-        "alertexp": "Please select the export file type first!",
-        "jsonexp": "JSON data is null!"
+      "title": "DepSpy",
+      "depth": "depth",
+      "export": "Export",
+      "fileType": "export file type",
+      "select": "Select",
+      "maxDepth": "Max Depth",
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "dependences": "-dependences-analysis",
+      "alertexp": "Please select the export file type first!",
+      "jsonexp": "JSON data is null!",
+      "rectTree": "Chart treemap",
+      "plainTree": "Decision tree"
     },
     "aside": {
         "search": {

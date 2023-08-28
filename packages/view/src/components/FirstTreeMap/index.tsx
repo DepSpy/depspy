@@ -5,7 +5,6 @@ import DrawRect from "./DrawRect";
 import { Data, DrawSVGProps } from "./types";
 import { Node } from "../../../types/types";
 import DrawStore from "./store";
-import React from "react";
 import "./index.scss";
 import { useStore } from "../../contexts";
 /*
@@ -63,19 +62,33 @@ const FirstTreeMap = ({
   margin = 0,
   padding = 2,
   RectFontSize = 14,
-  loading = <>loading...</>,
+  loading = (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      loading...
+    </div>
+  ),
 }: DrawSVGProps) => {
   const [state, setState] = useState<number>(0); // control transition
   const [data, setData] = useState<Data>();
   const [treeMap, setTreeMap] = useState<d3.HierarchyRectangularNode<Data>>();
   const { selectedNode, setSelectNode } = useStore((store) => {
     return {
-      selectedNode: store.selectedNode,
-      setSelectNode: store.setSelectNode,
+      selectedNode: store.selectedSizeNode,
+      setSelectNode: store.setSelectSizeNode,
     };
   });
   // init
   useEffect(() => {
+    console.log(selectedNode);
+
     setData(changeData(selectedNode));
   }, [selectedNode]);
   const updateTreeMap = useCallback(
@@ -169,16 +182,11 @@ const FirstTreeMap = ({
   const handle_rect_click = (data: Data) => {
     /*data:{name,size,children,_children} */
     return () => {
+      // console.log(data);
+
       if (!data._children || !data._children.length) return;
       setState(state ? 0 : 1);
       data.children = data._children;
-      // if (
-      //   selectedNode.dependencies[
-      //     data.name.split("@")[0]
-      //       ? data.name.split("@")[0]
-      //       : `@${data.name.split("@")[1]}`
-      //   ] !== void 0
-      // )
       setSelectNode(
         selectedNode.dependencies[
           data.name.split("@")[0]
@@ -204,8 +212,18 @@ const FirstTreeMap = ({
       >
         <SwitchTransition mode="out-in">
           <CSSTransition classNames={"fade"} key={state} timeout={500}>
-            <div style={{ position: "absolute", left: margin, top: margin }}>
+            <div
+              style={{
+                position: "absolute",
+                left: margin,
+                top: margin,
+                width: "100%",
+                height: "100%",
+                textAlign: "center",
+              }}
+            >
               {treeMap && <DrawRect treeMap={treeMap}></DrawRect>}
+              {!treeMap && loading}
             </div>
           </CSSTransition>
         </SwitchTransition>

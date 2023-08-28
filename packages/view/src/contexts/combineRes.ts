@@ -9,5 +9,7 @@ export async function combineRes(graph: Graph, depth: number) {
     selectedNode: await graph.getGraph(),
     selectedCodependency: [],
     selectedCircularDependency: null,
+    sizeRoot: await graph.getGraph(),
+    selectedSizeNode: await graph.getGraph(),
   };
 }
