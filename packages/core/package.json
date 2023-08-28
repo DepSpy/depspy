@@ -1,6 +1,6 @@
 {
   "name": "@dep-spy/core",
-  "version": "1.4.2",
+  "version": "2.2.1",
   "description": "",
   "main": "dist/index.js",
   "exports": {
