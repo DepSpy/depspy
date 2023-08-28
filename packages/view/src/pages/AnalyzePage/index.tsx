@@ -7,7 +7,11 @@ import { Export } from "@/components/Export";
 import { useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { shallow } from "zustand/shallow";
-import { LanguageIcon, ThemeIcon } from "../../components/icon/index";
+import {
+  GithubIcon,
+  LanguageIcon,
+  ThemeIcon,
+} from "../../components/icon/index";
 import Skeleton from "@/components/Skeleton";
 import FirstTreeMap from "@/components/FirstTreeMap";
 import SizeTree from "@/components/SizeTree";
@@ -55,6 +59,7 @@ export default function AnalyzePage() {
       <div className="fixed flex p-5">
         <LanguageIcon />
         <ThemeIcon />
+        <GithubIcon />
       </div>
       <section
         className="fixed flex left-2rem bottom-2rem gap-4 h-2rem"
