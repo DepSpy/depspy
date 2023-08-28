@@ -7,12 +7,11 @@
         }
     },
     "search": {
-        "history": "HISTORY",
-        "searchHis": "Search History",
-        "searchPkg": "Search Package",
-        "search": "Search",
+        "history": "History",
+        "findDep": "Find Dependency",
+        "searchDeps": "Search dependencies",
         "upload": "Upload package.json File",
-        "drag": "Click or drag file to this area to upload",
+        "drag": " Drag and drop .json files here, or click to select files",
         "format": "Only *.json file will be accepted"
     },
     "section": {
