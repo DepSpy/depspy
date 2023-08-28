@@ -1,6 +1,6 @@
 <p align="center">
   <img src="https://cheerioinf-img.oss-cn-beijing.aliyuncs.com/img/logo_light_small.svg" alt="logo" width="400" />
-  
+
 ## 简介
 
 `DepSpy` 意为**依赖间谍** [ **Dep**endence **Spy** ]，能够按照任意深度 [ **Dep**th ] 潜入分析和监视其他 `npm` 依赖的能力，并提供状态同步的各类可视化交互页面。
@@ -22,7 +22,7 @@
 将 DepSpy 安装到项目，使用 `PNPM`：
 
 ```bash
-$ pnpm install dep-spy/cli -D
+$ pnpm add dep-spy/cli -D
 ```
 
 之后你可以在 `npm` 脚本添加使用 `ds` 或者 `depspy` 脚本，以下是推荐配置脚本：
