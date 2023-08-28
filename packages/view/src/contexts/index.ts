@@ -31,7 +31,6 @@ export const useStore = createWithEqualityFn<Store>()(
       const { setSelectNodeHistory } = useStore.getState();
       setSelectNodeHistory(selectedNode);
       set({ selectedNode });
-
       const tempNode = searchNodePath(
         useStore.getState().sizeRoot,
         selectedNode.path,
