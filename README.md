@@ -1,4 +1,6 @@
-# DepSpy
+<p align="center">
+  <img src="https://cheerioinf-img.oss-cn-beijing.aliyuncs.com/img/logo_light_small.svg" alt="logo" width="400" />
+</ p>
 
 ## 简介
 
@@ -21,7 +23,7 @@
 将 DepSpy 安装到项目，使用 `PNPM`：
 
 ```bash
-$ pnpm install dep-spy/cli -D
+$ pnpm add dep-spy/cli -D
 ```
 
 之后你可以在 `npm` 脚本添加使用 `ds` 或者 `depspy` 脚本，以下是推荐配置脚本：
@@ -175,4 +177,3 @@ await graph.outputToFile()//根据配置输出对应文件
 ```
 
 ## 贡献者
-
