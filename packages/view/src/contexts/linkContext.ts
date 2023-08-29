@@ -1,7 +1,7 @@
 import { generateGraphRes } from "~/types";
 import type { Store } from "./index";
 import type { StoreApi } from "zustand";
-const wsPath = "ws://localhost:822";
+const wsPath = "ws://localhost:1822";
 export function linkContext(
   init: (data: generateGraphRes, ws: WebSocket) => void,
   update: (data: generateGraphRes, ws: WebSocket) => void,
