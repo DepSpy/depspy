@@ -1,8 +1,10 @@
-# DepSpy
+<p align="center">
+  <img src="https://cheerioinf-img.oss-cn-beijing.aliyuncs.com/img/logo_light_small.svg" alt="logo" width="400" />
+</ p>
 
 ## 简介
 
-`DepSpy` 意为**依赖间谍** [ **Dep**endence **Spy** ]，能够按照任意深度 [ **Dep**th ] 潜入分析和监视其他 `npm` 依赖的能力，并提供状态同步的各类可视化交互页面。
+`DepSpy` 意为**依赖间谍** [ **Dep**endence **Spy** ]，具有能够按照任意深度 [ **Dep**th ] 潜入分析和监视其他 `npm` 依赖的能力，并提供状态同步的各类可视化交互页面。
 
 ## 特点
 
@@ -21,15 +23,16 @@
 将 DepSpy 安装到项目，使用 `PNPM`：
 
 ```bash
-$ pnpm install dep-spy/cli -D
+$ pnpm add @dep-spy/cli -D
 ```
 
 之后你可以在 `npm` 脚本添加使用 `ds` 或者 `depspy` 脚本，以下是推荐配置脚本：
 
-```json
+```js
 {
   "scripts": {
     "ds": "ds"
+    // 或者 "ds": "depspy"
   }
 }
 ```
@@ -50,7 +53,7 @@ $ pnpm run ds --ui
 
 ![ui](https://cheerioinf-img.oss-cn-beijing.aliyuncs.com/img/image-20230828225639712%202.png)
 
-推荐使用上述方法，但也支持使用 `npx dep-spy/cli` 来直接运行 DepSpy。
+推荐使用上述方法，但也支持使用 `npx @dep-spy/cli` 来直接运行 DepSpy。
 
 ### 线上查询
 
@@ -63,10 +66,10 @@ $ pnpm run ds --ui
 最基本的配置文件是这样的
 
 ```javascript
-import { defineConfig } from '@dep-spy/cli';
+import { defineConfig } from "@dep-spy/cli";
 
 export default defineConfig({
-    //config options
+  // config options
 });
 ```
 
@@ -82,17 +85,17 @@ ds --depth 3 --size --graph my-graph.json
 
 ```javascript
 {
-  depth: 3,//最大嵌套深度
-  size: false,//是否计算size
+  depth: 3, // 最大嵌套深度
+  size: false, // 是否计算size
   output: {
-    graph: "ds.graph.json",//依赖图输出路径
-    circularDependency: "ds.circular.json",//循环依赖输出路径
-    codependency: "ds.co.json",//相同依赖输出路径
+    graph: "ds.graph.json", // 依赖图输出路径
+    circularDependency: "ds.circular.json", // 循环依赖输出路径
+    codependency: "ds.co.json", // 相同依赖输出路径
   },
 };
 ```
 
-> 优先级: 命令行>配置文件>默认配置
+> 优先级: 命令行 > 配置文件 > 默认配置
 
 ## 相关概念
 
@@ -144,7 +147,7 @@ DepSpy 中，我们默认展示声明依赖版本，当我们 `hover` 到树状�
 
 ## 接口
 
-使用`core`包可以脱离 `cli` 包使用 `DepSpy` 的核心功能.
+使用 `core` 包可以脱离 `cli` 包使用 `DepSpy` 的核心功能.
 
 - 引入
 
@@ -153,10 +156,10 @@ DepSpy 中，我们默认展示声明依赖版本，当我们 `hover` 到树状�
 ```
 
 ```javascript
-  import { generateGraph } from "@dep-spy/core";
+import { generateGraph } from "@dep-spy/core";
 ```
 
-- 生成Graph对象
+- 生成 `Graph` 对象
 
   - 第一个参数是项目的名称
   - 第二个参数是配置 (同上[默认配置](#默认配置))
@@ -165,14 +168,11 @@ DepSpy 中，我们默认展示声明依赖版本，当我们 `hover` 到树状�
 const graph = generateGraph("", config);
 ```
 
-- 调用graph对象的方法进行交互
+- 调用 `graph` 对象的方法进行交互
 
 ```javascript
-await graph.getGraph()//获取树结构的json对象
-await graph.getCodependency()//获取所有相同依赖节点对象
-await graph.getCircularDependency()//获取所有循环节点数组
-await graph.outputToFile()//根据配置输出对应文件
+await graph.getGraph(); //获取树结构的json对象
+await graph.getCodependency(); //获取所有相同依赖节点对象
+await graph.getCircularDependency(); //获取所有循环节点数组
+await graph.outputToFile(); //根据配置输出对应文件
 ```
-
-## 贡献者
-
