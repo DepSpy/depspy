@@ -56,6 +56,12 @@ $ pnpm run ds --ui
 
 ### 线上查询
 
+[线上查询页](https://depspy.github.io/search)
+
+支持包名查询、上传 `pacakge.json` 文件两种方式。
+
+![image-20230829145132092](https://cheerioinf-img.oss-cn-beijing.aliyuncs.com/img/image-20230829145132092.png)
+
 ## 配置
 
 ### 配置文件
