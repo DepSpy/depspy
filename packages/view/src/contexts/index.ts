@@ -137,6 +137,8 @@ if (import.meta.env.VITE_BUILD_MODE == "offline") {
         codependency,
         selectedNode: tempNode,
       });
+      // 清空 selectedSizeNode
+      useStore.setState({ selectedSizeNode: null });
       // 更新完 depth 后，需要重新获取 size
       const { depth } = useStore.getState();
       ws.send(JSON.stringify({ type: "size", newDepth: depth }));

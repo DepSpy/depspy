@@ -25,7 +25,7 @@ export function createServer(graph: Graph, option: Config) {
 }
 
 function createWs(graph: Graph, option: Config) {
-  const wss = new ws.Server({ port: 822 });
+  const wss = new ws.Server({ port: 1822 });
   wss.on("connection", async function (ws) {
     ws.send(formatMes("init", await combineRes(graph, option)));
     ws.addEventListener("message", async (mes) => {
@@ -36,7 +36,9 @@ function createWs(graph: Graph, option: Config) {
           size: true,
           depth: Number(wsData.newDepth),
         });
+        // setTimeout(async () => {
         ws.send(formatMes("size", await combineRes(graph)));
+        // }, 5000);
       } else if (wsData.type === "depth") {
         const graph = generateGraph("", {
           ...option,

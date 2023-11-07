@@ -15,6 +15,8 @@ import {
 import Skeleton from "@/components/Skeleton";
 import FirstTreeMap from "@/components/FirstTreeMap";
 import SizeTree from "@/components/SizeTree";
+import GridBackground from "@/components/GridBack";
+
 export default function AnalyzePage() {
   const [searchParams] = useSearchParams();
   const {
@@ -29,6 +31,7 @@ export default function AnalyzePage() {
     setSizeLoading,
   } = useStore((state) => state, shallow);
   const svg = useRef(null);
+
   useEffect(() => {
     if (import.meta.env.VITE_BUILD_MODE == "online") {
       setRootLoading(true);
@@ -39,21 +42,26 @@ export default function AnalyzePage() {
       });
     }
   }, [depth, info]);
+
   useEffect(() => {
     setRoot(null);
   }, [info]);
+
   if (rootLoading && !root) {
     return <Skeleton></Skeleton>;
   }
 
   return (
-    <main className="w-screen h-screen overflow-hidden  bg-bg-container">
+    <main className="w-screen h-screen overflow-hidden">
       <div className="fixed">
         {sizeTree ? (
-          <FirstTreeMap width={innerWidth} height={innerHeight}></FirstTreeMap>
+          <FirstTreeMap fullScreen={true}></FirstTreeMap>
         ) : (
           <Tree ref={svg}></Tree>
         )}
+      </div>
+      <div className="fixed -z-50 bg-bg-container">
+        <GridBackground></GridBackground>
       </div>
       <Sidebar />
       <div className="fixed flex p-5">

@@ -15,19 +15,19 @@
         "format": "只接受上传*.json文件"
     },
     "section": {
-      "title": "依赖间谍",
-      "depth": "深度",
-      "export": "导出",
-      "fileType": "文件类型",
-      "select": "选择",
-      "maxDepth": "最大深度",
-      "expand": "展开",
-      "collapse": "折叠",
-      "dependences": "-依赖分析",
-      "alertexp": "请先选择导出文件类型!",
-      "jsonexp": "JSON数据为空!",
-      "rectTree": "矩形树图",
-      "plainTree": "树图"
+        "title": "依赖间谍",
+        "depth": "深度",
+        "export": "导出",
+        "fileType": "文件类型",
+        "select": "选择",
+        "maxDepth": "最大深度",
+        "expand": "展开",
+        "collapse": "折叠",
+        "dependences": "-依赖分析",
+        "alertexp": "请先选择导出文件类型!",
+        "jsonexp": "JSON数据为空!",
+        "rectTree": "矩形树图",
+        "plainTree": "树图"
     },
     "aside": {
         "search": {
@@ -52,7 +52,10 @@
             "description": "简介",
             "size": "依赖大小",
             "graph": "体积图表",
-            "source": "数据源"
+            "source": "数据源",
+            "cache": "相同依赖",
+            "dependencies": "依赖个数",
+            "circlePath": "循环依赖"
         }
     },
     "skeleton": {

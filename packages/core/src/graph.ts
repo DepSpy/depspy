@@ -17,7 +17,7 @@ export class Graph {
   ) {
     if (!inBrowser) this.resolvePaths.push(process.cwd());
   }
-  async initGraph(info: string) {
+  private async initGraph(info: string) {
     const { name, version, size, resolvePath, dependencies, description } =
       await getModuleInfo(info, {
         baseDir: this.resolvePaths.slice(-1)[0], //指定解析的根目录
@@ -131,7 +131,7 @@ export class Graph {
     curNode.size = totalSize;
     return curNode;
   }
-  cloneCache(cache: Node, path: string[], cacheParentPath: string[]) {
+  private cloneCache(cache: Node, path: string[], cacheParentPath: string[]) {
     const clonedNode = { ...cache, path, cacheParentPath, dependencies: {} };
     Object.entries(cache.dependencies).forEach(([name, node]) => {
       clonedNode.dependencies[name] = this.cloneCache(

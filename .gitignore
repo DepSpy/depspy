@@ -4,3 +4,6 @@ dist
 ds.circular.json
 ds.co.json
 ds.graph.json
+docs/.vitepress/cache
+coverage
+.vitepress
