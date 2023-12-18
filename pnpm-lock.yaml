@@ -65,6 +65,9 @@ importers:
       lint-staged:
         specifier: ^13.2.3
         version: 13.2.3
+      ora:
+        specifier: ^5.4.1
+        version: 5.4.1
       prettier:
         specifier: ^3.0.0
         version: 3.0.0
@@ -113,6 +116,9 @@ importers:
       chokidar:
         specifier: ^3.5.3
         version: 3.5.3
+      enquirer:
+        specifier: ^2.4.1
+        version: 2.4.1
       express:
         specifier: ^4.18.2
         version: 4.18.2
@@ -3952,6 +3958,14 @@ packages:
     engines: {node: '>=8.6'}
     dependencies:
       ansi-colors: 4.1.3
+    dev: false
+
+  /enquirer@2.4.1:
+    resolution: {integrity: sha512-rRqJg/6gd538VHvR3PSrdRBb/1Vy2YfzHqzvbhGIQpDRKIa4FgV/54b5Q1xYSxOOwKvjXweS26E0Q+nAMwp2pQ==}
+    engines: {node: '>=8.6'}
+    dependencies:
+      ansi-colors: 4.1.3
+      strip-ansi: 6.0.1
     dev: false
 
   /env-paths@2.2.1:

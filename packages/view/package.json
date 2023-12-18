@@ -18,7 +18,7 @@
     }
   },
   "scripts": {
-    "build": "pnpm run build:vite & pnpm run build:tsup",
+    "build": "npm run build:vite && npm run build:tsup",
     "build:vite": "vite build --mode offline",
     "build:tsup": "tsup",
     "build:online": "vite build --mode online",
