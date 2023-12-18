@@ -148,10 +148,14 @@ function transformPackage(pkg: Package_TYPE): MODULE_INFO_TYPE {
       // 给 dependencies 里的包的键值设置为 name/version$
       const dependencies = pkg[key];
       const dependenciesWithVersion = {};
-      for (const name in dependencies) {
+      Object.keys(dependencies).forEach((name) => {
         // eg: vue: vue/^2.6.12$
         dependenciesWithVersion[name] = `${name}/$${dependencies[name]}$`;
-      }
+      });
+      // for (const name in dependencies) {
+      //   // eg: vue: vue/^2.6.12$
+      //   dependenciesWithVersion[name] = `${name}/$${dependencies[name]}$`;
+      // }
       result[key] = dependenciesWithVersion;
     } else if (pkg[key]) {
       result[key] = pkg[key];

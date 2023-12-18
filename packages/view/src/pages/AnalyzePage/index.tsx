@@ -15,7 +15,6 @@ import {
 import Skeleton from "@/components/Skeleton";
 import FirstTreeMap from "@/components/FirstTreeMap";
 import SizeTree from "@/components/SizeTree";
-import "./index.scss";
 import GridBackground from "@/components/GridBack";
 
 export default function AnalyzePage() {
