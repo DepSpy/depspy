@@ -1,11 +1,12 @@
 import { execSync, exec } from "child_process";
 import chokidar from "chokidar";
+import ora from "ora";
 import path from "path";
 import fs from "fs";
 import chalk from "chalk";
-const { green, yellow } = chalk;
-console.log(yellow("开始构建..."));
+
 const root = process.cwd();
+const { green, yellow } = chalk;
 
 const config = JSON.parse(
   fs.readFileSync(path.resolve(root, "depspy.script.json"), "utf8"),
@@ -15,6 +16,9 @@ const commands = Object.entries(config);
 const watcher = chokidar.watch(path.resolve(root, "packages"), {
   ignored: ["**/node_modules/**", "**/dist/**"],
 });
+
+const spinner = ora(yellow("开始构建...\n")).start();
+
 watcher.addListener("change", (changePath) => {
   commands.forEach(([packageName, commands]) => {
     const packagePath = path.resolve(root, "packages", packageName);
@@ -32,10 +36,12 @@ watcher.addListener("change", (changePath) => {
     }
   });
 });
+
 commands.forEach(([packageName, commands]) => {
   const packagePath = path.resolve(root, "packages", packageName);
   commands.forEach((command) => {
     execSync(command, { cwd: packagePath });
   });
 });
-console.log(green("构建成功，监听中..."));
+
+spinner.succeed(green("构建成功，监听中..."));
