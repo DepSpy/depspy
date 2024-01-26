@@ -7,23 +7,29 @@ import { context } from "./store/context";
 import { Tooltip } from "./Tooltip";
 interface DrawRectProps {
   treeMap: d3.HierarchyRectangularNode<Data>;
+  isHierarchy: boolean;
 }
-function DrawRect({ treeMap }: DrawRectProps) {
-  /*
-    treeMap.leaves()
-      [{  data:{name,size,children,_children},
-          depth:number,
-          value:number,
-          x0,x1,y0,y1
-      }]
-    */
+function DrawRect({ treeMap, isHierarchy }: DrawRectProps) {
   const forTree = treeMap.leaves();
+  console.log(treeMap, forTree, isHierarchy);
+
   const colorScale = d3.scaleSequential(
     [forTree.length <= 4 ? 8 : forTree.length * 2, 0],
     d3.interpolateMagma,
   );
   return (
     <div style={{ position: "relative" }}>
+      {isHierarchy && (
+        <DrawChildrenRect
+          x0={treeMap.x0}
+          y0={treeMap.y0}
+          x1={treeMap.x1}
+          y1={treeMap.y1}
+          data={treeMap.data}
+          key={treeMap.value || 0}
+          color={colorScale(forTree.length)}
+        ></DrawChildrenRect>
+      )}
       {forTree.map(
         (
           { x0, y0, x1, y1, data, value }: d3.HierarchyRectangularNode<Data>,
@@ -82,7 +88,7 @@ export const DrawChildrenRect = ({
     }
   }, [ref, hidden]);
   const rectClick = (e) => {
-    console.log(data);
+    console.log(data.name);
     if (!data._children || data._children.length === 0) return;
     handle_rect_click(data)(e);
   };
@@ -120,11 +126,12 @@ export const DrawChildrenRect = ({
             position: "absolute",
             backgroundColor: color,
             left: x0,
-            top: y0,
+            top: show ? y0 - 5 : y0,
             width: x1 - x0,
             height: y1 - y0,
             overflow: "hidden",
             fontSize: RectFontSize,
+            transition: "all 0.3s ease",
             padding: "0.3rem",
             cursor: leaves ? "not-allowed" : "default",
             boxShadow: show
@@ -142,79 +149,16 @@ export const DrawChildrenRect = ({
           ref={ref}
           onClick={rectClick}
         >
-          {data.size ? (
+          {data.size != null || data._size != null ? (
             <>
               <div>name: {data.name}</div>
-              <div>size: {data.size}</div>
+              <div>size: {data.size ? data.size : 0}</div>
             </>
           ) : (
             loading
           )}
         </div>
       )}
-      {/* {hidden && (
-        <Tooltip
-          content={
-            <>
-              <div>name: {data.name}</div>
-              <div>size: {data.size}</div>
-            </>
-          }
-        >
-          <div
-            style={{
-              position: "absolute",
-              backgroundColor: color,
-              left: x0,
-              top: y0,
-              width: x1 - x0,
-              height: y1 - y0,
-              overflow: "hidden",
-              boxShadow:
-                "0 0 0 1px rgba(16, 22, 26, 0.04), 0 1px 3px 0 rgba(16, 22, 26, 0.12)",
-            }}
-            ref={ref}
-            onClick={handle_rect_click ? handle_rect_click(data) : void 0}
-          ></div>
-        </Tooltip>
-      )}
-      {!hidden && (
-        <div
-          style={{
-            position: "absolute",
-            backgroundColor: color,
-            left: x0,
-            top: y0,
-            width: x1 - x0,
-            height: y1 - y0,
-            overflow: "hidden",
-            fontSize: RectFontSize,
-            padding: "0.3rem",
-            boxShadow: show
-              ? "0 0 0 3px rgba(16, 22, 26, 0.1), 0 1px 3px 0 rgba(16, 22, 26, 0.12)"
-              : "0 0 0 1px rgba(16, 22, 26, 0.04), 0 1px 3px 0 rgba(16, 22, 26, 0.12)",
-          }}
-          onMouseMove={() => {
-            // console.log("enter", show);
-            setShow(true);
-          }}
-          onMouseLeave={() => {
-            // console.log("leave");
-            setShow(false);
-          }}
-          ref={ref}
-          onClick={handle_rect_click ? handle_rect_click(data) : void 0}
-        >
-          {data.size ? (
-            <>
-              <div>name: {data.name}</div>
-              <div>size: {data.size}</div>
-            </>
-          ) : (
-            loading
-          )}
-        </div>
-      )} */}
     </>
   );
 };
