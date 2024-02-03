@@ -4,9 +4,22 @@ import { Portal } from "./Portal";
 interface ITooltipsProps {
   content?: ReactNode;
   children: React.ReactElement;
+  pos?:
+    | "top"
+    | "bottom"
+    | "left"
+    | "right"
+    | "lefttop"
+    | "leftbottom"
+    | "righttop"
+    | "rightbottom";
 }
 
-export const Tooltip: React.FC<ITooltipsProps> = ({ content, children }) => {
+export const Tooltip: React.FC<ITooltipsProps> = ({
+  content,
+  children,
+  pos = "lefttop",
+}) => {
   const triggerEl = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState<boolean>(false);
@@ -23,12 +36,19 @@ export const Tooltip: React.FC<ITooltipsProps> = ({ content, children }) => {
     const { left, top, width } = current.getBoundingClientRect();
     const { width: tooltipWidth, height: tooltipHeight } =
       tooltip.getBoundingClientRect();
-
+    const add = {
+      top: {
+        left: (width - tooltipWidth) / 2,
+        top: -Math.abs(tooltipHeight + 5),
+      },
+      lefttop: {
+        left: -(tooltipWidth + 5),
+        top: -tooltipHeight,
+      },
+    };
     setPosition({
-      left:
-        left + (width - tooltipWidth) / 2 + document.documentElement.scrollLeft,
-      top:
-        top - Math.abs(tooltipHeight + 5) + document.documentElement.scrollTop,
+      left: left + add[pos].left + document.documentElement.scrollLeft,
+      top: top + add[pos].top + document.documentElement.scrollTop,
     });
     // setPosition({ left:left + (width - tooltipWidth) / 2, top: top - Math.abs(tooltipHeight + 5) + document.documentElement.scrollTop })
   }, [triggerEl, tooltipRef, open]);
