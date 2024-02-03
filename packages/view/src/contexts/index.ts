@@ -106,7 +106,7 @@ export const useStore = createWithEqualityFn<Store>()(
   })),
   shallow,
 );
-if (import.meta.env.VITE_BUILD_MODE == "offline") {
+if (import.meta.env.VITE_BUILD_MODE != "online") {
   linkContext(
     ({ root, circularDependency, codependency, depth }, ws) => {
       //连接初始化回调
