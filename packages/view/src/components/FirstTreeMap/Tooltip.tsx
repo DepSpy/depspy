@@ -20,15 +20,13 @@ export const Tooltip: React.FC<ITooltipsProps> = ({ content, children }) => {
     const { current } = triggerEl;
     const { current: tooltip } = tooltipRef;
     // console.log(current.getBoundingClientRect())
-    const { left, top, width } = current.getBoundingClientRect();
+    const { left, top } = current.getBoundingClientRect();
     const { width: tooltipWidth, height: tooltipHeight } =
       tooltip.getBoundingClientRect();
 
     setPosition({
-      left:
-        left + (width - tooltipWidth) / 2 + document.documentElement.scrollLeft,
-      top:
-        top - Math.abs(tooltipHeight + 5) + document.documentElement.scrollTop,
+      left: left - (tooltipWidth + 5) + document.documentElement.scrollLeft,
+      top: top - tooltipHeight + document.documentElement.scrollTop,
     });
     // setPosition({ left:left + (width - tooltipWidth) / 2, top: top - Math.abs(tooltipHeight + 5) + document.documentElement.scrollTop })
   }, [triggerEl, tooltipRef, open]);

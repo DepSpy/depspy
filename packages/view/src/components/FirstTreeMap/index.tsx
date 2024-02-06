@@ -23,14 +23,11 @@ function changeData(data: Node): Data | undefined {
     return void 0;
   }
   const dep = data.dependencies;
-  const newdata: Data = { name: "" };
-  newdata.children = [];
-  let isEmpty = true;
+  const newdata: Data = { name: "", children: [] };
   const depvalues = Object.values(dep);
   // console.log("depvalues", depvalues);
 
   if (depvalues.length !== 0) {
-    isEmpty = false;
     depvalues.forEach((item) => {
       const children = changeData(item);
       if (children) {
@@ -49,9 +46,6 @@ function changeData(data: Node): Data | undefined {
 
   newdata.name = `${data.name}@${data.version}`;
   newdata.size = data.size ? data.size : 0;
-  if (isEmpty) {
-    return newdata;
-  }
   return newdata;
 }
 
@@ -95,10 +89,9 @@ const FirstTreeMap = ({
   });
   const [innerWidth, setInnerWidth] = useState(width);
   const [innerHeight, setInnerHeight] = useState(height);
-
+  if (!selectedNode && treeMap) setTreeMap(void 0);
   // init
   useEffect(() => {
-    if (!selectedNode) setTreeMap(void 0);
     setData(changeData(selectedNode));
   }, [selectedNode]);
 
@@ -108,21 +101,15 @@ const FirstTreeMap = ({
       const dataTree = {
         name: data.name,
         _size: data.size,
-        size: data.children
-          ? data.children.length
-            ? void 0
-            : data.size || data._size
-          : data.size || data._size,
-        children: data.children
-          ? (data.children as Data[]).map((item) => {
-              return {
-                name: item.name,
-                size: item.size,
-                _children: item.children,
-                children: [],
-              };
-            })
-          : [],
+        size: data.children.length ? void 0 : data.size || data._size,
+        children: (data.children as Data[]).map((item) => {
+          return {
+            name: item.name,
+            size: item.size,
+            _children: item.children,
+            children: [],
+          };
+        }),
       };
       // console.log(dataTree)
       const rootTree = d3
@@ -131,14 +118,23 @@ const FirstTreeMap = ({
           return d.size ? d.size : 0;
         }) // 计算绘图属性value的值  -求和 其子节点所有.size属性的和值
         .sort((a, b) => {
-          return (a.value as number) - (b.value as number);
+          return (b.value as number) - (a.value as number);
         }); // 根据 上面计算出的 value属性 排序
 
-      const TreeMap = d3
-        .treemap()
-        .size([width - 2 * margin, height - 2 * margin])
-        .round(true)
-        .padding(padding)(rootTree as d3.HierarchyNode<Data>);
+      const TreeMap = fullScreen
+        ? d3
+            .treemap()
+            .size([width - 2 * margin, height - 2 * margin])
+            .round(true)
+            .paddingTop(20)
+            .paddingLeft(10)
+            .paddingRight(10)
+            .paddingInner(padding)(rootTree as d3.HierarchyNode<Data>)
+        : d3
+            .treemap()
+            .size([width - 2 * margin, height - 2 * margin])
+            .round(true)
+            .paddingInner(padding)(rootTree as d3.HierarchyNode<Data>);
       if (width < 500 || height < 500) {
         // 省略较小的依赖
         const hideRoot = [];
@@ -247,7 +243,9 @@ const FirstTreeMap = ({
                 textAlign: "center",
               }}
             >
-              {treeMap && <DrawRect treeMap={treeMap}></DrawRect>}
+              {treeMap && (
+                <DrawRect isHierarchy={fullScreen} treeMap={treeMap}></DrawRect>
+              )}
               {!treeMap && loading}
             </div>
           </CSSTransition>
