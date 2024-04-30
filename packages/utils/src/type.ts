@@ -26,3 +26,8 @@ export enum PATH_TYPE {
   BARE,
   ALIAS,
 }
+
+export interface CODE_INFO {
+  imports: string[];
+  exports: string[];
+}

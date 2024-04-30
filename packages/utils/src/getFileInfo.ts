@@ -1,17 +1,48 @@
 import fs from "fs";
 import { resolve } from "path";
-import { PATH_TYPE } from "./type";
+import { CODE_INFO, PATH_TYPE } from "./type";
 import getModuleInfo from "./getModuleInfo";
-import { readFileSync } from "fs";
+import traverse from "@babel/traverse";
+import toBabel from "swc-to-babel";
+import swc from "@swc/core";
 
+//兼容不同类型的path并返回关键信息
 export async function getFileInfo(path: string, cwd: string) {
   const pathType = await getPathType(path);
+  let resolvedPath = "";
   if (pathType === PATH_TYPE.Relative) {
-    const resolvedPath = resolve(cwd, path);
-    const code = fs.readFileSync(resolvedPath).toString();
-    console.log(code);
+    resolvedPath = resolve(cwd, path);
+  } else if (pathType === PATH_TYPE.Resolve) {
+    resolvedPath = path;
+  } else if (pathType === PATH_TYPE.BARE) {
+  } else if (pathType === PATH_TYPE.ALIAS) {
   } else {
+    throw new Error("Unsupported path type");
   }
+  const code = fs.readFileSync(resolvedPath).toString();
+  return getCodeInfo(code);
+}
+
+//解析代码并返回AST的关键信息
+async function getCodeInfo(code: string) {
+  const ast = swc.parseSync(code, {
+    syntax: "typescript",
+    tsx: true,
+  });
+  const babelAst = toBabel(ast);
+  const result: CODE_INFO = {
+    imports: [],
+    exports: [],
+  };
+  traverse.default(babelAst, {
+    ImportDeclaration(path) {
+      result.imports.push(path.node.source.value);
+    },
+    ExportNamedDeclaration(path) {
+      result.exports.push(path.node.source.value);
+    },
+  });
+  return result;
 }
 //判断path的类型
 async function getPathType(path: string) {
@@ -27,22 +58,3 @@ async function getPathType(path: string) {
   }
   return PATH_TYPE.ALIAS;
 }
-
-// // getFileInfo("./packages/core/src/dep/constant.ts", process.cwd());
-
-const swc = require("@swc/core");
-const toBabel = require("swc-to-babel");
-const traverse = require("@babel/traverse").default;
-const parser = require("@babel/parser");
-const start = Date.now();
-const ast = toBabel(
-  swc.parseSync(readFileSync("./packages/core/src/dep/index.js").toString()),
-);
-console.log(Date.now() - start);
-require("@babel/parser").parse(
-  readFileSync("./packages/core/src/dep/index.js").toString(),
-  {
-    sourceType: "module",
-  },
-);
-console.log(Date.now() - start);
