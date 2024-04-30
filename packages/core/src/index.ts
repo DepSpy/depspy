@@ -1,3 +1,3 @@
-export { generateGraph } from "./generateGraph";
-export type { Node, Config } from "./constant";
-export type { Graph } from "./graph";
+export { generateGraph } from "./dep/generateGraph";
+export type { Node, Config } from "./dep/constant";
+export type { Graph } from "./dep/graph";

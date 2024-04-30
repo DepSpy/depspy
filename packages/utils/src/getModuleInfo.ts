@@ -1,13 +1,10 @@
 import {
-  INFO_TYPES,
   GITHUB_DOMAIN,
   NPM_Name_Regex,
-  MODULE_INFO_TYPE,
-  Package_TYPE,
   MODULE_INFO,
   NPM_DOMAIN,
-  CONFIG,
 } from "./constant";
+import { CONFIG, MODULE_INFO_TYPE, Package_TYPE, INFO_TYPES } from "./type";
 import * as fs from "fs";
 import * as path from "path";
 const inBrowser = typeof window !== "undefined";
