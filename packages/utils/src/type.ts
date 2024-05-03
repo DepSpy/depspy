@@ -13,21 +13,40 @@ export type MODULE_INFO_TYPE = {
   dependencies?: Record<string, string>;
   peerDependencies?: Record<string, string>;
 };
-export type Package_TYPE = MODULE_INFO_TYPE & Record<string, unknown>;
+export type PACKAGE_TYPE = MODULE_INFO_TYPE & Record<string, unknown>;
 
-export interface CONFIG {
+export interface MODULE_CONFIG {
   baseDir?: string;
   size?: boolean;
 }
 
 export enum PATH_TYPE {
-  Resolve,
-  Relative,
+  RESOLVE,
+  RELATIVE,
   BARE,
   ALIAS,
+  UNKNOWN,
 }
 
 export interface CODE_INFO {
   imports: string[];
   exports: string[];
 }
+
+export interface FILE_INFO extends CODE_INFO {
+  resolvePath: string;
+  path: string;
+}
+
+export interface FILE_CONFIG {
+  baseDir: string;
+  alias?: ALIAS_CONFIG;
+}
+
+export interface TS_CONFIG {
+  compilerOptions?: {
+    paths?: ALIAS_CONFIG;
+  };
+}
+
+export type ALIAS_CONFIG = Record<string, string | string[]>;
