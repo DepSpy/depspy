@@ -1,3 +1,4 @@
 export { generateGraph } from "./dep/generateGraph";
-export type { Node, Config } from "./dep/constant";
+export { generateGraph as generateStaticGraph } from "./dep/generateGraph";
+export type { Node, Config } from "./type";
 export type { Graph } from "./dep/graph";

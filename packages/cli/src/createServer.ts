@@ -44,7 +44,7 @@ function createWs(graph: Graph, option: Config) {
           ...option,
           depth: Number(wsData.newDepth),
         });
-        ws.send(formatMes("update", await combineRes(graph, option)));
+        ws.send(formatMes("depth", await combineRes(graph, option)));
       }
       // 项目根目录下的 ppackage.json 发生变化时，重新生成依赖图
       let prePkgJSON = null;

@@ -36,6 +36,7 @@ export interface CODE_INFO {
 export interface FILE_INFO extends CODE_INFO {
   resolvePath: string;
   path: string;
+  baseDir: string;
 }
 
 export interface FILE_CONFIG {

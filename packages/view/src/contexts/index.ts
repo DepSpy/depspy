@@ -1,7 +1,7 @@
 import { shallow } from "zustand/shallow";
 import { createWithEqualityFn } from "zustand/traditional";
 import { subscribeWithSelector } from "zustand/middleware";
-import type { Node } from "../../types/types";
+import type { Node, Store } from "../../types/types";
 import { linkContext } from "./linkContext";
 import { searchNode, searchNodePath } from "./searchNode";
 import { generateGraph } from "@dep-spy/core";
@@ -107,91 +107,5 @@ export const useStore = createWithEqualityFn<Store>()(
   shallow,
 );
 if (import.meta.env.VITE_BUILD_MODE != "online") {
-  linkContext(
-    ({ root, circularDependency, codependency, depth }, ws) => {
-      //连接初始化回调
-      useStore.setState({
-        root,
-        circularDependency,
-        codependency,
-        selectedNode: root,
-        depth,
-        selectedNodeHistory: [root],
-      });
-      useStore.subscribe(
-        (state) => state.depth,
-        (newDepth) => {
-          ws.send(JSON.stringify({ type: "depth", newDepth }));
-        },
-      );
-      ws.send(JSON.stringify({ type: "size", newDepth: depth }));
-    },
-    ({ root, circularDependency, codependency }, ws) => {
-      // 更新 depth 回调
-      // 找到新 tree 中的 selectedNode
-      const { selectedNode } = useStore.getState();
-      const tempNode = searchNodePath(root, selectedNode.path);
-      useStore.setState({
-        root,
-        circularDependency,
-        codependency,
-        selectedNode: tempNode,
-      });
-      // 清空 selectedSizeNode
-      useStore.setState({ selectedSizeNode: null });
-      // 更新完 depth 后，需要重新获取 size
-      const { depth } = useStore.getState();
-      ws.send(JSON.stringify({ type: "size", newDepth: depth }));
-    },
-    ({ root, circularDependency, codependency }) => {
-      // 更新 size 回调
-      const { selectedNode } = useStore.getState();
-      const tempNode = searchNodePath(root, selectedNode.path);
-      useStore.setState({
-        sizeRoot: root,
-        selectedSizeNode: tempNode,
-        circularDependency,
-        codependency,
-      });
-    },
-    useStore,
-  );
-}
-
-export interface Store {
-  theme: string;
-  language: string;
-  root: Node;
-  sizeRoot: Node;
-  sizeTree: boolean;
-  info: string;
-  sizeLoading: boolean;
-  rootLoading: boolean;
-  depth: number;
-  collapse: boolean;
-  codependency: Record<string, Node[]>;
-  circularDependency: Node[];
-  selectedNode: Node;
-  selectedSizeNode: Node;
-  selectedCodependency: Node[] | [];
-  selectedCircularDependency: Node | null;
-  selectedNodeHistory: Node[];
-  setRoot: (root: Node) => void;
-  setSizeRoot: (sizeRoot: Node) => void;
-  setInfo: (info: string) => void;
-  setDepth: (depth: number) => void;
-  setSizeTree: (sizeTree: boolean) => void;
-  setSizeLoading: (sizeLoading: boolean) => void;
-  setRootLoading: (rootLoading: boolean) => void;
-  setSelectNode: (selectedNode: Node) => void;
-  setSelectSizeNode: (selectedSizeNode: Node) => void;
-  setSelectCodependency: (selectedCodependency: Node[]) => void;
-  setSelectCircularDependency: (selectedCircularDependency: Node) => void;
-  searchNode: (root: Node, target: string) => Node[];
-  setCollapse: (flag: boolean) => void;
-  setTheme: (theme: string) => void;
-  setLanguage: (language: string) => void;
-  setGraphRes: (name: string, depth: number) => Promise<void>;
-  setSelectNodeHistory: (node: Node) => void;
-  setPreSelectNode: () => void;
+  linkContext(useStore);
 }

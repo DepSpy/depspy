@@ -10,6 +10,13 @@ export interface Node {
   size?: number;
   cacheParentPath?: string[];
 }
+export interface StaticNode {
+  path: string;
+  resolvedPath: string;
+  imports: string[];
+  exports: string[];
+  dependencies: Record<string, StaticNode>;
+}
 export interface Config {
   depth?: number;
   output?: {
@@ -19,13 +26,3 @@ export interface Config {
   };
   size?: boolean;
 }
-
-export const defaultConfig = {
-  depth: 3,
-  size: false,
-  output: {
-    graph: "ds.graph.json",
-    circularDependency: "ds.circular.json",
-    codependency: "ds.co.json",
-  },
-};

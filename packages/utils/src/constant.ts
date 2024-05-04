@@ -17,4 +17,12 @@ export const MODULE_INFO = [
   "peerDependencies",
 ];
 
-export const suffixOrder = ["js", "mjs", "ts", "jsx", "tsx", "json", "vue"];
+export const suffixOrder = [
+  ".js",
+  ".mjs",
+  ".ts",
+  ".jsx",
+  ".tsx",
+  ".json",
+  ".vue",
+];

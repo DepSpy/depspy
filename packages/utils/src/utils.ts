@@ -9,28 +9,25 @@ export function getPkgResolvePath(info: string, baseDir: string) {
     let linkPath = "";
     // 如果是 macOS 系统
     if (process.platform === "darwin") {
-      linkPath = getAbsoluteLinkTarget(
-        path.resolve(baseDir, "node_modules", info),
-      );
+      linkPath = getAbsoluteLinkTarget(resolve(info, baseDir));
     } else {
-      linkPath = fs.readlinkSync(path.resolve(baseDir, "node_modules", info));
+      linkPath = fs.readlinkSync(resolve(info, baseDir));
     }
-
     actualPath = path.resolve(linkPath, "package.json");
     baseNext = transformLinkToBase(linkPath);
   } else {
-    actualPath = resolve(info, baseDir);
+    actualPath = path.join(resolve(info, baseDir), "package.json");
     baseNext = path.dirname(actualPath);
   }
   return [actualPath, baseNext];
 }
 
-//实现npm依赖冒泡查找机制，但是只查找package.json
+//实现npm依赖冒泡查找机制,返回其根路径
 function resolve(name: string, baseDir: string) {
   const currentDir = path.join(baseDir, "node_modules");
   if (fs.existsSync(currentDir)) {
     //在当前目录下尝试寻找
-    const optionPath = path.join(baseDir, "node_modules", name, "package.json");
+    const optionPath = path.join(baseDir, "node_modules", name);
     if (fs.existsSync(optionPath)) {
       return optionPath;
     }
@@ -79,6 +76,22 @@ export function getPkgByPath<T>(path: string): T {
   return JSON.parse(info);
 }
 
-export function isDirectory(path: string) {
-  return fs.statSync(path).isDirectory();
+export function isFile(path: string) {
+  if (!fs.existsSync(path)) {
+    return false;
+  }
+  return !fs.statSync(path).isDirectory();
+}
+
+export function findParentDirectory(filePath: string) {
+  // 使用 path.dirname() 方法获取文件路径的父文件夹路径
+  try {
+    if (fs.statSync(filePath).isDirectory()) {
+      return filePath;
+    } else {
+      return path.dirname(filePath);
+    }
+  } catch {
+    return filePath;
+  }
 }
