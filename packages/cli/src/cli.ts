@@ -1,9 +1,9 @@
 import cac from "cac";
 import ora from "ora";
 import { blue, green, yellow } from "chalk";
-import { generateGraph } from "@dep-spy/core";
+import { generateGraph, generateStaticGraph } from "@dep-spy/core";
 import { conformConfig } from "./conformConfig";
-import { createServer } from "./createServer";
+import { createServer } from "./server/createServer";
 const cli = cac();
 cli
   .command("[analysis,ana]", "解析本地项目依赖关系图")
@@ -11,6 +11,9 @@ cli
     type: ["string"],
   })
   .option("--co,--codependency <codependency>", "输出相同依赖的文件路径", {
+    type: ["string"],
+  })
+  .option("--entry <entry>", "项目的入口路径", {
     type: ["string"],
   })
   .option(
@@ -56,17 +59,19 @@ cli
 
     options = await conformConfig(options);
 
-    const spinner = ora(blue("🕵️ 正在潜入\n")).start();
     const startTime = Date.now();
-
     const graph = generateGraph("", options);
-    await graph.outputToFile();
+    const staticGraph = generateStaticGraph(options.entry, options);
 
+    const spinner = ora(blue("🕵️ 正在潜入\n")).start();
+    await graph.outputToFile();
     spinner.stop();
+
     console.log(green(`破解完成,耗时 ${yellow(Date.now() - startTime)} ms`));
+
     // 如果开启 ui，则启动可视化界面
     if (options.ui) {
-      createServer(graph, options);
+      createServer(graph, staticGraph, options);
     }
   });
 

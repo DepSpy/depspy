@@ -62,7 +62,6 @@ export default function getFileInfo(path: string, baseDir: string = cwd) {
 
   try {
     resolvedPath = autoCompletePath(resolvedPath);
-
     const code = fs.readFileSync(resolvedPath).toString();
     return {
       path,

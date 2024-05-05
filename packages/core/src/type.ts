@@ -19,10 +19,11 @@ export interface StaticNode {
 }
 export interface Config {
   depth?: number;
+  size?: boolean;
+  entry?: string;
   output?: {
     graph?: string;
     circularDependency?: string;
     codependency?: string;
   };
-  size?: boolean;
 }

@@ -9,6 +9,7 @@ export function linkContext(useStore: StoreApi<Store>) {
     useStore.setState({ sizeLoading: true, rootLoading: true });
     ws.addEventListener("message", (result) => {
       const { type, data } = parseMes(result.data);
+
       EventBus[type](JSON.parse(data), ws);
     });
   });

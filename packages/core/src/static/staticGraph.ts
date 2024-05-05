@@ -1,7 +1,7 @@
 import { getFileInfo } from "@dep-spy/utils";
 import { Config, StaticNode } from "../type";
 
-export class Graph {
+export class StaticGraph {
   private graph: StaticNode;
   private resolvedPaths: string[] = [];
   private cache: Map<string, GraphNode> = new Map();
@@ -12,7 +12,6 @@ export class Graph {
     private readonly config: Config = {},
   ) {
     this.resolvedPaths.push(process.cwd());
-    this.graph = this.initGraph(this.entry);
   }
   private initGraph(entry: string) {
     //文件id
@@ -27,7 +26,7 @@ export class Graph {
       };
     }
     const { imports, path, resolvedPath, baseDir } = getFileInfo(
-      entry,
+      entry || this.entry,
       this.baseDirs.at(-1),
     );
 
@@ -55,7 +54,13 @@ export class Graph {
     return curNode;
   }
   public getGraph() {
+    this.ensureGraph();
     return this.graph;
+  }
+  public ensureGraph() {
+    if (!this.graph) {
+      this.graph = this.initGraph(this.entry);
+    }
   }
 }
 class GraphNode implements StaticNode {
