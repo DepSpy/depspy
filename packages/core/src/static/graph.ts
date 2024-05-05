@@ -2,20 +2,35 @@ import { getFileInfo } from "@dep-spy/utils";
 import { Config, StaticNode } from "../type";
 
 export class Graph {
+  private graph: StaticNode;
   private resolvedPaths: string[] = [];
+  private cache: Map<string, GraphNode> = new Map();
   private baseDirs: string[] = [];
+
   constructor(
     private readonly entry: string,
     private readonly config: Config = {},
   ) {
     this.resolvedPaths.push(process.cwd());
-    this.initGraph(this.entry);
+    this.graph = this.initGraph(this.entry);
   }
-  initGraph(entry: string) {
+  private initGraph(entry: string) {
+    //文件id
+    const id = entry + this.baseDirs.at(-1);
+    //循环检测
+    if (this.cache.has(id)) {
+      return {
+        ...this.cache.get(id),
+        imports: [],
+        export: [],
+        dependencies: {},
+      };
+    }
     const { imports, path, resolvedPath, baseDir } = getFileInfo(
       entry,
       this.baseDirs.at(-1),
     );
+
     const curNode = new GraphNode({
       path,
       resolvedPath,
@@ -23,15 +38,24 @@ export class Graph {
       exports: [],
       dependencies: {},
     });
+
+    //baseDir+path可以唯一确定一个文件，resolvedPath也可以但是不用计算
+    this.cache.set(id, curNode);
     this.resolvedPaths.push(resolvedPath);
     this.baseDirs.push(baseDir);
+
     for (const path of imports) {
       const childNode = this.initGraph(path);
-      curNode.dependencies[childNode.resolvedPath] = childNode;
+      curNode.dependencies[path] = childNode;
     }
+
+    this.cache.delete(id);
     this.resolvedPaths.pop();
     this.baseDirs.pop();
     return curNode;
+  }
+  public getGraph() {
+    return this.graph;
   }
 }
 class GraphNode implements StaticNode {

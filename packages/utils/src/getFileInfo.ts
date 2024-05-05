@@ -2,7 +2,7 @@ import fs from "fs";
 import * as nodePath from "path";
 import { default as traverse } from "@babel/traverse";
 import toBabel from "swc-to-babel";
-import swc from "@swc/core";
+import * as swc from "@swc/core";
 import * as tsPaths from "tsconfig-paths";
 import { suffixOrder } from "./constant";
 import { CODE_INFO, PATH_TYPE } from "./type";
@@ -36,7 +36,6 @@ export default function getFileInfo(path: string, baseDir: string = cwd) {
     first = false;
   }
   const [pathType, extra] = getPathType(path, baseDir);
-
   let resolvedPath = ""; //em: ./add , ./utils , ./
   if (pathType === PATH_TYPE.RELATIVE) {
     resolvedPath = nodePath.resolve(baseDir, path);
@@ -146,14 +145,11 @@ function getPathType(path: string, baseDir: string) {
   }
 }
 function isAliasPath(path: string, paths: Record<string, string[]>): boolean {
-  for (const alias in paths) {
-    if (paths.hasOwnProperty.call(alias)) {
-      // 将别名中的 * 替换为匹配任意字符的正则表达式
-      const regex = new RegExp("^" + alias.replace(/\*$/, ".*"));
-
-      if (regex.test(path)) {
-        return true;
-      }
+  for (const alias of Object.keys(paths)) {
+    // 将别名中的 * 替换为匹配任意字符的正则表达式
+    const regex = new RegExp("^" + alias.replace(/\*$/, ".*"));
+    if (regex.test(path)) {
+      return true;
     }
   }
 
