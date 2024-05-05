@@ -1,5 +1,7 @@
-import { Config, generateGraph, Graph } from "@dep-spy/core";
+import { Config, Graph } from "@dep-spy/core";
+import path from "path";
 import type ws from "ws";
+import { Worker } from "worker_threads";
 
 export const EventBus: Record<
   string,
@@ -7,24 +9,35 @@ export const EventBus: Record<
   (data: any, option: Config, ws: ws) => void
 > = {
   size: async (data, option, ws) => {
-    const graph = generateGraph("", {
-      ...option,
-      size: true,
-      depth: Number(data.newDepth),
+    const worker = new Worker(path.resolve(__dirname, "./server/worker.js"), {
+      workerData: {
+        config: JSON.stringify({
+          ...option,
+          size: true,
+          depth: Number(data.newDepth),
+        }),
+      },
     });
-    ws.send(formatMes("size", await combineRes(graph)));
+    worker.on("message", (data) => {
+      ws.send(formatMes("size", JSON.parse(data)));
+    });
   },
   depth: async (data, option, ws) => {
-    const graph = generateGraph("", {
-      ...option,
-      depth: Number(data.newDepth),
+    const worker = new Worker(path.resolve(__dirname, "./server/worker.js"), {
+      workerData: {
+        config: JSON.stringify({
+          ...option,
+          depth: Number(data.newDepth),
+        }),
+      },
     });
-    ws.send(formatMes("depth", await combineRes(graph, option)));
+    worker.on("message", (data) => {
+      ws.send(formatMes("depth", JSON.parse(data)));
+    });
   },
 };
 
-async function combineRes(graph: Graph, option: Config = {}) {
-  await graph.ensureGraph();
+export async function combineRes(graph: Graph, option: Config = {}) {
   return JSON.stringify({
     root: await graph.getGraph(),
     codependency: await graph.getCodependency(),

@@ -9,7 +9,6 @@ export function linkContext(useStore: StoreApi<Store>) {
     useStore.setState({ sizeLoading: true, rootLoading: true });
     ws.addEventListener("message", (result) => {
       const { type, data } = parseMes(result.data);
-
       EventBus[type](JSON.parse(data), ws);
     });
   });
@@ -19,6 +18,8 @@ export function linkContext(useStore: StoreApi<Store>) {
   ws.addEventListener("close", () => {
     console.error("连接断开");
   });
+
+  window.addEventListener("beforeunload", () => ws.close());
 }
 function parseMes(mes: string) {
   return JSON.parse(mes);

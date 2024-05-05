@@ -1,4 +1,4 @@
-import type { Graph, Config, StaticGraph } from "@dep-spy/core";
+import type { Graph, Config } from "@dep-spy/core";
 import { staticPath } from "@dep-spy/view";
 import path from "path";
 import express from "express";
@@ -7,12 +7,8 @@ import { createWs } from "./createWs";
 
 const root = path.join(staticPath, "vite");
 
-export function createServer(
-  graph: Graph,
-  staticGraph: StaticGraph,
-  option: Config,
-) {
-  createWs(graph, staticGraph, option);
+export function createServer(graph: Graph, option: Config) {
+  createWs(graph, option);
   const app = express();
   app.use(express.static(root));
   app.get("*", (_, res) => {

@@ -23,6 +23,7 @@ export const EventBus = {
         ws.send(JSON.stringify({ type: "depth", newDepth }));
       },
     );
+    //初始化后需要获取size
     ws.send(JSON.stringify({ type: "size", newDepth: depth }));
   },
   depth: ({ root, circularDependency, codependency }, ws) => {

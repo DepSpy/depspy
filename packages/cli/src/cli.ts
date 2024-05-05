@@ -1,7 +1,7 @@
 import cac from "cac";
 import ora from "ora";
 import { blue, green, yellow } from "chalk";
-import { generateGraph, generateStaticGraph } from "@dep-spy/core";
+import { generateGraph } from "@dep-spy/core";
 import { conformConfig } from "./conformConfig";
 import { createServer } from "./server/createServer";
 const cli = cac();
@@ -61,7 +61,6 @@ cli
 
     const startTime = Date.now();
     const graph = generateGraph("", options);
-    const staticGraph = generateStaticGraph(options.entry, options);
 
     const spinner = ora(blue("🕵️ 正在潜入\n")).start();
     await graph.outputToFile();
@@ -71,7 +70,7 @@ cli
 
     // 如果开启 ui，则启动可视化界面
     if (options.ui) {
-      createServer(graph, staticGraph, options);
+      createServer(graph, options);
     }
   });
 
