@@ -11,7 +11,7 @@ import {
   GithubIcon,
   LanguageIcon,
   ThemeIcon,
-} from "../../components/icon/index";
+} from "../../components/Icon/index";
 import Skeleton from "@/components/Skeleton";
 import FirstTreeMap from "@/components/FirstTreeMap";
 import SizeTree from "@/components/SizeTree";

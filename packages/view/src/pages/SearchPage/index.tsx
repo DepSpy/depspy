@@ -18,8 +18,8 @@ export default function SearchPage() {
   return (
     <MainPageContextProvider>
       <div className="background">
-        <Header children={undefined} />
-        <Logo children={undefined} />
+        <Header children={null} />
+        <Logo />
         {!displayDragAndDrop && (
           <SearchSection onDisplayDragAndDrop={displayDragAndDropHandler} />
         )}

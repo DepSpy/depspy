@@ -1,3 +1,5 @@
+import { StaticNode } from "@dep-spy/core";
+
 export interface Node {
   name: string;
   version: string;
@@ -21,11 +23,13 @@ export interface Store {
   theme: string;
   language: string;
   root: Node;
+  staticRoot: StaticNode;
   sizeRoot: Node;
   sizeTree: boolean;
   info: string;
   sizeLoading: boolean;
   rootLoading: boolean;
+  staticRootLoading: boolean;
   depth: number;
   collapse: boolean;
   codependency: Record<string, Node[]>;

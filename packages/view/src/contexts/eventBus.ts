@@ -1,3 +1,4 @@
+import { StaticNode } from "@dep-spy/core";
 import { useStore } from "./index";
 import { searchNodePath } from "./searchNode";
 export const EventType = {
@@ -25,6 +26,9 @@ export const EventBus = {
     );
     //初始化后需要获取size
     ws.send(JSON.stringify({ type: "size", newDepth: depth }));
+  },
+  initStatic: (staticRoot: StaticNode) => {
+    useStore.setState({ staticRoot, staticRootLoading: false });
   },
   depth: ({ root, circularDependency, codependency }, ws) => {
     useStore.setState({ rootLoading: false });

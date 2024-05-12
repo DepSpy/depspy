@@ -6,7 +6,11 @@ const wsPath = "ws://localhost:1822";
 export function linkContext(useStore: StoreApi<Store>) {
   const ws = new WebSocket(wsPath);
   ws.addEventListener("open", () => {
-    useStore.setState({ sizeLoading: true, rootLoading: true });
+    useStore.setState({
+      sizeLoading: true,
+      rootLoading: true,
+      staticRootLoading: true,
+    });
     ws.addEventListener("message", (result) => {
       const { type, data } = parseMes(result.data);
       EventBus[type](JSON.parse(data), ws);
