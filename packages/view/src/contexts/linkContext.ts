@@ -2,6 +2,7 @@ import { Store } from "~/types";
 
 import type { StoreApi } from "zustand";
 import { EventBus } from "./eventBus";
+import { useStaticStore } from "./index";
 const wsPath = "ws://localhost:1822";
 export function linkContext(useStore: StoreApi<Store>) {
   const ws = new WebSocket(wsPath);
@@ -9,6 +10,8 @@ export function linkContext(useStore: StoreApi<Store>) {
     useStore.setState({
       sizeLoading: true,
       rootLoading: true,
+    });
+    useStaticStore.setState({
       staticRootLoading: true,
     });
     ws.addEventListener("message", (result) => {

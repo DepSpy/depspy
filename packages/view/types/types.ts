@@ -23,13 +23,11 @@ export interface Store {
   theme: string;
   language: string;
   root: Node;
-  staticRoot: StaticNode;
   sizeRoot: Node;
   sizeTree: boolean;
   info: string;
   sizeLoading: boolean;
   rootLoading: boolean;
-  staticRootLoading: boolean;
   depth: number;
   collapse: boolean;
   codependency: Record<string, Node[]>;
@@ -57,4 +55,11 @@ export interface Store {
   setGraphRes: (name: string, depth: number) => Promise<void>;
   setSelectNodeHistory: (node: Node) => void;
   setPreSelectNode: () => void;
+}
+
+export interface StaticStore {
+  staticRoot: StaticNode;
+  staticRootLoading: boolean;
+  setStaticRoot: (staticRoot: StaticNode) => void;
+  setStaticRootLoading: (staticRootLoading: boolean) => void;
 }

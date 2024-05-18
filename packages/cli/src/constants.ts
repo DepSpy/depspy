@@ -6,6 +6,7 @@ export const defaultConfig = {
   entry: null,
   output: {
     graph: "ds.graph.json",
+    staticGraph: "ds.static.json",
     circularDependency: "ds.circular.json",
     codependency: "ds.co.json",
   },

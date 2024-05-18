@@ -14,7 +14,7 @@ export function createWs(graph: Graph, option: Config) {
   const wss = new ws.Server({ port: 1822 });
   wss.on("connection", async function (ws) {
     initGraph(graph, option, ws); //初始化依赖图
-    initStaticGraph(option.entry, ws); //初始化静态代码依赖图
+    initStaticGraph(option, ws); //初始化静态代码依赖图
     ws.addEventListener("message", async (mes) => {
       const wsData = JSON.parse(mes.data as string);
       EventBus[wsData.type](wsData, option, ws);
@@ -30,15 +30,15 @@ async function initGraph(graph: Graph, option: Config, ws: ws) {
   ws.send(formatMes("init", await combineRes(graph, option)));
 }
 
-async function initStaticGraph(entry: string, ws: ws) {
-  if (entry) {
+async function initStaticGraph(option: Config, ws: ws) {
+  if (option.entry) {
     const worker = new Worker(path.resolve(__dirname, "./server/worker.js"), {
       workerData: {
-        entry,
+        config: option,
       },
     });
     worker.on("message", (data) => {
-      ws.send(formatMes("initStatic", data));
+      ws.send(formatMes("initStatic", JSON.parse(data)));
     });
   }
 }

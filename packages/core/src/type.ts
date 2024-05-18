@@ -23,6 +23,7 @@ export interface Config {
   entry?: string;
   output?: {
     graph?: string;
+    staticGraph?: string;
     circularDependency?: string;
     codependency?: string;
   };

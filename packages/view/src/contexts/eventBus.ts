@@ -1,5 +1,5 @@
 import { StaticNode } from "@dep-spy/core";
-import { useStore } from "./index";
+import { useStaticStore, useStore } from "./index";
 import { searchNodePath } from "./searchNode";
 export const EventType = {
   init: "init",
@@ -28,7 +28,7 @@ export const EventBus = {
     ws.send(JSON.stringify({ type: "size", newDepth: depth }));
   },
   initStatic: (staticRoot: StaticNode) => {
-    useStore.setState({ staticRoot, staticRootLoading: false });
+    useStaticStore.setState({ staticRoot, staticRootLoading: false });
   },
   depth: ({ root, circularDependency, codependency }, ws) => {
     useStore.setState({ rootLoading: false });

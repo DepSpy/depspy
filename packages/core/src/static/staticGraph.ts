@@ -1,5 +1,7 @@
+import * as fs from "fs";
 import { getFileInfo } from "@dep-spy/utils";
 import { Config, StaticNode } from "../type";
+import path from "path";
 
 export class StaticGraph {
   private graph: StaticNode;
@@ -52,6 +54,21 @@ export class StaticGraph {
     this.resolvedPaths.pop();
     this.baseDirs.pop();
     return curNode;
+  }
+  async outputToFile() {
+    await this.ensureGraph();
+    const { staticGraph } = this.config.output;
+    if (staticGraph) {
+      this.writeJson(await this.getGraph(), staticGraph);
+    }
+  }
+  private writeJson(
+    result: StaticNode[] | StaticNode | Record<string, StaticNode[]>,
+    outDir: string,
+  ) {
+    fs.writeFileSync(path.join(process.cwd(), outDir), JSON.stringify(result), {
+      flag: "w",
+    });
   }
   public getGraph() {
     this.ensureGraph();

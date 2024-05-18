@@ -2,10 +2,12 @@ import { generateStaticGraph, generateGraph } from "@dep-spy/core";
 import { parentPort, workerData } from "worker_threads";
 import { combineRes } from "./eventBus";
 
-const { entry, config } = workerData;
+const { config } = workerData;
 
-if (entry) {
-  parentPort.postMessage(JSON.stringify(generateStaticGraph(entry).getGraph()));
+if (config.entry) {
+  const staticGraph = generateStaticGraph(config.entry, config);
+  staticGraph.outputToFile();
+  parentPort.postMessage(JSON.stringify(staticGraph.getGraph()));
 }
 
 if (config) {

@@ -1,10 +1,10 @@
 import { shallow } from "zustand/shallow";
 import { createWithEqualityFn } from "zustand/traditional";
 import { subscribeWithSelector } from "zustand/middleware";
-import type { Node, Store } from "../../types/types";
+import type { Node, StaticStore, Store } from "~/types";
 import { linkContext } from "./linkContext";
 import { searchNode, searchNodePath } from "./searchNode";
-import { generateGraph } from "@dep-spy/core";
+import { generateGraph, StaticNode } from "@dep-spy/core";
 import { combineRes } from "./combineRes";
 
 export const useStore = createWithEqualityFn<Store>()(
@@ -15,9 +15,7 @@ export const useStore = createWithEqualityFn<Store>()(
     sizeTree: false,
     sizeLoading: true,
     rootLoading: true,
-    staticRootLoading: true,
     root: null,
-    staticRoot: null,
     sizeRoot: null,
     depth: 3,
     collapse: true,
@@ -105,6 +103,16 @@ export const useStore = createWithEqualityFn<Store>()(
         });
       }
     },
+  })),
+  shallow,
+);
+export const useStaticStore = createWithEqualityFn<StaticStore>()(
+  subscribeWithSelector((set) => ({
+    staticRootLoading: true,
+    staticRoot: null,
+    setStaticRoot: (staticRoot: StaticNode) => set({ staticRoot }),
+    setStaticRootLoading: (staticRootLoading: boolean) =>
+      set({ staticRootLoading }),
   })),
   shallow,
 );
