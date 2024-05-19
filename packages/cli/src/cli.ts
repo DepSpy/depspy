@@ -32,7 +32,7 @@ cli
         await new Input({
           name: "depth",
           message: "请输入依赖图最大深度",
-          initial: 10,
+          initial: 3,
         }).run(),
       ),
     ];

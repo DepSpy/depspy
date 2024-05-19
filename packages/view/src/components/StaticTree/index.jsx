@@ -1,10 +1,11 @@
 import { useEffect } from "react";
 import G6 from "@antv/g6";
-import * as d3 from "d3";
+import { useStaticStore } from "@/contexts";
 import { textOverflow } from "../../utils/textOverflow";
-import data from "./ds.static.json";
 export default function StaticTree() {
+  const { staticRoot } = useStaticStore();
   useEffect(() => {
+    if (!staticRoot) return;
     G6.registerNode(
       "tree-node",
       {
@@ -21,7 +22,7 @@ export default function StaticTree() {
             // must be assigned in G6 3.3 and later versions. it can be any string you want, but should be unique in a custom item type
             name: "rect-shape",
           });
-          const content = textOverflow(cfg.name, 100);
+          const content = textOverflow(cfg.path, 100);
           const text = group.addShape("text", {
             attrs: {
               text: content,
@@ -92,7 +93,6 @@ export default function StaticTree() {
       container: "container",
       width,
       height,
-      // animateCfg: false,
       modes: {
         default: [
           {
@@ -140,22 +140,14 @@ export default function StaticTree() {
         },
       },
     });
-    const root = d3.hierarchy(data, (d) => {
-      return Object.values(d.dependencies);
+    //转换为g6的数据格式
+    G6.Util.traverseTree(staticRoot, (subTree) => {
+      subTree.children = Object.values(subTree.dependencies || {});
+      return true;
     });
-    console.log(root);
-    fetch(
-      "https://gw.alipayobjects.com/os/antvdemo/assets/data/modeling-methods.json",
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        G6.Util.traverseTree(data, function (item) {
-          item.id = item.name;
-        });
-        graph.data(data);
-        graph.render();
-        graph.fitView();
-      });
+    graph.data(staticRoot);
+    graph.render();
+    graph.fitView();
 
     if (typeof window !== "undefined")
       window.onresize = () => {
@@ -164,6 +156,7 @@ export default function StaticTree() {
           return;
         graph.changeSize(container.scrollWidth, container.scrollHeight);
       };
-  }, []);
+  }, [staticRoot]);
+
   return <div id="container" className="w-100vw h-100vh"></div>;
 }

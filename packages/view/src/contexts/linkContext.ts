@@ -16,7 +16,7 @@ export function linkContext(useStore: StoreApi<Store>) {
     });
     ws.addEventListener("message", (result) => {
       const { type, data } = parseMes(result.data);
-      EventBus[type](JSON.parse(data), ws);
+      EventBus[type](typeof data === "string" ? JSON.parse(data) : data, ws);
     });
   });
   ws.addEventListener("error", () => {

@@ -32,11 +32,14 @@ async function initGraph(graph: Graph, option: Config, ws: ws) {
 
 async function initStaticGraph(option: Config, ws: ws) {
   if (option.entry) {
-    const worker = new Worker(path.resolve(__dirname, "./server/worker.js"), {
-      workerData: {
-        config: option,
+    const worker = new Worker(
+      path.resolve(__dirname, "./server/static-worker.js"),
+      {
+        workerData: {
+          config: option,
+        },
       },
-    });
+    );
     worker.on("message", (data) => {
       ws.send(formatMes("initStatic", JSON.parse(data)));
     });

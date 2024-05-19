@@ -1,4 +1,4 @@
-import { Config, Graph } from "@dep-spy/core";
+import { Config } from "@dep-spy/core";
 import path from "path";
 import type ws from "ws";
 import { Worker } from "worker_threads";
@@ -11,11 +11,11 @@ export const EventBus: Record<
   size: async (data, option, ws) => {
     const worker = new Worker(path.resolve(__dirname, "./server/worker.js"), {
       workerData: {
-        config: JSON.stringify({
+        config: {
           ...option,
           size: true,
           depth: Number(data.newDepth),
-        }),
+        },
       },
     });
     worker.on("message", (data) => {
@@ -25,10 +25,10 @@ export const EventBus: Record<
   depth: async (data, option, ws) => {
     const worker = new Worker(path.resolve(__dirname, "./server/worker.js"), {
       workerData: {
-        config: JSON.stringify({
+        config: {
           ...option,
           depth: Number(data.newDepth),
-        }),
+        },
       },
     });
     worker.on("message", (data) => {
@@ -36,15 +36,6 @@ export const EventBus: Record<
     });
   },
 };
-
-export async function combineRes(graph: Graph, option: Config = {}) {
-  return JSON.stringify({
-    root: await graph.getGraph(),
-    codependency: await graph.getCodependency(),
-    circularDependency: await graph.getCircularDependency(),
-    ...option,
-  });
-}
 
 function formatMes(type: string, data: unknown) {
   return JSON.stringify({ type, data });
