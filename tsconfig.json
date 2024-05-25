@@ -3,5 +3,6 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext"
   },
+
   "exclude": ["packages/view"]
 }

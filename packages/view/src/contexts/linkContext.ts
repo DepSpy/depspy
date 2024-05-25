@@ -1,28 +1,22 @@
-import { generateGraphRes } from "~/types";
-import type { Store } from "./index";
+import { Store } from "~/types";
+
 import type { StoreApi } from "zustand";
+import { EventBus } from "./eventBus";
+import { useStaticStore } from "./index";
 const wsPath = "ws://localhost:1822";
-export function linkContext(
-  init: (data: generateGraphRes, ws: WebSocket) => void,
-  update: (data: generateGraphRes, ws: WebSocket) => void,
-  setSize: (data: generateGraphRes) => void,
-  useStore: StoreApi<Store>,
-) {
+export function linkContext(useStore: StoreApi<Store>) {
   const ws = new WebSocket(wsPath);
   ws.addEventListener("open", () => {
-    useStore.setState({ sizeLoading: true, rootLoading: true });
+    useStore.setState({
+      sizeLoading: true,
+      rootLoading: true,
+    });
+    useStaticStore.setState({
+      staticRootLoading: true,
+    });
     ws.addEventListener("message", (result) => {
       const { type, data } = parseMes(result.data);
-      if (type == "init") {
-        useStore.setState({ rootLoading: false });
-        init(JSON.parse(data), ws);
-      } else if (type == "update") {
-        useStore.setState({ rootLoading: false });
-        update(JSON.parse(data), ws);
-      } else if (type == "size") {
-        useStore.setState({ sizeLoading: false });
-        setSize(JSON.parse(data));
-      }
+      EventBus[type](typeof data === "string" ? JSON.parse(data) : data, ws);
     });
   });
   ws.addEventListener("error", () => {
@@ -31,6 +25,8 @@ export function linkContext(
   ws.addEventListener("close", () => {
     console.error("连接断开");
   });
+
+  window.addEventListener("beforeunload", () => ws.close());
 }
 function parseMes(mes: string) {
   return JSON.parse(mes);

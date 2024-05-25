@@ -1,5 +1,5 @@
 import { getModuleInfo } from "@dep-spy/utils";
-import { Node, Config } from "./constant";
+import { Node, Config } from "../type";
 const inBrowser = typeof window !== "undefined";
 import * as fs from "fs";
 import * as path from "path";

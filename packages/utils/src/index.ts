@@ -1,2 +1,3 @@
 export { default as getModuleInfo } from "./getModuleInfo";
-export type { MODULE_INFO_TYPE } from "./constant";
+export { default as getFileInfo } from "./getFileInfo";
+export type { MODULE_INFO_TYPE } from "./type";

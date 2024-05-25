@@ -17,8 +17,6 @@ import { throttle } from "@/utils/throttle";
  }
 */
 function changeData(data: Node): Data | undefined {
-  // console.log("11", data);
-
   if (!data) {
     return void 0;
   }
