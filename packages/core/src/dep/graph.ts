@@ -1,8 +1,11 @@
 import { getModuleInfo } from "@dep-spy/utils";
-import { Node, Config } from "../type";
-const inBrowser = typeof window !== "undefined";
+import { Config, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
+import { INFINITY } from "../constant";
+
+const inBrowser = typeof window !== "undefined";
+
 export class Graph {
   private graph: Node; //整个图
   private cache: Map<string, Node> = new Map(); //用来缓存计算过的节点
@@ -59,7 +62,7 @@ export class Graph {
         version,
         {},
         [...this.paths, name],
-        "0",
+        INFINITY,
         {
           description,
           circlePath: [...this.paths, name],
@@ -136,7 +139,7 @@ export class Graph {
     //将循环依赖的childrenNumber设为'0'
     for (const circularNode of this.circularDependency) {
       if (circularNode.name === name) {
-        curNode.childrenNumber = "0";
+        curNode.childrenNumber = INFINITY;
       }
     }
     return curNode;
@@ -202,7 +205,7 @@ class GraphNode implements Node {
     public version: string,
     public dependencies: Record<string, Node>,
     public path: string[],
-    public childrenNumber: number | "0", //用"0"来标记循环引用的无穷大，计算时转为number
+    public childrenNumber: number | typeof INFINITY, //用"0"来标记循环引用的无穷大，计算时转为number
     otherFields: {
       description?: string;
       circlePath?: string[];

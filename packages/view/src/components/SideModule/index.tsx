@@ -2,6 +2,7 @@ import { useStore } from "@/contexts";
 import useLanguage from "@/i18n/hooks/useLanguage";
 import FirstTreeMap from "../FirstTreeMap";
 import "./index.scss";
+import { INFINITY } from "@dep-spy/core/src/constant.ts";
 
 export default function SideModule() {
   const { t } = useLanguage();
@@ -29,7 +30,7 @@ export default function SideModule() {
           <div className="title">{t("aside.module.dependencies")}</div>
           <div className="cache p-3">
             {Object.keys(selectedNode.dependencies).length}&nbsp;/&nbsp;
-            {selectedNode.childrenNumber === "0"
+            {selectedNode.childrenNumber === INFINITY
               ? "Infinity"
               : selectedNode.childrenNumber}
           </div>
