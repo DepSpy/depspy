@@ -70,6 +70,7 @@ cli
 
     // 如果开启 ui，则启动可视化界面
     if (options.ui) {
+      console.log(graph);
       createServer(graph, options);
     }
   });
