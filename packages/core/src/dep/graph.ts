@@ -133,7 +133,7 @@ export class Graph {
     this.resolvePaths.pop();
     //将当前节点的size设置为所有子节点的size之和
     curNode.size = totalSize;
-    //将循环依赖的children 设为 0
+    //将循环依赖的childrenNumber设为'0'
     for (const circularNode of this.circularDependency) {
       if (circularNode.name === name) {
         curNode.childrenNumber = "0";
