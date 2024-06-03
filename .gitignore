@@ -7,3 +7,4 @@ ds.graph.json
 docs/.vitepress/cache
 coverage
 .vitepress
+.idea

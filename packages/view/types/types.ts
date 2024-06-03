@@ -4,6 +4,7 @@ export interface Node {
   name: string;
   version: string;
   declarationVersion: string;
+  childrenNumber: number | "0";
   path?: string[];
   description?: string;
   cache?: string;
