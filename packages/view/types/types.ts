@@ -1,10 +1,11 @@
 import { StaticNode } from "@dep-spy/core";
+import { INFINITY } from "@dep-spy/core/src/constant.ts";
 
 export interface Node {
   name: string;
   version: string;
   declarationVersion: string;
-  childrenNumber: number | "0";
+  childrenNumber: number | typeof INFINITY;
   path?: string[];
   description?: string;
   cache?: string;

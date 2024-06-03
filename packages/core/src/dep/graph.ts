@@ -205,7 +205,7 @@ class GraphNode implements Node {
     public version: string,
     public dependencies: Record<string, Node>,
     public path: string[],
-    public childrenNumber: number | typeof INFINITY, //用"0"来标记循环引用的无穷大，计算时转为number
+    public childrenNumber: number | typeof INFINITY,
     otherFields: {
       description?: string;
       circlePath?: string[];
