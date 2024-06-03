@@ -3,6 +3,7 @@ export interface Node {
   version: string;
   declarationVersion: string;
   path: string[];
+  childrenNumber: number | "0";
   description?: string;
   cache?: string;
   circlePath?: string[];

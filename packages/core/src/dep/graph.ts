@@ -46,7 +46,7 @@ export class Graph {
     }
     //没有子依赖直接返回
     if (!dependencies) {
-      return new GraphNode(name, version, {}, [...this.paths, name], {
+      return new GraphNode(name, version, {}, [...this.paths, name], 0, {
         description,
         size,
       });
@@ -59,6 +59,7 @@ export class Graph {
         version,
         {},
         [...this.paths, name],
+        "0",
         {
           description,
           circlePath: [...this.paths, name],
@@ -76,6 +77,7 @@ export class Graph {
       version,
       children,
       [...this.paths, name],
+      0,
       {
         description,
       },
@@ -118,6 +120,8 @@ export class Graph {
       if (!child.circlePath) this.cache.set(childId, child!);
       //将子节点加入父节点（注意是children是引入类型，所以可以直接加）
       children[child.name] = child;
+      //更新父节点子依赖数量
+      (curNode.childrenNumber as number) += Number(child.childrenNumber) + 1; //自身 + child 子依赖数量
     }
 
     /*⬅️⬅️⬅️  后序处理逻辑  ➡️➡️➡️*/
@@ -129,6 +133,12 @@ export class Graph {
     this.resolvePaths.pop();
     //将当前节点的size设置为所有子节点的size之和
     curNode.size = totalSize;
+    //将循环依赖的children 设为 0
+    for (const circularNode of this.circularDependency) {
+      if (circularNode.name === name) {
+        curNode.childrenNumber = "0";
+      }
+    }
     return curNode;
   }
   private cloneCache(cache: Node, path: string[], cacheParentPath: string[]) {
@@ -192,6 +202,7 @@ class GraphNode implements Node {
     public version: string,
     public dependencies: Record<string, Node>,
     public path: string[],
+    public childrenNumber: number | "0", //用"0"来标记循环引用的无穷大，计算时转为number
     otherFields: {
       description?: string;
       circlePath?: string[];
