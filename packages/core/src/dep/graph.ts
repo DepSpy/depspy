@@ -2,10 +2,7 @@ import { getModuleInfo } from "@dep-spy/utils";
 import { Config, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
-import { INFINITY } from "../constant";
-
 const inBrowser = typeof window !== "undefined";
-
 export class Graph {
   private graph: Node; //整个图
   private cache: Map<string, Node> = new Map(); //用来缓存计算过的节点
@@ -62,7 +59,7 @@ export class Graph {
         version,
         {},
         [...this.paths, name],
-        INFINITY,
+        Infinity,
         {
           description,
           circlePath: [...this.paths, name],
@@ -124,7 +121,8 @@ export class Graph {
       //将子节点加入父节点（注意是children是引入类型，所以可以直接加）
       children[child.name] = child;
       //更新父节点子依赖数量
-      (curNode.childrenNumber as number) += Number(child.childrenNumber) + 1; //自身 + child 子依赖数量
+      (curNode.childrenNumber as number) +=
+        (child.childrenNumber === Infinity ? 0 : child.childrenNumber) + 1; //child 子依赖数量 + 自身
     }
 
     /*⬅️⬅️⬅️  后序处理逻辑  ➡️➡️➡️*/
@@ -136,12 +134,6 @@ export class Graph {
     this.resolvePaths.pop();
     //将当前节点的size设置为所有子节点的size之和
     curNode.size = totalSize;
-    //将循环依赖的childrenNumber设为'0'
-    for (const circularNode of this.circularDependency) {
-      if (circularNode.name === name) {
-        curNode.childrenNumber = INFINITY;
-      }
-    }
     return curNode;
   }
   private cloneCache(cache: Node, path: string[], cacheParentPath: string[]) {
@@ -189,9 +181,19 @@ export class Graph {
     result: Node[] | Node | Record<string, Node[]>,
     outDir: string,
   ) {
-    fs.writeFileSync(path.join(process.cwd(), outDir), JSON.stringify(result), {
-      flag: "w",
-    });
+    fs.writeFileSync(
+      path.join(process.cwd(), outDir),
+      JSON.stringify(result, (key, value) => {
+        //当为Infinity时需要特殊处理，否则会变成null
+        if (key === "childrenNumber" && value === Infinity) {
+          return "Infinity";
+        }
+        return value;
+      }),
+      {
+        flag: "w",
+      },
+    );
   }
 }
 
@@ -205,7 +207,7 @@ class GraphNode implements Node {
     public version: string,
     public dependencies: Record<string, Node>,
     public path: string[],
-    public childrenNumber: number | typeof INFINITY,
+    public childrenNumber: number,
     otherFields: {
       description?: string;
       circlePath?: string[];

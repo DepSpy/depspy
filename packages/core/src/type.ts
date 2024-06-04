@@ -1,11 +1,9 @@
-import { INFINITY } from "./constant";
-
 export interface Node {
   name: string;
   version: string;
   declarationVersion: string;
   path: string[];
-  childrenNumber: number | typeof INFINITY;
+  childrenNumber: number;
   description?: string;
   cache?: string;
   circlePath?: string[];

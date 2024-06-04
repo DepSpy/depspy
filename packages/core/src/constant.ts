@@ -9,5 +9,3 @@ export const defaultConfig = {
     codependency: "ds.co.json",
   },
 };
-
-export const INFINITY = "0";
