@@ -1,42 +1,62 @@
 import { MODULE_INFO_TYPE, POOL_TASK } from "./type";
+import { Worker } from "worker_threads";
+import path from "path";
+import getModuleInfo from "./getModuleInfo";
+const inBrowser = typeof window !== "undefined";
 
 export default class Pool {
-  private readonly pool: Set<POOL_TASK> = new Set<POOL_TASK>();
-  private resultArray: MODULE_INFO_TYPE[] = [];
-  private taskQueue: POOL_TASK[] = [];
-  private closePool: (value: MODULE_INFO_TYPE[]) => void;
-  constructor(private readonly maxPoolSize: number) {}
-  addToPool(poolTask: POOL_TASK) {
-    this.pool.add(poolTask); //加入池子
-    poolTask().then((moduleInfo) => {
-      this.resultArray.push(moduleInfo);
-      this.pool.delete(poolTask); //任务执行完毕
-      if (this.taskQueue.length !== 0) {
-        this.addToPool(this.taskQueue.shift()); //加入新的任务
-      } else {
-        this.close(); //尝试关闭
-      }
+  private resultArray: MODULE_INFO_TYPE[] = []; //结果存储
+  private taskQueue: POOL_TASK[] = []; //任务队列
+  private workersPool: Worker[] = []; //线程池
+  private tasksNumber: number = 0; //应该完成的任务数量
+  private closePool: (value: Pool["resultArray"]) => void;
+  constructor(private readonly maxPoolSize: number) {
+    if (inBrowser) {
+      return; //浏览器环境不创建
+    }
+    for (let i = 0; i < maxPoolSize; i++) {
+      this.createWorker();
+    }
+  }
+  createWorker() {
+    const worker = new Worker(path.resolve(__dirname, "./moduleInfoWorker.js"));
+    worker.on("message", (data) => {
+      this.resultArray.push(data);
+      this.runNextTask(worker);
     });
-  }
-  ifOver() {
-    return this.pool.size >= this.maxPoolSize;
-  }
-  run(): Promise<MODULE_INFO_TYPE[]> {
-    this.resultArray = [];
-    return new Promise((resolve) => {
-      this.closePool = resolve;
-      while (!this.ifOver() && this.taskQueue.length !== 0) {
-        this.addToPool(this.taskQueue.shift()); //先将池子装满
-      }
-      this.close(); //若任务队列无任务，直接关闭
+    worker.on("error", (err) => {
+      console.error(err);
+      //报错则没有结果,让应该得到的结果数减少1
+      this.tasksNumber--;
+      this.runNextTask(worker);
     });
+    this.workersPool.push(worker);
   }
-  addToTaskQueue(PoolTask: POOL_TASK) {
-    this.taskQueue.push(PoolTask);
-  }
-  close() {
-    if (this.pool.size === 0 && this.taskQueue.length === 0) {
+  runNextTask(worker: Worker) {
+    if (this.taskQueue.length !== 0) {
+      worker.postMessage(this.taskQueue.shift());
+      return;
+    }
+    //如果没有下一个任务 且 任务数量和结果数量相同
+    if (this.resultArray.length === this.tasksNumber) {
       this.closePool(this.resultArray);
     }
+  }
+  run(): Promise<MODULE_INFO_TYPE[]> {
+    if (inBrowser) {
+      return Promise.all(this.taskQueue.map((task) => getModuleInfo(...task)));
+    }
+    return new Promise((resolve) => {
+      this.closePool = resolve;
+      this.resultArray = []; // 清空上一次剩下的结果
+      this.tasksNumber = this.taskQueue.length;
+      for (let i = 0; i < this.workersPool.length; i++) {
+        const worker = this.workersPool[i];
+        this.runNextTask(worker);
+      }
+    });
+  }
+  addToTaskQueue(task: POOL_TASK): void {
+    this.taskQueue.push(task);
   }
 }
