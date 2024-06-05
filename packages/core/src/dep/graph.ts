@@ -1,4 +1,4 @@
-import { getModuleInfo } from "@dep-spy/utils";
+import { getModuleInfo, MODULE_INFO_TYPE, Pool } from "@dep-spy/utils";
 import { Config, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
@@ -11,18 +11,16 @@ export class Graph {
   private resolvePaths: string[] = []; //记录根节点到当前节点每一个节点的绝对路径
   private codependency: Map<string, Node[]> = new Map(); //记录相同的节点
   private circularDependency: Set<Node> = new Set(); //记录存在循环引用的节点
+  private pool: Pool = new Pool(10); //创建限制并发池
   constructor(
     private readonly info: string,
     private readonly config: Config = {},
   ) {
     if (!inBrowser) this.resolvePaths.push(process.cwd());
   }
-  private async initGraph(info: string) {
+  private async initGraph(modelInfo: MODULE_INFO_TYPE) {
     const { name, version, size, resolvePath, dependencies, description } =
-      await getModuleInfo(info, {
-        baseDir: this.resolvePaths.slice(-1)[0], //指定解析的根目录
-        size: this.config.size,
-      });
+      modelInfo;
     const id = name + version;
     //直接返回缓存
     if (this.cache.has(id)) {
@@ -90,6 +88,8 @@ export class Graph {
     //加入当前节点的绝对路径
     this.resolvePaths.push(resolvePath);
 
+    const childrenVersions = [];
+
     /*⬅️⬅️⬅️  递归子节点处理逻辑  ➡️➡️➡️*/
 
     for (let i = 0; i < dependenceEntries.length; i++) {
@@ -102,28 +102,42 @@ export class Graph {
         string,
         string,
       ];
-      //核心递归
-      const child = await this.initGraph(childName);
-      //添加实际声明的依赖
-      // 如果 childVersion 以 $ 结尾，表明需要特殊处理
-      let childVersionPure: string | undefined;
-      if (childVersion.endsWith("$")) {
-        const index = childVersion.indexOf("$");
-        childVersionPure = childVersion.slice(index + 1, -1);
-      }
-      child.declarationVersion = childVersionPure || childVersion;
-      //累加size
-      totalSize += child.size;
-      //子模块唯一id
-      const childId = child.name + child.version;
-      //缓存节点
-      if (!child.circlePath) this.cache.set(childId, child!);
-      //将子节点加入父节点（注意是children是引入类型，所以可以直接加）
-      children[child.name] = child;
-      //更新父节点子依赖数量
-      (curNode.childrenNumber as number) +=
-        (child.childrenNumber === Infinity ? 0 : child.childrenNumber) + 1; //child 子依赖数量 + 自身
+      childrenVersions.push(childVersion);
+      this.pool.addToTaskQueue(() =>
+        getModuleInfo(childName, {
+          baseDir: this.resolvePaths.slice(-1)[0], //指定解析的根目录
+          size: this.config.size,
+        }),
+      );
     }
+    await this.pool
+      .run()
+      .then(async (childrenModelInfos: MODULE_INFO_TYPE[]) => {
+        for (let index = 0; index < childrenModelInfos.length; index++) {
+          const childModuleInfo = childrenModelInfos[index];
+          const child = await this.initGraph(childModuleInfo);
+          const childVersion = childrenVersions[index];
+          //添加实际声明的依赖
+          // 如果 childVersion 以 $ 结尾，表明需要特殊处理
+          let childVersionPure: string | undefined;
+          if (childVersion.endsWith("$")) {
+            const index = childVersion.indexOf("$");
+            childVersionPure = childVersion.slice(index + 1, -1);
+          }
+          child.declarationVersion = childVersionPure || childVersion;
+          //累加size
+          totalSize += child.size;
+          //子模块唯一id
+          const childId = child.name + child.version;
+          //缓存节点
+          if (!child.circlePath) this.cache.set(childId, child!);
+          //将子节点加入父节点（注意是children是引入类型，所以可以直接加）
+          children[child.name] = child;
+          //更新父节点子依赖数量
+          (curNode.childrenNumber as number) +=
+            (child.childrenNumber === Infinity ? 0 : child.childrenNumber) + 1; //child 子依赖数量 + 自身
+        }
+      });
 
     /*⬅️⬅️⬅️  后序处理逻辑  ➡️➡️➡️*/
 
@@ -174,7 +188,8 @@ export class Graph {
   }
   public async ensureGraph() {
     if (!this.graph) {
-      this.graph = await this.initGraph(this.info);
+      const rootModule = await getModuleInfo(this.info); //解析首个节点
+      this.graph = await this.initGraph(rootModule);
     }
   }
   private writeJson(
