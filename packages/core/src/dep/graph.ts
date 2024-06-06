@@ -1,8 +1,13 @@
-import { getModuleInfo } from "@dep-spy/utils";
-import { Node, Config } from "../type";
-const inBrowser = typeof window !== "undefined";
+import {
+  getModuleInfo,
+  MODULE_INFO_TYPE,
+  Pool,
+  MODULE_CONFIG,
+} from "@dep-spy/utils";
+import { Config, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
+const inBrowser = typeof window !== "undefined";
 export class Graph {
   private graph: Node; //整个图
   private cache: Map<string, Node> = new Map(); //用来缓存计算过的节点
@@ -14,15 +19,15 @@ export class Graph {
   constructor(
     private readonly info: string,
     private readonly config: Config = {},
+    private readonly pool: Pool<[string, MODULE_CONFIG], MODULE_INFO_TYPE>,
   ) {
-    if (!inBrowser) this.resolvePaths.push(process.cwd());
+    if (!inBrowser) {
+      this.resolvePaths.push(process.cwd());
+    }
   }
-  private async initGraph(info: string) {
+  private async initGraph(modelInfo: MODULE_INFO_TYPE) {
     const { name, version, size, resolvePath, dependencies, description } =
-      await getModuleInfo(info, {
-        baseDir: this.resolvePaths.slice(-1)[0], //指定解析的根目录
-        size: this.config.size,
-      });
+      modelInfo;
     const id = name + version;
     //直接返回缓存
     if (this.cache.has(id)) {
@@ -46,7 +51,7 @@ export class Graph {
     }
     //没有子依赖直接返回
     if (!dependencies) {
-      return new GraphNode(name, version, {}, [...this.paths, name], {
+      return new GraphNode(name, version, {}, [...this.paths, name], 0, {
         description,
         size,
       });
@@ -59,6 +64,7 @@ export class Graph {
         version,
         {},
         [...this.paths, name],
+        Infinity,
         {
           description,
           circlePath: [...this.paths, name],
@@ -76,6 +82,7 @@ export class Graph {
       version,
       children,
       [...this.paths, name],
+      0,
       {
         description,
       },
@@ -88,8 +95,9 @@ export class Graph {
     //加入当前节点的绝对路径
     this.resolvePaths.push(resolvePath);
 
-    /*⬅️⬅️⬅️  递归子节点处理逻辑  ➡️➡️➡️*/
+    const childrenVersions = [];
 
+    /*⬅️⬅️⬅️  递归子节点处理逻辑  ➡️➡️➡️*/
     for (let i = 0; i < dependenceEntries.length; i++) {
       //深度判断
       if (this.config.depth && this.paths.length == this.config.depth) {
@@ -100,8 +108,28 @@ export class Graph {
         string,
         string,
       ];
-      //核心递归
-      const child = await this.initGraph(childName);
+      childrenVersions.push(childVersion);
+      //将任务推入任务队列
+      this.pool.addToTaskQueue([
+        childName,
+        {
+          baseDir: this.resolvePaths.slice(-1)[0], //指定解析的根目录
+          size: this.config.size,
+        },
+      ]);
+    }
+
+    const childrenModelInfos: (MODULE_INFO_TYPE | null)[] =
+      await this.pool.run();
+    for (let index = 0; index < childrenModelInfos.length; index++) {
+      const childModuleInfo = childrenModelInfos[index];
+      if (!childModuleInfo) {
+        //错误的结果不执行逻辑
+        continue;
+      }
+      //开始递归
+      const child = await this.initGraph(childModuleInfo);
+      const childVersion = childrenVersions[index];
       //添加实际声明的依赖
       // 如果 childVersion 以 $ 结尾，表明需要特殊处理
       let childVersionPure: string | undefined;
@@ -118,6 +146,9 @@ export class Graph {
       if (!child.circlePath) this.cache.set(childId, child!);
       //将子节点加入父节点（注意是children是引入类型，所以可以直接加）
       children[child.name] = child;
+      //更新父节点子依赖数量
+      (curNode.childrenNumber as number) +=
+        (child.childrenNumber === Infinity ? 0 : child.childrenNumber) + 1; //child 子依赖数量 + 自身
     }
 
     /*⬅️⬅️⬅️  后序处理逻辑  ➡️➡️➡️*/
@@ -169,16 +200,27 @@ export class Graph {
   }
   public async ensureGraph() {
     if (!this.graph) {
-      this.graph = await this.initGraph(this.info);
+      const rootModule = await getModuleInfo(this.info); //解析首个节点
+      this.graph = await this.initGraph(rootModule);
     }
   }
   private writeJson(
     result: Node[] | Node | Record<string, Node[]>,
     outDir: string,
   ) {
-    fs.writeFileSync(path.join(process.cwd(), outDir), JSON.stringify(result), {
-      flag: "w",
-    });
+    fs.writeFileSync(
+      path.join(process.cwd(), outDir),
+      JSON.stringify(result, (key, value) => {
+        //当为Infinity时需要特殊处理，否则会变成null
+        if (key === "childrenNumber" && value === Infinity) {
+          return "Infinity";
+        }
+        return value;
+      }),
+      {
+        flag: "w",
+      },
+    );
   }
 }
 
@@ -192,6 +234,7 @@ class GraphNode implements Node {
     public version: string,
     public dependencies: Record<string, Node>,
     public path: string[],
+    public childrenNumber: number,
     otherFields: {
       description?: string;
       circlePath?: string[];

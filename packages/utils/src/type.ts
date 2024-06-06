@@ -51,3 +51,5 @@ export interface TS_CONFIG {
 }
 
 export type ALIAS_CONFIG = Record<string, string | string[]>;
+
+export type POOL_TASK = [info?: string, config?: MODULE_CONFIG];

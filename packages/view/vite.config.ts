@@ -9,6 +9,13 @@ export default defineConfig(({ mode }) => {
   return {
     build: {
       outDir: VITE_BUILD_MODE == "online" ? "dist/online" : "dist/vite",
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            g6: ["@antv/g6"],
+          },
+        },
+      },
     },
     envDir: "./env",
 
@@ -21,6 +28,9 @@ export default defineConfig(({ mode }) => {
         "tsconfig-paths",
         "@babel/traverse",
         "swc-to-babel",
+        "worker_threads",
+        "os",
+        "events",
       ]),
     ],
     resolve: {

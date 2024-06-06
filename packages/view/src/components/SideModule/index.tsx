@@ -28,7 +28,8 @@ export default function SideModule() {
         <div className="module-size">
           <div className="title">{t("aside.module.dependencies")}</div>
           <div className="cache p-3">
-            {Object.keys(selectedNode.dependencies).length}
+            {Object.keys(selectedNode.dependencies).length}&nbsp;/&nbsp;
+            {selectedNode.childrenNumber}
           </div>
         </div>
       ) : null}
