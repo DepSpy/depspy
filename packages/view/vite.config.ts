@@ -23,6 +23,7 @@ export default defineConfig(({ mode }) => {
         "swc-to-babel",
         "worker_threads",
         "os",
+        "events",
       ]),
     ],
     resolve: {

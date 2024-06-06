@@ -1,6 +1,6 @@
 import path from "path";
 import threads from "worker_threads";
-import EventEmitter = require("events");
+import EventEmitter from "events";
 const inBrowser = typeof window !== "undefined";
 const Worker = threads.Worker;
 

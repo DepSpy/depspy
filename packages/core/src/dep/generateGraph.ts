@@ -4,7 +4,7 @@ import { Graph } from "./graph";
 import { getModuleInfo, Pool } from "@dep-spy/utils";
 import os from "os";
 const pool = new Pool(
-  os.cpus().length,
+  os.cpus ? os.cpus().length : 0,
   "./workers/moduleInfoWorker.js",
   getModuleInfo,
 );
