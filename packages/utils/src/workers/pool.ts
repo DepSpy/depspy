@@ -1,5 +1,6 @@
 import path from "path";
 import threads from "worker_threads";
+import EventEmitter = require("events");
 const inBrowser = typeof window !== "undefined";
 const Worker = threads.Worker;
 
@@ -20,6 +21,7 @@ export default class Pool<POOL_TASK extends unknown[], RESULT_TYPE> {
     if (inBrowser) {
       return; //浏览器环境不创建
     }
+    EventEmitter.defaultMaxListeners = 300;
     for (let i = 0; i < maxPoolSize; i++) {
       this.createWorker();
     }

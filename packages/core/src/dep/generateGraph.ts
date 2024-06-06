@@ -2,8 +2,12 @@ import { defaultConfig } from "../constant";
 import { Config } from "../type";
 import { Graph } from "./graph";
 import { getModuleInfo, Pool } from "@dep-spy/utils";
-const pool = new Pool(9, "./workers/moduleInfoWorker.js", getModuleInfo);
-
+import os from "os";
+const pool = new Pool(
+  os.cpus().length,
+  "./workers/moduleInfoWorker.js",
+  getModuleInfo,
+);
 export function generateGraph(
   info: string,
   config: Config = defaultConfig,
