@@ -16,14 +16,13 @@ export class Graph {
   private resolvePaths: string[] = []; //记录根节点到当前节点每一个节点的绝对路径
   private codependency: Map<string, Node[]> = new Map(); //记录相同的节点
   private circularDependency: Set<Node> = new Set(); //记录存在循环引用的节点
-  private pool: Pool<[string, MODULE_CONFIG], MODULE_INFO_TYPE>; //创建限制并发池
   constructor(
     private readonly info: string,
     private readonly config: Config = {},
+    private readonly pool: Pool<[string, MODULE_CONFIG], MODULE_INFO_TYPE>,
   ) {
     if (!inBrowser) {
       this.resolvePaths.push(process.cwd());
-      this.pool = new Pool(9, "./workers/moduleInfoWorker.js", getModuleInfo);
     }
   }
   private async initGraph(modelInfo: MODULE_INFO_TYPE) {
