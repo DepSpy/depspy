@@ -1,4 +1,9 @@
-import { getModuleInfo, MODULE_INFO_TYPE, Pool } from "@dep-spy/utils";
+import {
+  getModuleInfo,
+  MODULE_INFO_TYPE,
+  Pool,
+  MODULE_CONFIG,
+} from "@dep-spy/utils";
 import { Config, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
@@ -11,12 +16,15 @@ export class Graph {
   private resolvePaths: string[] = []; //记录根节点到当前节点每一个节点的绝对路径
   private codependency: Map<string, Node[]> = new Map(); //记录相同的节点
   private circularDependency: Set<Node> = new Set(); //记录存在循环引用的节点
-  private pool: Pool = new Pool(8); //创建限制并发池
+  private pool: Pool<[string, MODULE_CONFIG], MODULE_INFO_TYPE>; //创建限制并发池
   constructor(
     private readonly info: string,
     private readonly config: Config = {},
   ) {
-    if (!inBrowser) this.resolvePaths.push(process.cwd());
+    if (!inBrowser) {
+      this.resolvePaths.push(process.cwd());
+      this.pool = new Pool(9, "./workers/moduleInfoWorker.js", getModuleInfo);
+    }
   }
   private async initGraph(modelInfo: MODULE_INFO_TYPE) {
     const { name, version, size, resolvePath, dependencies, description } =
@@ -91,7 +99,6 @@ export class Graph {
     const childrenVersions = [];
 
     /*⬅️⬅️⬅️  递归子节点处理逻辑  ➡️➡️➡️*/
-
     for (let i = 0; i < dependenceEntries.length; i++) {
       //深度判断
       if (this.config.depth && this.paths.length == this.config.depth) {
@@ -103,6 +110,7 @@ export class Graph {
         string,
       ];
       childrenVersions.push(childVersion);
+      //将任务推入任务队列
       this.pool.addToTaskQueue([
         childName,
         {
@@ -112,9 +120,15 @@ export class Graph {
       ]);
     }
 
-    const childrenModelInfos: MODULE_INFO_TYPE[] = await this.pool.run();
+    const childrenModelInfos: (MODULE_INFO_TYPE | null)[] =
+      await this.pool.run();
     for (let index = 0; index < childrenModelInfos.length; index++) {
       const childModuleInfo = childrenModelInfos[index];
+      if (!childModuleInfo) {
+        //错误的结果不执行逻辑
+        continue;
+      }
+      //开始递归
       const child = await this.initGraph(childModuleInfo);
       const childVersion = childrenVersions[index];
       //添加实际声明的依赖

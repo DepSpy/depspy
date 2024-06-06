@@ -21,6 +21,8 @@ export default defineConfig(({ mode }) => {
         "tsconfig-paths",
         "@babel/traverse",
         "swc-to-babel",
+        "worker_threads",
+        "os",
       ]),
     ],
     resolve: {
