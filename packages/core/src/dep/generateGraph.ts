@@ -8,11 +8,14 @@ const pool = new Pool(
   "./workers/moduleInfoWorker.js",
   getModuleInfo,
 );
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+process.env.UV_THREADPOOL_SIZE = 20;
+export let graph: Graph | null = null;
 export function generateGraph(
   info: string,
   config: Config = defaultConfig,
 ): Graph {
-  let graph: Graph | null = null;
   // 本地模式，info 为 ""
   if (!info) {
     graph = new Graph("", config, pool);

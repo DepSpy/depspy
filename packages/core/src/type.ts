@@ -4,11 +4,13 @@ export interface Node {
   declarationVersion: string;
   path: string[];
   childrenNumber: number;
+  resolvePath: string;
   description?: string;
   cache?: string;
   circlePath?: string[];
   dependencies: Record<string, Node>;
   size?: number;
+  selfSize: number;
   cacheParentPath?: string[];
 }
 export interface StaticNode {
