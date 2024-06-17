@@ -4,7 +4,7 @@ import { subscribeWithSelector } from "zustand/middleware";
 import type { Node, StaticStore, Store } from "~/types";
 import { linkContext } from "./linkContext";
 import { searchNode, searchNodePath } from "./searchNode";
-import { generateGraph, StaticNode } from "@dep-spy/core";
+import { generateGraph, StaticNode, graph } from "@dep-spy/core";
 import { combineRes } from "./combineRes";
 
 export const useStore = createWithEqualityFn<Store>()(
@@ -66,7 +66,11 @@ export const useStore = createWithEqualityFn<Store>()(
       set({ language });
     },
     setGraphRes: async (info, depth) => {
-      const graph = generateGraph(info, { depth });
+      if (!graph) {
+        generateGraph(info, { depth });
+      } else {
+        await graph.update(depth);
+      }
       const res = await combineRes(graph, depth);
       set(res);
     },

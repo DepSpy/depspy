@@ -1,18 +1,18 @@
 import { defaultConfig } from "../constant";
 import { Config } from "../type";
 import { Graph } from "./graph";
-import { getModuleInfo, Pool } from "@dep-spy/utils";
+import { MODULE_CONFIG, MODULE_INFO_TYPE, Pool } from "@dep-spy/utils";
 import os from "os";
-const pool = new Pool(
+const pool = new Pool<[string, MODULE_CONFIG], MODULE_INFO_TYPE>(
   os.cpus ? os.cpus().length : 0,
   "./workers/moduleInfoWorker.js",
-  getModuleInfo,
 );
+export let graph: Graph | null = null;
+
 export function generateGraph(
   info: string,
   config: Config = defaultConfig,
 ): Graph {
-  let graph: Graph | null = null;
   // 本地模式，info 为 ""
   if (!info) {
     graph = new Graph("", config, pool);

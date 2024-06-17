@@ -9,6 +9,7 @@ export interface Node {
   cache?: string;
   circlePath?: string[];
   dependencies: Record<string, Node>;
+  dependenciesList: Record<string, string>;
   size?: number;
   selfSize: number;
   cacheParentPath?: string[];

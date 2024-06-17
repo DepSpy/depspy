@@ -12,11 +12,8 @@ export default class Pool<POOL_TASK extends unknown[], RESULT_TYPE> {
   private taskIndexMap: Map<POOL_TASK, number>; ///记录任务的顺序，方便插入结果的位置
   private closePool: (value: RESULT_TYPE[]) => void; //关闭池子
   constructor(
-    private readonly maxPoolSize: number,
+    maxPoolSize: number,
     private readonly path: string,
-    private readonly completeTask?: (
-      ...task: POOL_TASK
-    ) => Promise<RESULT_TYPE>,
   ) {
     if (inBrowser) {
       return; //浏览器环境不创建
@@ -54,17 +51,6 @@ export default class Pool<POOL_TASK extends unknown[], RESULT_TYPE> {
     }
   }
   run(): Promise<RESULT_TYPE[]> {
-    if (inBrowser) {
-      if (!this.completeTask) {
-        console.warn("浏览器状态下无处理函数");
-        return Promise.reject("浏览器状态下无处理函数");
-      }
-      const promisesArray = this.taskQueue.map((task) =>
-        this.completeTask(...task),
-      );
-      this.taskQueue = []; //为下一次清空给任务队列
-      return Promise.all(promisesArray);
-    }
     return new Promise((resolve) => {
       this.closePool = resolve;
       this.tasksNumber = this.taskQueue.length;
@@ -75,8 +61,8 @@ export default class Pool<POOL_TASK extends unknown[], RESULT_TYPE> {
       }
     });
   }
-  addToTaskQueue(task: POOL_TASK): void {
-    this.taskQueue.push(task);
+  addToTaskQueue(...task: POOL_TASK[]): void {
+    this.taskQueue.push(...task);
   }
   createTaskIndex() {
     this.taskIndexMap = new Map(
