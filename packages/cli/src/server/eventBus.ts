@@ -1,4 +1,4 @@
-import { Config, graph } from "@dep-spy/core";
+import { Config, getGraph } from "@dep-spy/core";
 import type ws from "ws";
 
 export const EventBus: Record<
@@ -7,6 +7,7 @@ export const EventBus: Record<
   (data: any, option: Config, ws: ws) => void
 > = {
   size: async (data, option, ws) => {
+    const graph = getGraph();
     await graph.update(data.newDepth);
     const root = await graph.getGraph();
     ws.send(
@@ -19,6 +20,7 @@ export const EventBus: Record<
     );
   },
   depth: async (data, option, ws) => {
+    const graph = getGraph();
     await graph.update(data.newDepth);
     const root = await graph.getGraph();
     ws.send(

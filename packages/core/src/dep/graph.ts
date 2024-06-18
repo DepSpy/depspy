@@ -15,7 +15,7 @@ export class Graph {
   private paths: string[] = []; //记录根节点到当前节点的经过的每一个节点（数组元素有序，真实路径）
   private pathsSet: Set<string> = new Set(); //记录根节点到当前节点的经过的每一个节点（优化循环判断）
   private resolvePaths: string[] = []; //记录根节点到当前节点每一个节点的绝对路径
-  private coIdMap = new Map<string, Node>(); //记录所有节点的id,用于判断相同依赖(coId: 是实际下载的包的name + version)
+  private coMap = new Map<string, Node>(); //记录所有节点的id,用于判断相同依赖(coId: 是实际下载的包的name + version)
   private currentCo: string = null; //现在是否在相同依赖的子节点中（此时不需要再判断未相同依赖）
   private codependency: Map<string, Node[]> = new Map(); //记录相同的节点
   private circularDependency: Set<Node> = new Set(); //记录存在循环引用的节点
@@ -37,13 +37,6 @@ export class Graph {
       dependencies: dependenciesList = {}, //更名防止混淆
       description,
     } = moduleInfo;
-    //TODO 判断相同依赖
-    const id = name + version;
-    if (this.coIdMap.has(id) && !this.currentCo) {
-      this.currentCo = id;
-      //标记相同依赖
-      this.coIdMap.get(id).cache = id;
-    }
     //循环依赖
     if (this.pathsSet.has(name)) {
       //直接截断返回循环依赖
@@ -51,7 +44,7 @@ export class Graph {
         name,
         version,
         {},
-        dependenciesList,
+        {}, //循环依赖不需要再加载子节点
         resolvePath,
         [...this.paths, name],
         Infinity,
@@ -79,37 +72,22 @@ export class Graph {
         size,
       },
     );
-    //加入当前依赖路径
-    this.paths.push(name);
-    //等循环依赖判断完成后再加入当前路径
-    this.pathsSet.add(name);
-    //加入当前节点的绝对路径
-    this.resolvePaths.push(resolvePath);
+    const id = name + version;
+    this.addCoMap(curNode, id);
+    //压入
+    this.in(curNode);
     //将子节点插入到当前节点上
     await this.insertChildren(curNode, dependenciesList);
-    /*⬅️⬅️⬅️  后序处理逻辑  ➡️➡️➡️*/
     //收集相同依赖
-    if (this.currentCo === id) {
-      if (this.codependency.has(id)) {
-        this.codependency.get(id).push(curNode);
-      } else {
-        this.codependency.set(id, [this.coIdMap.get(id), curNode]);
-      }
-      this.currentCo = null;
-    }
-    //删除当前依赖路径
-    this.paths.pop();
-    this.pathsSet.delete(name);
-    //删除当前绝对路径
-    this.resolvePaths.pop();
-    //将当前节点的size设置为所有子节点的size之和
+    this.addCodependency(curNode, id);
+    //弹出
+    this.out(curNode);
     return curNode;
   }
-  private cloneCache(cache: Node, path: string[], cacheParentPath: string[]) {
+  private cloneCache(cache: Node, path: string[]) {
     return {
       ...cache,
       path,
-      cacheParentPath,
       dependencies: cache.dependenciesList,
       size: cache.selfSize,
     };
@@ -165,93 +143,71 @@ export class Graph {
   }
   public async update(newDepth: number): Promise<void> {
     //重置全局参数
-    this.paths.length = 0;
-    this.resolvePaths.length = 0;
-    //TODO 进行增量操作时重新生成coIdMap
-    this.coIdMap = new Map();
+    if (this.config.depth != newDepth) {
+      this.paths.length = 0;
+      this.resolvePaths.length = 0;
+      this.coMap = new Map();
+      this.codependency = new Map();
+    }
     if (this.config.depth > newDepth) {
       this.config.depth = newDepth;
       //执行截断逻辑
-      await this.decrease(this.graph);
+      await this.dfs(this.graph, this.decreaseHandler.bind(this));
       return;
-    }
-    if (this.config.depth < newDepth) {
+    } else {
       this.config.depth = newDepth;
       //执行加深递归逻辑
-      await this.increase(this.graph);
-      return;
+      await this.dfs(this.graph, this.increaseHandler.bind(this));
     }
   }
-  private async increase(node: Node) {
-    const { name, resolvePath, dependencies } = node;
-    //TODO 对于递归的重复操作，待优化
-    //加入当前依赖路径
-    this.paths.push(name);
-    //等循环依赖判断完成后再加入当前路径
-    this.pathsSet.add(name);
-    //加入当前节点的绝对路径
-    this.resolvePaths.push(resolvePath);
+  private async dfs(node: Node, handler: (node: Node) => Promise<boolean>) {
+    const { name, version } = node;
+    //压入
+    this.in(node);
+    const id = name + version;
+    this.addCoMap(node, id);
 
-    //重置自身的错误参数
-    node.size = node.selfSize;
+    //纠正参数
     node.childrenNumber = node.childrenNumber === Infinity ? Infinity : 0;
-    const dependenceEntries = Object.entries(dependencies);
+    node.size = node.selfSize;
+
+    if (await handler(node)) {
+      const dependenceEntries = Object.entries(node.dependencies);
+      for (const [, child] of dependenceEntries) {
+        //递归子节点
+        await this.dfs(child, handler);
+        //修成所有子节点数总和
+        node.childrenNumber +=
+          (child.childrenNumber === Infinity ? 0 : child.childrenNumber) + 1; //child 子依赖数量 + 自身
+        //修正size
+        node.size += child.size;
+      }
+    }
+
+    //收集相同依赖
+    this.addCodependency(node, id);
+    //弹出
+    this.out(node);
+  }
+  private async increaseHandler(node: Node) {
+    const dependenceEntries = Object.entries(node.dependencies);
     if (dependenceEntries.length === 0) {
       //到达最底层
       const { dependenciesList } = node;
       //继续插入子节点，直到到达深度
       await this.insertChildren(node, dependenciesList);
       //对于原本底层的节点来说，size和childrenNumber 皆是准确的，不需要修正
-    } else {
-      for (const [, child] of dependenceEntries) {
-        //递归子节点
-        await this.increase(child);
-        //修成所有子节点数总和
-        node.childrenNumber +=
-          (child.childrenNumber === Infinity ? 0 : child.childrenNumber) + 1; //child 子依赖数量 + 自身
-        //修正size
-        node.size += child.size;
-      }
+      return false;
     }
-
-    //删除当前依赖路径
-    this.paths.pop();
-    this.pathsSet.delete(name);
-    //删除当前绝对路径
-    this.resolvePaths.pop();
+    return true;
   }
-  private async decrease(node: Node) {
-    const { name, resolvePath, dependencies } = node;
-    //加入当前依赖路径
-    this.paths.push(name);
-    //等循环依赖判断完成后再加入当前路径
-    this.pathsSet.add(name);
-    //加入当前节点的绝对路径
-    this.resolvePaths.push(resolvePath);
-    const dependenceEntries = Object.entries(dependencies);
-    //纠正参数
-    node.childrenNumber = node.childrenNumber === Infinity ? Infinity : 0;
-    node.size = node.selfSize;
+  private async decreaseHandler(node: Node) {
     if (this.config.depth && this.config.depth == this.paths.length) {
       //截断
       node.dependencies = {};
-    } else {
-      for (const [, child] of dependenceEntries) {
-        //递归子节点
-        await this.decrease(child);
-        //修成所有子节点数总和
-        node.childrenNumber +=
-          (child.childrenNumber === Infinity ? 0 : child.childrenNumber) + 1; //child 子依赖数量 + 自身
-        //修正size
-        node.size += child.size;
-      }
+      return false;
     }
-
-    //删除当前依赖路径
-    this.paths.pop();
-    this.pathsSet.delete(name);
-    //删除当前绝对路径
-    this.resolvePaths.pop();
+    return true;
   }
   private async insertChildren(
     curNode: Node,
@@ -260,7 +216,6 @@ export class Graph {
     const dependenceEntries = Object.entries(dependenciesList);
     const poolDependenceEntries = [];
     const tempTaskPool = [];
-    /*⬅️⬅️⬅️  递归子节点处理逻辑  ➡️➡️➡️*/
     for (let i = 0; i < dependenceEntries.length; i++) {
       //深度判断
       if (this.config.depth && this.paths.length == this.config.depth) {
@@ -274,13 +229,11 @@ export class Graph {
       const id = childName + childVersion;
       //不再读文件，走缓存
       if (this.cache.has(id)) {
-        //判断为相同依赖
         const cloneChild = await this.initGraph(
-          this.cloneCache(
-            this.cache.get(id),
-            [...this.paths, childName],
-            [...this.paths, childName],
-          ) as MODULE_INFO_TYPE,
+          this.cloneCache(this.cache.get(id), [
+            ...this.paths,
+            childName,
+          ]) as MODULE_INFO_TYPE,
         );
         curNode.dependencies[childName] = cloneChild;
         curNode.size += cloneChild.size;
@@ -290,7 +243,6 @@ export class Graph {
             ? 0
             : cloneChild.childrenNumber) + 1; //child 子依赖数量 + 自身
       } else {
-        //TODO 线上模式和线下模式分离逻辑(测试)
         //将任务推入临时任务队列（pool是一个全局变量，提前推入会导致队列混乱）
         tempTaskPool.push([
           childName,
@@ -322,7 +274,6 @@ export class Graph {
               }) as Promise<MODULE_INFO_TYPE>,
           ),
         );
-    //结果处理
     for (let index = 0; index < childrenModelInfos.length; index++) {
       const childModuleInfo = childrenModelInfos[index];
       if (!childModuleInfo) {
@@ -330,7 +281,9 @@ export class Graph {
         continue;
       }
       //开始递归
+      /*⬅️⬅️⬅️  递归子节点处理逻辑  ➡️➡️➡️*/
       const child = await this.initGraph(childModuleInfo);
+      /*⬅️⬅️⬅️  后序处理逻辑  ➡️➡️➡️*/
       const [childName, childVersion] = poolDependenceEntries[index];
       //添加实际声明的依赖
       // 如果 childVersion 以 $ 结尾，表明需要特殊处理
@@ -345,11 +298,6 @@ export class Graph {
       //缓存节点
       if (!child.circlePath && !this.cache.has(childId))
         this.cache.set(childId, child!);
-      //加入到coIdMap
-      const coId = child.name + child.version;
-      if (!child.circlePath && !this.coIdMap.has(coId)) {
-        this.coIdMap.set(coId, child!);
-      }
       //将子节点加入父节点（注意是children是引入类型，所以可以直接加）
       curNode.dependencies[childName] = child;
       //更新父节点子依赖数量
@@ -358,6 +306,44 @@ export class Graph {
       //累加size
       curNode.size += child.size;
     }
+  }
+  private addCodependency(node: Node, id: string) {
+    if (this.currentCo === id) {
+      if (this.codependency.has(id)) {
+        this.codependency.get(id).push(node);
+      } else {
+        this.codependency.set(id, [this.coMap.get(id), node]);
+      }
+      this.currentCo = null;
+    }
+  }
+  private addCoMap(node: Node, id: string) {
+    if (this.coMap.has(id)) {
+      if (!this.currentCo) {
+        this.currentCo = id;
+        //标记相同依赖
+        this.coMap.get(id).cache = id;
+      }
+    } else {
+      this.coMap.set(id, node);
+    }
+  }
+  private in(node: Node) {
+    const { name, resolvePath } = node;
+    //加入当前依赖路径
+    this.paths.push(name);
+    //等循环依赖判断完成后再加入当前路径
+    this.pathsSet.add(name);
+    //加入当前节点的绝对路径
+    this.resolvePaths.push(resolvePath);
+  }
+  private out(node: Node) {
+    const { name } = node;
+    //删除当前依赖路径
+    this.paths.pop();
+    this.pathsSet.delete(name);
+    //删除当前绝对路径
+    this.resolvePaths.pop();
   }
 }
 
@@ -371,7 +357,7 @@ class GraphNode implements Node {
     public name: string,
     public version: string,
     public dependencies: Record<string, Node>,
-    public dependenciesList: Record<string, string>,
+    public dependenciesList: Record<string, string>, //用于记录当前节点的pack.json中记录的内容
     public resolvePath: string,
     public path: string[],
     public childrenNumber: number,

@@ -7,7 +7,7 @@ const pool = new Pool<[string, MODULE_CONFIG], MODULE_INFO_TYPE>(
   os.cpus ? os.cpus().length : 0,
   "./workers/moduleInfoWorker.js",
 );
-export let graph: Graph | null = null;
+let graph: Graph | null = null;
 
 export function generateGraph(
   info: string,
@@ -20,5 +20,9 @@ export function generateGraph(
     // 线上模式：1. info = "react" 2. info = package.json 的内容
     graph = new Graph(info, config, pool);
   }
+  return graph;
+}
+
+export function getGraph() {
   return graph;
 }

@@ -12,7 +12,6 @@ export interface Node {
   dependenciesList: Record<string, string>;
   size?: number;
   selfSize: number;
-  cacheParentPath?: string[];
 }
 export interface StaticNode {
   path: string;

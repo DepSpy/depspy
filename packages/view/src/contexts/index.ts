@@ -4,11 +4,12 @@ import { subscribeWithSelector } from "zustand/middleware";
 import type { Node, StaticStore, Store } from "~/types";
 import { linkContext } from "./linkContext";
 import { searchNode, searchNodePath } from "./searchNode";
-import { generateGraph, StaticNode, graph } from "@dep-spy/core";
-import { combineRes } from "./combineRes";
+import { generateGraph, StaticNode } from "@dep-spy/core";
+
+let graph = null;
 
 export const useStore = createWithEqualityFn<Store>()(
-  subscribeWithSelector((set) => ({
+  subscribeWithSelector((set, get) => ({
     theme: localStorage.getItem("theme") || "dark",
     language: localStorage.getItem("language") || "en",
     info: "",
@@ -67,12 +68,24 @@ export const useStore = createWithEqualityFn<Store>()(
     },
     setGraphRes: async (info, depth) => {
       if (!graph) {
-        generateGraph(info, { depth });
+        graph = generateGraph(info, { depth });
+        await graph.ensureGraph();
       } else {
         await graph.update(depth);
       }
-      const res = await combineRes(graph, depth);
-      set(res);
+      const { selectedNode } = get();
+      const root = { ...(await graph.getGraph()) };
+      const tempNode = selectedNode
+        ? searchNodePath(root, selectedNode.path)
+        : root;
+      //TODO 现在无法保持高亮
+      set({
+        root: root,
+        circularDependency: await graph.getCircularDependency(),
+        codependency: await graph.getCodependency(),
+        selectedNode: tempNode,
+        depth,
+      });
     },
     setSelectNodeHistory: (node) => {
       const { selectedNodeHistory } = useStore.getState();
