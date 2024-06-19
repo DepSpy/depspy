@@ -34,6 +34,7 @@ export default function AnalyzePage() {
       setSizeLoading(true);
       setGraphRes(searchParams.get("q") || info, depth).then(() => {
         setRootLoading(false);
+        //TODO size 的加载状态始终未改变
         setSizeLoading(false);
       });
     }

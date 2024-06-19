@@ -28,7 +28,7 @@ export class Graph {
       this.resolvePaths.push(process.cwd());
     }
   }
-  private async initGraph(moduleInfo: MODULE_INFO_TYPE) {
+  private async generateNode(moduleInfo: MODULE_INFO_TYPE) {
     const {
       name,
       version,
@@ -120,7 +120,7 @@ export class Graph {
   public async ensureGraph() {
     if (!this.graph) {
       const rootModule = await getModuleInfo(this.info); //解析首个节点
-      this.graph = await this.initGraph(rootModule);
+      this.graph = await this.generateNode(rootModule);
     }
   }
   private writeJson(
@@ -229,7 +229,7 @@ export class Graph {
       const id = childName + childVersion;
       //不再读文件，走缓存
       if (this.cache.has(id)) {
-        const cloneChild = await this.initGraph(
+        const cloneChild = await this.generateNode(
           this.cloneCache(this.cache.get(id), [
             ...this.paths,
             childName,
@@ -282,7 +282,7 @@ export class Graph {
       }
       //开始递归
       /*⬅️⬅️⬅️  递归子节点处理逻辑  ➡️➡️➡️*/
-      const child = await this.initGraph(childModuleInfo);
+      const child = await this.generateNode(childModuleInfo);
       /*⬅️⬅️⬅️  后序处理逻辑  ➡️➡️➡️*/
       const [childName, childVersion] = poolDependenceEntries[index];
       //添加实际声明的依赖

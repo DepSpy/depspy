@@ -78,7 +78,6 @@ export const useStore = createWithEqualityFn<Store>()(
       const tempNode = selectedNode
         ? searchNodePath(root, selectedNode.path)
         : root;
-      //TODO 现在无法保持高亮
       set({
         root: root,
         circularDependency: await graph.getCircularDependency(),
