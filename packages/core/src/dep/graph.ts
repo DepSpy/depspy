@@ -158,13 +158,6 @@ export class Graph {
       await this.dfs(this.graph, this.increaseHandler.bind(this));
     }
   }
-  public async size() {
-    //在size = true 的情况下重构整个图（在当前状态下，仍然可以使用缓存）
-    this.config.size = true;
-    this.graph = null;
-    await this.ensureGraph();
-    this.config.size = false;
-  }
   private async dfs(node: Node, handler: (node: Node) => Promise<boolean>) {
     const { name, version } = node;
     //压入
@@ -250,7 +243,6 @@ export class Graph {
           childName,
           {
             baseDir: this.resolvePaths.slice(-1)[0], //指定解析的根目录
-            size: this.config.size,
           },
         ]);
         poolDependenceEntries.push(dependenceEntries[i]);

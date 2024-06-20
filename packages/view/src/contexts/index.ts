@@ -5,11 +5,12 @@ import type { Node, StaticStore, Store } from "~/types";
 import { linkContext } from "./linkContext";
 import { searchNode, searchNodePath } from "./searchNode";
 import { generateGraph, StaticNode } from "@dep-spy/core";
+import { EventBus } from "@/contexts/eventBus.ts";
 
 let graph = null;
-
+//TODO 删除sizeRoot
 export const useStore = createWithEqualityFn<Store>()(
-  subscribeWithSelector((set, get) => ({
+  subscribeWithSelector((set) => ({
     theme: localStorage.getItem("theme") || "dark",
     language: localStorage.getItem("language") || "en",
     info: "",
@@ -70,21 +71,16 @@ export const useStore = createWithEqualityFn<Store>()(
       if (!graph) {
         graph = generateGraph(info, { depth });
         await graph.ensureGraph();
+        EventBus["init"]({
+          ...(await generateBusParams()),
+          depth: depth,
+        });
       } else {
         await graph.update(depth);
+        EventBus["depth"]({
+          ...(await generateBusParams()),
+        });
       }
-      const { selectedNode } = get();
-      const root = { ...(await graph.getGraph()) };
-      const tempNode = selectedNode
-        ? searchNodePath(root, selectedNode.path)
-        : root;
-      set({
-        root: root,
-        circularDependency: await graph.getCircularDependency(),
-        codependency: await graph.getCodependency(),
-        selectedNode: tempNode,
-        depth,
-      });
     },
     setSelectNodeHistory: (node) => {
       const { selectedNodeHistory } = useStore.getState();
@@ -134,4 +130,12 @@ export const useStaticStore = createWithEqualityFn<StaticStore>()(
 );
 if (import.meta.env.VITE_BUILD_MODE != "online") {
   linkContext(useStore);
+}
+
+export async function generateBusParams() {
+  return {
+    root: { ...(await graph.getGraph()) },
+    circularDependency: await graph.getCircularDependency(),
+    codependency: await graph.getCodependency(),
+  };
 }

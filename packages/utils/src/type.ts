@@ -17,7 +17,6 @@ export type PACKAGE_TYPE = MODULE_INFO_TYPE & Record<string, unknown>;
 
 export interface MODULE_CONFIG {
   baseDir?: string;
-  size?: boolean;
 }
 
 export enum PATH_TYPE {

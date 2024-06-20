@@ -1,6 +1,5 @@
 export const defaultConfig = {
   depth: 3,
-  size: false,
   entry: null,
   output: {
     graph: "ds.graph.json",
