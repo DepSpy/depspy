@@ -16,7 +16,6 @@ export class Graph {
   private pathsSet: Set<string> = new Set(); //记录根节点到当前节点的经过的每一个节点（优化循环判断）
   private resolvePaths: string[] = []; //记录根节点到当前节点每一个节点的绝对路径
   private coMap = new Map<string, Node>(); //记录所有节点的id,用于判断相同依赖(coId: 是实际下载的包的name + version)
-  private currentCo: string = null; //现在是否在相同依赖的子节点中（此时不需要再判断未相同依赖）
   private codependency: Map<string, Node[]> = new Map(); //记录相同的节点
   private circularDependency: Set<Node> = new Set(); //记录存在循环引用的节点
   constructor(
@@ -73,7 +72,6 @@ export class Graph {
       },
     );
     const id = name + version;
-    this.addCoMap(curNode, id);
     //压入
     this.in(curNode);
     //将子节点插入到当前节点上
@@ -160,13 +158,18 @@ export class Graph {
       await this.dfs(this.graph, this.increaseHandler.bind(this));
     }
   }
+  public async size() {
+    //在size = true 的情况下重构整个图（在当前状态下，仍然可以使用缓存）
+    this.config.size = true;
+    this.graph = null;
+    await this.ensureGraph();
+    this.config.size = false;
+  }
   private async dfs(node: Node, handler: (node: Node) => Promise<boolean>) {
     const { name, version } = node;
     //压入
     this.in(node);
     const id = name + version;
-    this.addCoMap(node, id);
-
     //纠正参数
     node.childrenNumber = node.childrenNumber === Infinity ? Infinity : 0;
     node.size = node.selfSize;
@@ -183,7 +186,6 @@ export class Graph {
         node.size += child.size;
       }
     }
-
     //收集相同依赖
     this.addCodependency(node, id);
     //弹出
@@ -295,8 +297,8 @@ export class Graph {
       child.declarationVersion = childVersionPure || childVersion;
       //子模块唯一id
       const childId = childName + childVersion;
-      //缓存节点
-      if (!child.circlePath && !this.cache.has(childId))
+      //缓存节点（只存存在selfSize的节点）
+      if (!child.circlePath && !this.cache.has(childId) && child.selfSize)
         this.cache.set(childId, child!);
       //将子节点加入父节点（注意是children是引入类型，所以可以直接加）
       curNode.dependencies[childName] = child;
@@ -308,21 +310,13 @@ export class Graph {
     }
   }
   private addCodependency(node: Node, id: string) {
-    if (this.currentCo === id) {
+    if (this.coMap.has(id)) {
+      //标记相同依赖
+      this.coMap.get(id).cache = id;
       if (this.codependency.has(id)) {
         this.codependency.get(id).push(node);
       } else {
         this.codependency.set(id, [this.coMap.get(id), node]);
-      }
-      this.currentCo = null;
-    }
-  }
-  private addCoMap(node: Node, id: string) {
-    if (this.coMap.has(id)) {
-      if (!this.currentCo) {
-        this.currentCo = id;
-        //标记相同依赖
-        this.coMap.get(id).cache = id;
       }
     } else {
       this.coMap.set(id, node);

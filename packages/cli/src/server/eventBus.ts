@@ -7,7 +7,7 @@ export const EventBus: Record<
   (data: any, option: Config, ws: ws, graph: Graph) => void
 > = {
   size: async (data, option, ws, graph) => {
-    await graph.update(data.newDepth);
+    await graph.size();
     const root = await graph.getGraph();
     ws.send(
       formatMes("size", {
