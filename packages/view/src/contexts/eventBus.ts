@@ -7,12 +7,10 @@ export const EventType = {
 };
 export const EventBus = {
   init: ({ root, circularDependency, codependency, depth }, ws?: WebSocket) => {
-    useStore.setState({ rootLoading: false, sizeLoading: false });
+    useStore.setState({ rootLoading: false });
     //连接初始化回调
     useStore.setState({
       root,
-      sizeRoot: root,
-      selectedSizeNode: root,
       circularDependency,
       codependency,
       selectedNode: root,
@@ -30,15 +28,13 @@ export const EventBus = {
     useStaticStore.setState({ staticRoot, staticRootLoading: false });
   },
   depth: ({ root, circularDependency, codependency }) => {
-    useStore.setState({ rootLoading: false, sizeLoading: false });
+    useStore.setState({ rootLoading: false });
     // 更新 depth 回调
     // 找到新 tree 中的 selectedNode
     const { selectedNode } = useStore.getState();
     const tempNode = searchNodePath(root, selectedNode.path);
     useStore.setState({
       root,
-      sizeRoot: root,
-      selectedSizeNode: tempNode,
       circularDependency,
       codependency,
       selectedNode: tempNode,

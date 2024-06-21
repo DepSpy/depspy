@@ -5,7 +5,7 @@ import "./index.scss";
 
 export default function SideModule() {
   const { t } = useLanguage();
-  const { selectedNode, selectedSizeNode } = useStore((state) => state);
+  const { selectedNode } = useStore((state) => state);
   return (
     <div>
       <div className="module-title">{t("aside.module.information")}</div>
@@ -45,10 +45,10 @@ export default function SideModule() {
           <div className=" cache p-3 module-dep-item">true</div>
         </div>
       ) : null}
-      {selectedSizeNode && selectedSizeNode.size ? (
+      {selectedNode && selectedNode.size ? (
         <div className="module-size">
           <div className="title">{t("aside.module.size")}</div>
-          <div className="size">{selectedSizeNode.size}</div>
+          <div className="size">{selectedNode.size}</div>
         </div>
       ) : null}
       <div className="size-graph-title">{t("aside.module.graph")}</div>
