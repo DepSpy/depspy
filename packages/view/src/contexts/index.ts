@@ -8,7 +8,7 @@ import { generateGraph, StaticNode } from "@dep-spy/core";
 import { EventBus } from "@/contexts/eventBus.ts";
 
 let graph = null;
-//TODO 删除sizeRoot
+
 export const useStore = createWithEqualityFn<Store>()(
   subscribeWithSelector((set) => ({
     theme: localStorage.getItem("theme") || "dark",
