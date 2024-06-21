@@ -4,12 +4,7 @@ import {
   MODULE_INFO,
   NPM_DOMAIN,
 } from "./constant";
-import {
-  MODULE_INFO_TYPE,
-  PACKAGE_TYPE,
-  INFO_TYPES,
-  MODULE_CONFIG,
-} from "./type";
+import { MODULE_INFO_TYPE, PACKAGE_TYPE, INFO_TYPES } from "./type";
 import * as fs from "fs";
 import * as path from "path";
 import { getPkgByPath, getPkgResolvePath } from "./utils";
@@ -18,9 +13,8 @@ const inBrowser = typeof window !== "undefined";
 //给定想要获取模块的info，输出指定模块的详情
 export default async function getModuleInfo(
   info: string = "",
-  config: MODULE_CONFIG = {},
+  baseDir: string,
 ): Promise<MODULE_INFO_TYPE> {
-  const { baseDir } = config;
   let pak: PACKAGE_TYPE;
   switch (transformInfo(info)) {
     case INFO_TYPES.GITHUB:

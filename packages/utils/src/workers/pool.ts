@@ -5,12 +5,11 @@ const inBrowser = typeof window !== "undefined";
 const Worker = threads.Worker;
 
 export default class Pool<POOL_TASK extends unknown[], RESULT_TYPE> {
-  private resultArray: (RESULT_TYPE | null)[] = []; //结果存储
-  private taskQueue: POOL_TASK[] = []; //任务队列
-  private tasksNumber: number = 0; //应该完成的任务数量
-  private workersPool: Map<threads.Worker, POOL_TASK | null> = new Map(); //记录task正在被哪个线程执行
-  private taskIndexMap: Map<POOL_TASK, number>; ///记录任务的顺序，方便插入结果的位置
-  private closePool: (value: RESULT_TYPE[]) => void; //关闭池子
+  private taskQueue: {
+    task: POOL_TASK;
+    resolve: (result: RESULT_TYPE) => void;
+  }[] = []; //任务队列
+  private freeWorkers: TaskWorker<POOL_TASK, RESULT_TYPE>[] = [];
   constructor(
     maxPoolSize: number,
     private readonly path: string,
@@ -24,55 +23,67 @@ export default class Pool<POOL_TASK extends unknown[], RESULT_TYPE> {
     }
   }
   createWorker() {
-    const worker = new Worker(path.resolve(__dirname, this.path));
-    worker.on("message", (data: RESULT_TYPE) => {
-      this.addToResult(data, worker);
-      this.runNextTask(worker);
-    });
-    worker.on("error", (err) => {
-      console.error(err);
-      //报错则没有结果
-      this.addToResult(null, worker);
-      this.runNextTask(worker);
-    });
-    this.workersPool.set(worker, null);
+    const worker = new TaskWorker<POOL_TASK, RESULT_TYPE>(
+      path.resolve(__dirname, this.path),
+      this.freeWorkers,
+      this.taskQueue,
+    );
+    this.freeWorkers.push(worker);
   }
-  runNextTask(worker: threads.Worker): void {
-    if (this.taskQueue.length !== 0) {
-      //当一个任务被线程领取
-      const task = this.taskQueue.shift();
-      this.workersPool.set(worker, task);
-      worker.postMessage(task);
-      return;
-    }
-    //任务全部完成
-    if (this.tasksNumber === 0) {
-      this.closePool(this.resultArray);
-    }
-  }
-  run(): Promise<RESULT_TYPE[]> {
+  addTask(task: POOL_TASK): Promise<RESULT_TYPE> {
     return new Promise((resolve) => {
-      this.closePool = resolve;
-      this.tasksNumber = this.taskQueue.length;
-      this.resultArray = new Array(this.tasksNumber); // 初始化结果存储
-      this.createTaskIndex(); //记录好每个task的位置，因为线程的操作是无序的
-      for (const [worker] of this.workersPool) {
-        this.runNextTask(worker);
+      //尝试加入空闲线程中执行
+      if (this.freeWorkers.length > 0) {
+        const worker = this.freeWorkers.shift();
+        worker.run({ task, resolve });
+      } else {
+        //无空闲线程,推入到任务队列
+        this.taskQueue.push({ task, resolve });
       }
     });
   }
-  addToTaskQueue(...task: POOL_TASK[]): void {
-    this.taskQueue.push(...task);
+}
+
+class TaskWorker<POOL_TASK, RESULT_TYPE> {
+  worker: threads.Worker;
+  resolve: (result: RESULT_TYPE) => void = null;
+  constructor(
+    path: string,
+    private freeWorkers: TaskWorker<POOL_TASK, RESULT_TYPE>[],
+    private taskQueue: {
+      task: POOL_TASK;
+      resolve: (result: RESULT_TYPE) => void;
+    }[],
+  ) {
+    this.worker = new Worker(path);
+    this.worker.on("message", this.message.bind(this));
+    this.worker.on("error", this.error.bind(this));
   }
-  createTaskIndex() {
-    this.taskIndexMap = new Map(
-      this.taskQueue.map((task, index) => [task, index]),
-    );
+  private message(data: RESULT_TYPE) {
+    //任务已完成
+    this.resolve(data);
+    //清空当前任务
+    this.resolve = null;
+    if (this.taskQueue.length > 0) {
+      //尝试直接领取下一个任务
+      this.run(this.taskQueue.shift());
+    } else {
+      //任务队列没有多余的任务，将自己推到空闲状态组
+      this.freeWorkers.push(this);
+    }
   }
-  addToResult(data: RESULT_TYPE | null, worker: threads.Worker) {
-    this.tasksNumber--;
-    const task = this.workersPool.get(worker);
-    const index = this.taskIndexMap.get(task);
-    this.resultArray[index] = data;
+  private error() {
+    //发生了错误
+    this.resolve(null);
+  }
+  public run({
+    task,
+    resolve,
+  }: {
+    task: POOL_TASK;
+    resolve: (result: RESULT_TYPE) => void;
+  }) {
+    this.worker.postMessage(task);
+    this.resolve = resolve;
   }
 }

@@ -15,10 +15,6 @@ export type MODULE_INFO_TYPE = {
 };
 export type PACKAGE_TYPE = MODULE_INFO_TYPE & Record<string, unknown>;
 
-export interface MODULE_CONFIG {
-  baseDir?: string;
-}
-
 export enum PATH_TYPE {
   RESOLVE,
   RELATIVE,
@@ -50,5 +46,3 @@ export interface TS_CONFIG {
 }
 
 export type ALIAS_CONFIG = Record<string, string | string[]>;
-
-export type POOL_TASK = [info?: string, config?: MODULE_CONFIG];

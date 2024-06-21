@@ -1,9 +1,9 @@
 import { defaultConfig } from "../constant";
 import { Config } from "../type";
 import { Graph } from "./graph";
-import { MODULE_CONFIG, MODULE_INFO_TYPE, Pool } from "@dep-spy/utils";
+import { MODULE_INFO_TYPE, Pool } from "@dep-spy/utils";
 import os from "os";
-const pool = new Pool<[string, MODULE_CONFIG], MODULE_INFO_TYPE>(
+const pool = new Pool<[string, string], MODULE_INFO_TYPE>(
   os.cpus ? os.cpus().length : 0,
   "./workers/moduleInfoWorker.js",
 );
