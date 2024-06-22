@@ -6,16 +6,22 @@ import {
   Pool,
   useGetModuleInfo,
   OnlineWorker,
+  OffLineWorker,
 } from "@dep-spy/utils";
 import os from "os";
+import path from "path";
+const inBrowser = typeof window !== "undefined";
 
 const pool = new Pool<[string, string], MODULE_INFO_TYPE>(
   os.cpus ? os.cpus().length : NPM_DOMAINS.length * HOST_MAX_FETCH_NUMBER,
   (index: number) => {
-    const getModuleInfo = useGetModuleInfo(
-      NPM_DOMAINS[Math.floor(index % NPM_DOMAINS.length)], //均匀排列每个域名worker
-    );
-    return new OnlineWorker(getModuleInfo);
+    if (inBrowser) {
+      const getModuleInfo = useGetModuleInfo(
+        NPM_DOMAINS[Math.floor(index % NPM_DOMAINS.length)], //均匀排列每个域名worker
+      );
+      return new OnlineWorker(getModuleInfo);
+    }
+    return new OffLineWorker(path.join(__dirname, "./dep/moduleInfoWorker.js"));
   },
 );
 export function generateGraph(
