@@ -25,7 +25,7 @@ features:
   - icon: 🛠️
     details: 支持分析相同依赖和循环依赖，支持搜索子依赖、查看依赖信息和体积等
   - icon: 💻
-    details: 利用 ws 服务器，实时操作 depth 深度，监听依赖变化，实时更新。并实现分析包 size 的懒加载
+    details: 利用 ws 服务器，实时操作 depth 深度，监听依赖变化，实时增量更新。
   - icon: 🌐
     details: 支持本地 CLI 和在线查询两种模式。
   - icon: 🌍

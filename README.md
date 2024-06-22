@@ -83,7 +83,7 @@ export default defineConfig({
 Example:
 
 ```bash
-ds --depth 3 --size --graph my-graph.json
+ds --depth 3 --graph my-graph.json
 ```
 
 ### 默认配置
