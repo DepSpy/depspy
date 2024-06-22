@@ -1,3 +1,5 @@
+import { Worker } from "./pool";
+
 export enum INFO_TYPES {
   GITHUB,
   NPM,
@@ -46,3 +48,16 @@ export interface TS_CONFIG {
 }
 
 export type ALIAS_CONFIG = Record<string, string | string[]>;
+
+export type Task<POOL_TASK, RESULT_TYPE> = {
+  task: POOL_TASK;
+  resolve: (result: RESULT_TYPE) => void;
+};
+
+export type Resolve<RESULT_TYPE> = (result: RESULT_TYPE) => void;
+
+export type createWorker<POOL_TASK extends unknown[], RESULT_TYPE> = (
+  freeWorkers: Worker<POOL_TASK, RESULT_TYPE>[],
+  taskQueue: Task<POOL_TASK, RESULT_TYPE>[],
+  index: number,
+) => Worker<POOL_TASK, RESULT_TYPE>;

@@ -1,9 +1,9 @@
-import { getModuleInfo, MODULE_INFO_TYPE, Pool } from "@dep-spy/utils";
+import { MODULE_INFO_TYPE, Pool } from "@dep-spy/utils";
 import { Config, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
-
 const inBrowser = typeof window !== "undefined";
+
 export class Graph {
   private graph: Node; //整个图
   private cache: Map<string, Node> = new Map(); //用来缓存计算过的节点(id: 是父节点pack.json文件中声明的name和version)
@@ -104,7 +104,10 @@ export class Graph {
   }
   public async ensureGraph() {
     if (!this.graph) {
-      const rootModule = await getModuleInfo(this.info, process.cwd()); //解析首个节点
+      const rootModule = await this.pool.addTask([
+        this.info,
+        inBrowser ? null : process.cwd(),
+      ]); //解析首个节点
       this.graph = await this.generateNode(rootModule, []);
     }
   }
@@ -226,10 +229,10 @@ export class Graph {
             ? 0
             : cloneChild.childrenNumber) + 1; //child 子依赖数量 + 自身
       } else {
-        //线下处理
-        const moduleInfoPromise: Promise<MODULE_INFO_TYPE> = inBrowser
-          ? getModuleInfo(childName, resolvePath)
-          : this.pool.addTask([childName, resolvePath]);
+        const moduleInfoPromise: Promise<MODULE_INFO_TYPE> = this.pool.addTask([
+          childName,
+          resolvePath,
+        ]);
         const generatePromise = moduleInfoPromise.then(
           async (childModuleInfo: MODULE_INFO_TYPE) => {
             const child = await this.generateNode(childModuleInfo, paths);

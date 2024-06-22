@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/index.ts", "src/workers/moduleInfoWorker.ts"],
+  entry: ["src/index.ts"],
   splitting: false,
   format: ["esm", "cjs"],
   sourcemap: true,
