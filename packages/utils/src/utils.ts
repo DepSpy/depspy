@@ -71,9 +71,13 @@ function getAbsoluteLinkTarget(linkPath = "") {
 }
 
 //获取json文件的对象格式
-export function getPkgByPath<T>(path: string): T {
-  const info = fs.readFileSync(path, "utf8");
-  return JSON.parse(info);
+export async function getPkgByPath<T>(path: string): Promise<T> {
+  const info = await new Promise((resolve) => {
+    fs.readFile(path, "utf8", (err, data) => {
+      resolve(data);
+    });
+  });
+  return JSON.parse(info as string);
 }
 
 export function isFile(path: string) {

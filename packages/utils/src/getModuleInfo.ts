@@ -5,6 +5,8 @@ import * as path from "path";
 import { getPkgByPath, getPkgResolvePath } from "./utils";
 const inBrowser = typeof window !== "undefined";
 
+let number = 0;
+
 export default function useGetModuleInfo(npm_domain?: string) {
   //给定想要获取模块的info，输出指定模块的详情
   async function getModuleInfo(
@@ -25,7 +27,7 @@ export default function useGetModuleInfo(npm_domain?: string) {
         break;
       default:
         if (inBrowser) throw new Error("invalid parameter");
-        pak = getRootInfo();
+        pak = await getRootInfo();
     }
     return transformPackage(pak);
   }
@@ -45,8 +47,8 @@ export default function useGetModuleInfo(npm_domain?: string) {
 }
 
 //获取根目录的package.json信息🌳
-function getRootInfo() {
-  const pkg = getPkgByPath<PACKAGE_TYPE>(
+async function getRootInfo() {
+  const pkg = await getPkgByPath<PACKAGE_TYPE>(
     path.join(process.cwd(), "package.json"),
   );
   pkg.resolvePath = process.cwd();
@@ -55,28 +57,47 @@ function getRootInfo() {
 
 //获取本地某模块的package.json信息💻
 async function getNpmLocalInfo(info: string, baseDir: string) {
+  console.log(info, "开始");
   const [actualPath, baseNext] = getPkgResolvePath(info, baseDir);
-  const pkg = getPkgByPath<PACKAGE_TYPE>(actualPath);
-  pkg.size = getDirSize(actualPath, ["node_modules"]);
+  const pkg = await getPkgByPath<PACKAGE_TYPE>(actualPath);
+  pkg.size = await getDirSize(actualPath, ["node_modules"]);
   pkg.resolvePath = baseNext;
+  console.log(info, "结束");
+  number++;
+  console.log(number);
   return pkg;
 }
 //读取文件夹的总大小
-function getDirSize(directory: string, ignoreFiles: string[] = []): number {
+async function getDirSize(
+  directory: string,
+  ignoreFiles: string[] = [],
+): Promise<number> {
   const dirStats = fs.statSync(directory);
   if (!dirStats.isDirectory()) directory = path.dirname(directory);
   let totalSize = 0;
-  const dirContent = fs.readdirSync(directory);
+  const dirContent = (await new Promise((resolve) => {
+    fs.readdir(directory, (err, data) => {
+      resolve(data);
+    });
+  })) as string[];
+  const promises = [];
   for (let i = 0; i < dirContent.length; i++) {
     if (ignoreFiles.includes(dirContent[i])) continue;
     const filePath = path.join(directory, dirContent[i]);
-    const fileStats = fs.statSync(filePath);
-    if (fileStats.isDirectory()) {
-      totalSize += getDirSize(filePath, ignoreFiles); // 如果是目录，则递归调用
-    } else {
-      totalSize += fileStats.size;
-    }
+    const fileStatsPromise = new Promise((resolve) => {
+      fs.stat(filePath, (err, stats) => {
+        resolve(stats);
+      });
+    }).then(async (fileStats: fs.Stats) => {
+      if (fileStats.isDirectory()) {
+        totalSize += await getDirSize(filePath, ignoreFiles); // 如果是目录，则递归调用
+      } else {
+        totalSize += fileStats.size;
+      }
+    });
+    promises.push(fileStatsPromise);
   }
+  await Promise.all(promises);
   return totalSize;
 }
 // 选出需要的数据
