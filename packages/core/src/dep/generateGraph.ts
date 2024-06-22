@@ -14,22 +14,14 @@ const inBrowser = typeof window !== "undefined";
 
 const pool = new Pool<[string, string], MODULE_INFO_TYPE>(
   os.cpus ? os.cpus().length : NPM_DOMAINS.length * HOST_MAX_FETCH_NUMBER,
-  (freeWorkers, taskQueue, index) => {
+  (index: number) => {
     if (inBrowser) {
       const getModuleInfo = useGetModuleInfo(
         NPM_DOMAINS[Math.floor(index % NPM_DOMAINS.length)], //均匀排列每个域名worker
       );
-      return new OnlineWorker(
-        getModuleInfo,
-        freeWorkers as OnlineWorker<[string, string], MODULE_INFO_TYPE>[],
-        taskQueue,
-      );
+      return new OnlineWorker(getModuleInfo);
     }
-    return new OffLineWorker(
-      path.join(__dirname, "./dep/moduleInfoWorker.js"),
-      freeWorkers as OffLineWorker<[string, string], MODULE_INFO_TYPE>[],
-      taskQueue,
-    );
+    return new OffLineWorker(path.join(__dirname, "./dep/moduleInfoWorker.js"));
   },
 );
 export function generateGraph(

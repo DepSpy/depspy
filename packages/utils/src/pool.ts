@@ -1,17 +1,17 @@
 import threads from "worker_threads";
 import EventEmitter from "events";
-import { createWorker, Resolve, Task } from "./type";
+import { Resolve, Task } from "./type";
 
 export default class Pool<POOL_TASK extends unknown[], RESULT_TYPE> {
   private taskQueue: Task<POOL_TASK, RESULT_TYPE>[] = []; //任务队列
   private freeWorkers: Worker<POOL_TASK, RESULT_TYPE>[] = [];
   constructor(
     maxPoolSize: number,
-    createWorker: createWorker<POOL_TASK, RESULT_TYPE>,
+    createWorker: (index: number) => Worker<POOL_TASK, RESULT_TYPE>,
   ) {
     EventEmitter.defaultMaxListeners = 300;
     for (let i = 0; i < maxPoolSize; i++) {
-      this.freeWorkers.push(createWorker(this.freeWorkers, this.taskQueue, i));
+      this.freeWorkers.push(createWorker(i));
     }
   }
   addTask(task: POOL_TASK): Promise<RESULT_TYPE> {
@@ -24,37 +24,46 @@ export default class Pool<POOL_TASK extends unknown[], RESULT_TYPE> {
         //无空闲线程,推入到任务队列
         this.taskQueue.push({ task, resolve });
       }
-    });
+    }).then(
+      ({
+        data,
+        worker,
+      }: {
+        data: RESULT_TYPE;
+        worker: Worker<POOL_TASK, RESULT_TYPE>;
+      }) => {
+        this.runNext(worker);
+        return data;
+      },
+    );
+  }
+  runNext(worker: Worker<POOL_TASK, RESULT_TYPE>) {
+    //直接领取下一个任务
+    if (this.taskQueue.length > 0) {
+      worker.run({ ...this.taskQueue.shift() });
+    } else {
+      //置为空闲线程
+      this.freeWorkers.push(worker);
+    }
   }
 }
 export class Worker<POOL_TASK extends unknown[], RESULT_TYPE> {
-  private resolve: Resolve<RESULT_TYPE>;
-  constructor(
-    readonly freeWorkers: Worker<POOL_TASK, RESULT_TYPE>[],
-    readonly taskQueue: Task<POOL_TASK, RESULT_TYPE>[],
-  ) {}
+  private resolve: Resolve<POOL_TASK, RESULT_TYPE>;
   run({
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     task,
     resolve,
   }: {
     task: POOL_TASK;
-    resolve: Resolve<RESULT_TYPE>;
+    resolve: Resolve<POOL_TASK, RESULT_TYPE>;
   }) {
     this.resolve = resolve;
   }
   message(data: RESULT_TYPE) {
     //任务已完成
-    this.resolve(data);
+    this.resolve({ data, worker: this });
     //清空当前任务
     this.resolve = null;
-    if (this.taskQueue.length > 0) {
-      //尝试直接领取下一个任务
-      this.run(this.taskQueue.shift());
-    } else {
-      //任务队列没有多余的任务，将自己推到空闲状态组
-      this.freeWorkers.push(this);
-    }
   }
   error(error: string) {
     console.error(error);
@@ -68,15 +77,8 @@ export class OffLineWorker<
   RESULT_TYPE,
 > extends Worker<POOL_TASK, RESULT_TYPE> {
   worker: threads.Worker;
-  constructor(
-    path: string,
-    freeWorkers: OffLineWorker<POOL_TASK, RESULT_TYPE>[],
-    taskQueue: {
-      task: POOL_TASK;
-      resolve: (result: RESULT_TYPE) => void;
-    }[],
-  ) {
-    super(freeWorkers, taskQueue);
+  constructor(path: string) {
+    super();
     this.worker = new threads.Worker(path);
     this.worker.on("message", (data) => {
       super.message(data);
@@ -90,7 +92,7 @@ export class OffLineWorker<
     resolve,
   }: {
     task: POOL_TASK;
-    resolve: (result: RESULT_TYPE) => void;
+    resolve: Resolve<POOL_TASK, RESULT_TYPE>;
   }) {
     this.worker.postMessage(task);
     super.run({ task, resolve });
@@ -103,17 +105,15 @@ export class OnlineWorker<
 > extends Worker<POOL_TASK, RESULT_TYPE> {
   constructor(
     private readonly fn: (...params: POOL_TASK) => Promise<RESULT_TYPE>,
-    freeWorkers: OnlineWorker<POOL_TASK, RESULT_TYPE>[],
-    taskQueue: Task<POOL_TASK, RESULT_TYPE>[],
   ) {
-    super(freeWorkers, taskQueue);
+    super();
   }
   public run({
     task,
     resolve,
   }: {
     task: POOL_TASK;
-    resolve: Resolve<RESULT_TYPE>;
+    resolve: Resolve<POOL_TASK, RESULT_TYPE>;
   }) {
     this.fn(...task)
       .then((data) => {
