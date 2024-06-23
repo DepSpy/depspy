@@ -3,10 +3,11 @@ import { Config, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
 const inBrowser = typeof window !== "undefined";
+let number = 0;
 
 export class Graph {
   private graph: Node; //整个图
-  private cache: Map<string, Node> = new Map(); //用来缓存计算过的节点(id: 是父节点pack.json文件中声明的name和version)
+  private cache: Map<string, Promise<MODULE_INFO_TYPE>> = new Map(); //用来缓存计算过的节点(用promise的原因是避免重复的读文件操作占用线程)
   private coMap = new Map<string, Node>(); //记录所有节点的id,用于判断相同依赖(coId: 是实际下载的包的name + version)
   private codependency: Map<string, Node[]> = new Map(); //记录相同的节点
   private circularDependency: Set<Node> = new Set(); //记录存在循环引用的节点
@@ -69,12 +70,10 @@ export class Graph {
     this.addCodependency(curNode, id);
     return curNode;
   }
-  private cloneCache(cache: Node, path: string[]) {
+  private cloneCache(cache: MODULE_INFO_TYPE, path: string[]) {
     return {
       ...cache,
       path,
-      dependencies: cache.dependenciesList,
-      size: cache.selfSize,
     };
   }
   async getGraph() {
@@ -215,7 +214,7 @@ export class Graph {
       //不再读文件，走缓存
       if (this.cache.has(id)) {
         const cloneChild = await this.generateNode(
-          this.cloneCache(this.cache.get(id), [
+          this.cloneCache(await this.cache.get(id), [
             ...paths,
             childName,
           ]) as MODULE_INFO_TYPE,
@@ -229,14 +228,20 @@ export class Graph {
             ? 0
             : cloneChild.childrenNumber) + 1; //child 子依赖数量 + 自身
       } else {
+        console.log(number++);
         const moduleInfoPromise: Promise<MODULE_INFO_TYPE> = this.pool.addTask([
           childName,
           resolvePath,
         ]);
+        this.cache.set(
+          id,
+          moduleInfoPromise.then((moduleInfo) => {
+            this.cache.set(id, Promise.resolve(moduleInfo)); //更新为结束状态的promise
+            return moduleInfo; //对于正在等待缓存的地方，返回缓存
+          }),
+        );
         const generatePromise = moduleInfoPromise.then(
           async (childModuleInfo: MODULE_INFO_TYPE) => {
-            const child = await this.generateNode(childModuleInfo, paths);
-            /*⬅️⬅️⬅️  后序处理逻辑  ➡️➡️➡️*/
             //添加实际声明的依赖
             // 如果 childVersion 以 $ 结尾，表明需要特殊处理
             let childVersionPure: string | undefined;
@@ -244,12 +249,9 @@ export class Graph {
               const index = childVersion.indexOf("$");
               childVersionPure = childVersion.slice(index + 1, -1);
             }
+            const child = await this.generateNode(childModuleInfo, paths);
+            /*⬅️⬅️⬅️  后序处理逻辑  ➡️➡️➡️*/
             child.declarationVersion = childVersionPure || childVersion;
-            //子模块唯一id
-            const childId = childName + childVersion;
-            //缓存节点（只存存在selfSize的节点）
-            if (!child.circlePath && !this.cache.has(childId) && child.selfSize)
-              this.cache.set(childId, child!);
             //将子节点加入父节点（注意是children是引入类型，所以可以直接加）
             curNode.dependencies[childName] = child;
             //更新父节点子依赖数量
