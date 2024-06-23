@@ -3,7 +3,6 @@ import { Config, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
 const inBrowser = typeof window !== "undefined";
-let number = 0;
 
 export class Graph {
   private graph: Node; //整个图
@@ -228,7 +227,6 @@ export class Graph {
             ? 0
             : cloneChild.childrenNumber) + 1; //child 子依赖数量 + 自身
       } else {
-        console.log(number++);
         const moduleInfoPromise: Promise<MODULE_INFO_TYPE> = this.pool.addTask([
           childName,
           resolvePath,
