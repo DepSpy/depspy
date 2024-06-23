@@ -231,13 +231,7 @@ export class Graph {
           childName,
           resolvePath,
         ]);
-        this.cache.set(
-          id,
-          moduleInfoPromise.then((moduleInfo) => {
-            this.cache.set(id, Promise.resolve(moduleInfo)); //更新为结束状态的promise
-            return moduleInfo; //对于正在等待缓存的地方，返回缓存
-          }),
-        );
+        this.cache.set(id, moduleInfoPromise);
         const generatePromise = moduleInfoPromise.then(
           async (childModuleInfo: MODULE_INFO_TYPE) => {
             //添加实际声明的依赖
