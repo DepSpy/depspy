@@ -41,14 +41,6 @@ cli
       throw new Error("depth 必须为正整数");
     }
 
-    options.size = [
-      await new Confirm({
-        name: "size",
-        message: "是否计算文件大小?",
-        initial: true,
-      }).run(),
-    ];
-
     options.ui = [
       await new Confirm({
         name: "ui",

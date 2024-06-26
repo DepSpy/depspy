@@ -9,7 +9,6 @@ export function linkContext(useStore: StoreApi<Store>) {
   const ws = new WebSocket(wsPath);
   ws.addEventListener("open", () => {
     useStore.setState({
-      sizeLoading: true,
       rootLoading: true,
     });
     useStaticStore.setState({

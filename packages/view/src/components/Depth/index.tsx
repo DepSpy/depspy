@@ -1,4 +1,3 @@
-// import { useState } from "react";
 import { useStore } from "@/contexts";
 import { shallow } from "zustand/shallow";
 import useLanguage from "@/i18n/hooks/useLanguage";
@@ -22,7 +21,7 @@ export default function Depth() {
         <input
           id="depth"
           type="number"
-          min={2}
+          min={1}
           defaultValue={depth}
           onBlur={(e) => {
             setDepth(parseInt(e.target.value));

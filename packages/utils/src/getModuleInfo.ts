@@ -1,15 +1,5 @@
-import {
-  GITHUB_DOMAIN,
-  NPM_Name_Regex,
-  MODULE_INFO,
-  NPM_DOMAIN,
-} from "./constant";
-import {
-  MODULE_INFO_TYPE,
-  PACKAGE_TYPE,
-  INFO_TYPES,
-  MODULE_CONFIG,
-} from "./type";
+import { GITHUB_DOMAIN, NPM_Name_Regex, MODULE_INFO } from "./constant";
+import { MODULE_INFO_TYPE, PACKAGE_TYPE, INFO_TYPES } from "./type";
 import * as fs from "fs";
 import * as path from "path";
 import { getPkgByPath, getPkgResolvePath } from "./utils";
@@ -18,16 +8,16 @@ const inBrowser = typeof window !== "undefined";
 //给定想要获取模块的info，输出指定模块的详情
 export default async function getModuleInfo(
   info: string = "",
-  config: MODULE_CONFIG = {},
+  baseDir: string,
+  npm_domain?: string,
 ): Promise<MODULE_INFO_TYPE> {
-  const { size, baseDir } = config;
   let pak: PACKAGE_TYPE;
   switch (transformInfo(info)) {
     case INFO_TYPES.GITHUB:
     case INFO_TYPES.NPM: {
       pak = inBrowser
-        ? await getNpmOnlineInfo(info!)
-        : await getNpmLocalInfo(info!, baseDir, size);
+        ? await getNpmOnlineInfo(info!, npm_domain)
+        : await getNpmLocalInfo(info!, baseDir);
       break;
     }
     case INFO_TYPES.JSON:
@@ -39,6 +29,19 @@ export default async function getModuleInfo(
   }
   return transformPackage(pak);
 }
+//获取npm提供的package.json信息🌐
+async function getNpmOnlineInfo(packageName: string, npm_domain: string) {
+  let url: string;
+  if (packageName.endsWith("$")) {
+    // 去掉所有的 $ 符号
+    packageName = packageName.replace(/\$/g, "");
+    url = `${npm_domain}/${packageName}`;
+  } else {
+    url = `${npm_domain}/${packageName}/latest`;
+  }
+  return await fetch(url).then((res) => res.json());
+}
+
 //获取根目录的package.json信息🌳
 function getRootInfo() {
   const pkg = getPkgByPath<PACKAGE_TYPE>(
@@ -47,23 +50,12 @@ function getRootInfo() {
   pkg.resolvePath = process.cwd();
   return pkg;
 }
-//获取npm提供的package.json信息🌐
-async function getNpmOnlineInfo(packageName: string) {
-  let url: string;
-  if (packageName.endsWith("$")) {
-    // 去掉所有的 $ 符号
-    packageName = packageName.replace(/\$/g, "");
-    url = `${NPM_DOMAIN}/${packageName}`;
-  } else {
-    url = `${NPM_DOMAIN}/${packageName}/latest`;
-  }
-  return await fetch(url).then((res) => res.json());
-}
+
 //获取本地某模块的package.json信息💻
-async function getNpmLocalInfo(info: string, baseDir: string, size: boolean) {
+async function getNpmLocalInfo(info: string, baseDir: string) {
   const [actualPath, baseNext] = getPkgResolvePath(info, baseDir);
   const pkg = getPkgByPath<PACKAGE_TYPE>(actualPath);
-  if (size) pkg.size = getDirSize(actualPath, ["node_modules"]);
+  pkg.size = getDirSize(actualPath, ["node_modules"]);
   pkg.resolvePath = baseNext;
   return pkg;
 }

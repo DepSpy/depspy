@@ -1,6 +1,5 @@
 export const defaultConfig = {
   depth: 3,
-  size: false,
   entry: null,
   output: {
     graph: "ds.graph.json",
@@ -9,3 +8,10 @@ export const defaultConfig = {
     codependency: "ds.co.json",
   },
 };
+export const NPM_DOMAINS = [
+  "https://mirrors.cloud.tencent.com/npm",
+  "https://registry.npmjs.org",
+  "https://registry.npmmirror.com",
+  " https://registry.yarnpkg.com",
+];
+export const HOST_MAX_FETCH_NUMBER = 6;

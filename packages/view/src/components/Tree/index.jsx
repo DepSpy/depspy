@@ -99,7 +99,7 @@ function Tree({ width = window.innerWidth }, svg) {
   useEffect(() => {
     const nextPath = selectedNode.path;
     setCurHighlight(nextPath);
-  }, [selectedNode]);
+  }, [selectedNode, root]);
   //高亮相同依赖
   useEffect(() => {
     if (selectedCodependency?.length) {

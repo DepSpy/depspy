@@ -17,7 +17,7 @@ export function createWs(graph: Graph, option: Config) {
     initStaticGraph(option, ws); //初始化静态代码依赖图
     ws.addEventListener("message", async (mes) => {
       const wsData = JSON.parse(mes.data as string);
-      EventBus[wsData.type](wsData, option, ws);
+      EventBus[wsData.type](wsData, option, ws, graph);
     });
     ws.on("close", () => {
       ws.close();

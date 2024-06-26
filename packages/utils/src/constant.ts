@@ -1,4 +1,3 @@
-export const NPM_DOMAIN = "https://registry.npmmirror.com";
 export const GITHUB_DOMAIN = "https://github.com";
 export const BP_DOMAIN = "https://bundlephobia.com";
 export const JSDELIVR_API = "https://cdn.jsdelivr.net/npm";

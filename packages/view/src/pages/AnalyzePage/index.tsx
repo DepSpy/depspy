@@ -24,17 +24,14 @@ export default function AnalyzePage() {
     setGraphRes,
     rootLoading,
     setRootLoading,
-    setSizeLoading,
   } = useStore((state) => state, shallow);
   const svg = useRef(null);
 
   useEffect(() => {
     if (import.meta.env.VITE_BUILD_MODE == "online") {
       setRootLoading(true);
-      setSizeLoading(true);
       setGraphRes(searchParams.get("q") || info, depth).then(() => {
         setRootLoading(false);
-        setSizeLoading(false);
       });
     }
   }, [depth, info]);
