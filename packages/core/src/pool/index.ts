@@ -32,6 +32,7 @@ export default class Pool<POOL_TASK extends unknown[], RESULT_TYPE> {
         data: RESULT_TYPE;
         worker: Worker<POOL_TASK, RESULT_TYPE>;
       }) => {
+        // 执行结束
         this.runNext(worker);
         return data;
       },
@@ -46,6 +47,7 @@ export default class Pool<POOL_TASK extends unknown[], RESULT_TYPE> {
       this.freeWorkers.push(worker);
     }
   }
+  //TODO 对线程阻塞逻辑做优化处理
 }
 export class Worker<POOL_TASK extends unknown[], RESULT_TYPE> {
   private resolve: Resolve<POOL_TASK, RESULT_TYPE>;

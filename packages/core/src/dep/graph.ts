@@ -4,7 +4,7 @@ import * as fs from "fs";
 import * as path from "path";
 import Pool from "../pool";
 const inBrowser = typeof window !== "undefined";
-
+//TODO 做本地缓存（LRU 限制缓存数量，--clear 清空缓存）
 export class Graph {
   private graph: Node; //整个图
   private cache: Map<string, Promise<MODULE_INFO_TYPE>> = new Map(); //用来缓存计算过的节点(用promise的原因是避免重复的读文件操作占用线程)

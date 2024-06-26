@@ -17,6 +17,7 @@ const pool = new Pool<[string, string], MODULE_INFO_TYPE>(
     if (inBrowser) {
       return new OnlineWorker(getModuleInfoByDomains);
     }
+    //TODO 线程复用性
     return new OffLineWorker(path.join(__dirname, "./dep/moduleInfoWorker.js"));
   },
 );
