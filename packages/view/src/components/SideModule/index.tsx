@@ -2,6 +2,7 @@ import { useStore } from "@/contexts";
 import useLanguage from "@/i18n/hooks/useLanguage";
 import FirstTreeMap from "../FirstTreeMap";
 import "./index.scss";
+import { unitConvert } from "@/utils/unitConvert.ts";
 
 export default function SideModule() {
   const { t } = useLanguage();
@@ -48,7 +49,10 @@ export default function SideModule() {
       {selectedNode && selectedNode.size ? (
         <div className="module-size">
           <div className="title">{t("aside.module.size")}</div>
-          <div className="size">{selectedNode.size}</div>
+          <div className="size">
+            {unitConvert(selectedNode.selfSize, ["B", "KB", "MB"])}&nbsp;/&nbsp;
+            {unitConvert(selectedNode.size, ["B", "KB", "MB"])}
+          </div>
         </div>
       ) : null}
       <div className="size-graph-title">{t("aside.module.graph")}</div>

@@ -50,11 +50,11 @@
       "title": "MODULE",
       "information": "MODULE INFORMATION",
       "description": "DESCRIPTION",
-      "size": "BUNDLE SIZE",
+      "size": "SELF SIZE / BUNDLE SIZE",
       "graph": "BUNDLE GRAPH",
       "source": "Data source",
       "cache": "DUPLICATED DEPENDENCY",
-      "dependencies": "DEPENDENCIES COUNT",
+      "dependencies": "DEPENDENCIES COUNT / TOTAL",
       "circlePath": "CIRCULAR DEPENDENCY"
     }
   },

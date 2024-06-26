@@ -10,7 +10,8 @@ export interface Node {
   cache?: string;
   circlePath?: string[];
   dependencies: Record<string, Node>;
-  size?: number;
+  size: number;
+  selfSize: number;
 }
 
 export interface generateGraphRes {

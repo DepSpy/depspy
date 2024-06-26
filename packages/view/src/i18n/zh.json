@@ -50,11 +50,11 @@
       "title": "依赖",
       "information": "依赖信息",
       "description": "简介",
-      "size": "依赖大小",
+      "size": "自身大小 / 依赖大小",
       "graph": "体积图表",
       "source": "数据源",
       "cache": "相同依赖",
-      "dependencies": "依赖个数",
+      "dependencies": "依赖个数 / 总依赖个数",
       "circlePath": "循环依赖"
     }
   },
