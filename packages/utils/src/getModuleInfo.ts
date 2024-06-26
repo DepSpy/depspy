@@ -5,43 +5,41 @@ import * as path from "path";
 import { getPkgByPath, getPkgResolvePath } from "./utils";
 const inBrowser = typeof window !== "undefined";
 
-export default function useGetModuleInfo(npm_domain?: string) {
-  //给定想要获取模块的info，输出指定模块的详情
-  async function getModuleInfo(
-    info: string = "",
-    baseDir: string,
-  ): Promise<MODULE_INFO_TYPE> {
-    let pak: PACKAGE_TYPE;
-    switch (transformInfo(info)) {
-      case INFO_TYPES.GITHUB:
-      case INFO_TYPES.NPM: {
-        pak = inBrowser
-          ? await getNpmOnlineInfo(info!)
-          : await getNpmLocalInfo(info!, baseDir);
-        break;
-      }
-      case INFO_TYPES.JSON:
-        pak = JSON.parse(info!);
-        break;
-      default:
-        if (inBrowser) throw new Error("invalid parameter");
-        pak = getRootInfo();
+//给定想要获取模块的info，输出指定模块的详情
+export default async function getModuleInfo(
+  info: string = "",
+  baseDir: string,
+  npm_domain?: string,
+): Promise<MODULE_INFO_TYPE> {
+  let pak: PACKAGE_TYPE;
+  switch (transformInfo(info)) {
+    case INFO_TYPES.GITHUB:
+    case INFO_TYPES.NPM: {
+      pak = inBrowser
+        ? await getNpmOnlineInfo(info!, npm_domain)
+        : await getNpmLocalInfo(info!, baseDir);
+      break;
     }
-    return transformPackage(pak);
+    case INFO_TYPES.JSON:
+      pak = JSON.parse(info!);
+      break;
+    default:
+      if (inBrowser) throw new Error("invalid parameter");
+      pak = getRootInfo();
   }
-  //获取npm提供的package.json信息🌐
-  async function getNpmOnlineInfo(packageName: string) {
-    let url: string;
-    if (packageName.endsWith("$")) {
-      // 去掉所有的 $ 符号
-      packageName = packageName.replace(/\$/g, "");
-      url = `${npm_domain}/${packageName}`;
-    } else {
-      url = `${npm_domain}/${packageName}/latest`;
-    }
-    return await fetch(url).then((res) => res.json());
+  return transformPackage(pak);
+}
+//获取npm提供的package.json信息🌐
+async function getNpmOnlineInfo(packageName: string, npm_domain: string) {
+  let url: string;
+  if (packageName.endsWith("$")) {
+    // 去掉所有的 $ 符号
+    packageName = packageName.replace(/\$/g, "");
+    url = `${npm_domain}/${packageName}`;
+  } else {
+    url = `${npm_domain}/${packageName}/latest`;
   }
-  return getModuleInfo;
+  return await fetch(url).then((res) => res.json());
 }
 
 //获取根目录的package.json信息🌳

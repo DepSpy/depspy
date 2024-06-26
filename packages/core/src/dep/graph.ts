@@ -1,7 +1,8 @@
-import { MODULE_INFO_TYPE, Pool } from "@dep-spy/utils";
+import { MODULE_INFO_TYPE } from "@dep-spy/utils";
 import { Config, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
+import Pool from "../pool";
 const inBrowser = typeof window !== "undefined";
 
 export class Graph {

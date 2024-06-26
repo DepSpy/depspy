@@ -1,6 +1,6 @@
 import threads from "worker_threads";
 import EventEmitter from "events";
-import { Resolve, Task } from "./type";
+import { Resolve, Task } from "../type";
 
 export default class Pool<POOL_TASK extends unknown[], RESULT_TYPE> {
   private taskQueue: Task<POOL_TASK, RESULT_TYPE>[] = []; //任务队列

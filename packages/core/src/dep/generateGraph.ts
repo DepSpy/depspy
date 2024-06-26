@@ -1,25 +1,21 @@
 import { defaultConfig, HOST_MAX_FETCH_NUMBER, NPM_DOMAINS } from "../constant";
 import { Config } from "../type";
 import { Graph } from "./graph";
-import {
-  MODULE_INFO_TYPE,
-  Pool,
-  useGetModuleInfo,
-  OnlineWorker,
-  OffLineWorker,
-} from "@dep-spy/utils";
+import Pool, { OnlineWorker, OffLineWorker } from "../pool";
 import os from "os";
 import path from "path";
+import { getModuleInfo, MODULE_INFO_TYPE } from "@dep-spy/utils";
 const inBrowser = typeof window !== "undefined";
 
 const pool = new Pool<[string, string], MODULE_INFO_TYPE>(
   os.cpus ? os.cpus().length : NPM_DOMAINS.length * HOST_MAX_FETCH_NUMBER,
   (index: number) => {
+    const url = NPM_DOMAINS[Math.floor(index % NPM_DOMAINS.length)];
+    function getModuleInfoByDomains(...args: [string, string]) {
+      return getModuleInfo(...args, url);
+    }
     if (inBrowser) {
-      const getModuleInfo = useGetModuleInfo(
-        NPM_DOMAINS[Math.floor(index % NPM_DOMAINS.length)], //均匀排列每个域名worker
-      );
-      return new OnlineWorker(getModuleInfo);
+      return new OnlineWorker(getModuleInfoByDomains);
     }
     return new OffLineWorker(path.join(__dirname, "./dep/moduleInfoWorker.js"));
   },
