@@ -24,5 +24,12 @@
     "@types/resolve": "^1.20.2",
     "tsup": "^7.1.0"
   },
-  "gitHead": "50c073c23fc0eed9ed09baaa47244288326bc3d8"
+  "gitHead": "50c073c23fc0eed9ed09baaa47244288326bc3d8",
+  "dependencies": {
+    "@babel/parser": "^7.24.4",
+    "@babel/traverse": "^7.24.1",
+    "@swc/core": "^1.4.17",
+    "swc-to-babel": "^3.0.1",
+    "tsconfig-paths": "^4.2.0"
+  }
 }

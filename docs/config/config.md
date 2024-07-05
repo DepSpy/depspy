@@ -19,7 +19,7 @@ export default defineConfig({
 Example:
 
 ```bash
-ds --depth 3 --size --graph my-graph.json
+ds --depth 3 --graph my-graph.json
 ```
 
 ## 默认配置
@@ -27,7 +27,6 @@ ds --depth 3 --size --graph my-graph.json
 ```javascript
 {
   depth: 3, // 最大嵌套深度
-  size: false, // 是否计算size
   output: {
     graph: "ds.graph.json", // 依赖图输出路径
     circularDependency: "ds.circular.json", // 循环依赖输出路径

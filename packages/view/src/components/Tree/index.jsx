@@ -1,6 +1,7 @@
 import * as d3 from "d3";
 import { useEffect, useState, useRef, useReducer, forwardRef } from "react";
 import { shallow } from "zustand/shallow";
+import { getActualWidthOfChars, textOverflow } from "../../utils/textOverflow";
 import { useStore } from "../../contexts";
 import SvgComponents from "./SvgComponents";
 import "./index.scss";
@@ -98,7 +99,7 @@ function Tree({ width = window.innerWidth }, svg) {
   useEffect(() => {
     const nextPath = selectedNode.path;
     setCurHighlight(nextPath);
-  }, [selectedNode]);
+  }, [selectedNode, root]);
   //高亮相同依赖
   useEffect(() => {
     if (selectedCodependency?.length) {
@@ -383,27 +384,5 @@ const throttle = (func, delay = 500) => {
     }, delay);
   };
 };
-//获取文本长度
-function getActualWidthOfChars(text, options = {}) {
-  const { size = 16, family = "Playfair Display" } = options;
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  ctx.font = `${size}px ${family}`;
-  const metrics = ctx.measureText(text);
-  const actual =
-    Math.abs(metrics.actualBoundingBoxLeft) +
-    Math.abs(metrics.actualBoundingBoxRight);
-  return Math.max(metrics.width, actual);
-}
-//模拟text-overflow: ellipsis;
-function textOverflow(input, maxLength) {
-  if (getActualWidthOfChars(input) <= maxLength) {
-    return input;
-  } else {
-    while (getActualWidthOfChars(input.concat("...")) >= maxLength) {
-      input = input.slice(0, -1);
-    }
-    return input.concat("...");
-  }
-}
+
 export default forwardRef(Tree);

@@ -17,8 +17,6 @@ import { throttle } from "@/utils/throttle";
  }
 */
 function changeData(data: Node): Data | undefined {
-  // console.log("11", data);
-
   if (!data) {
     return void 0;
   }
@@ -83,8 +81,8 @@ const FirstTreeMap = ({
   const [treeMap, setTreeMap] = useState<d3.HierarchyRectangularNode<Data>>();
   const { selectedNode, setSelectNode } = useStore((store) => {
     return {
-      selectedNode: store.selectedSizeNode,
-      setSelectNode: store.setSelectSizeNode,
+      selectedNode: store.selectedNode,
+      setSelectNode: store.setSelectNode,
     };
   });
   const [innerWidth, setInnerWidth] = useState(width);

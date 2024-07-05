@@ -1,31 +1,17 @@
-export interface Node {
-  name: string;
-  version: string;
-  declarationVersion: string;
-  path: string[];
-  description?: string;
-  cache?: string;
-  circlePath?: string[];
-  dependencies: Record<string, Node>;
-  size?: number;
-  cacheParentPath?: string[];
-}
-export interface Config {
-  depth?: number;
-  output?: {
-    graph?: string;
-    circularDependency?: string;
-    codependency?: string;
-  };
-  size?: boolean;
-}
-
 export const defaultConfig = {
   depth: 3,
-  size: false,
+  entry: null,
   output: {
     graph: "ds.graph.json",
+    staticGraph: "ds.static.json",
     circularDependency: "ds.circular.json",
     codependency: "ds.co.json",
   },
 };
+export const NPM_DOMAINS = [
+  "https://mirrors.cloud.tencent.com/npm",
+  "https://registry.npmjs.org",
+  "https://registry.npmmirror.com",
+  " https://registry.yarnpkg.com",
+];
+export const HOST_MAX_FETCH_NUMBER = 6;

@@ -1,4 +1,4 @@
-import { LanguageIcon, ThemeIcon } from "@/components/icon/index";
+import { LanguageIcon, ThemeIcon } from "@/components/Icon/index";
 import useLanguage from "@/i18n/hooks/useLanguage";
 import "./index.scss";
 export default function Skeleton() {

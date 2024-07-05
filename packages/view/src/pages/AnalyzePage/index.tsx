@@ -7,11 +7,7 @@ import { Export } from "@/components/Export";
 import { useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { shallow } from "zustand/shallow";
-import {
-  GithubIcon,
-  LanguageIcon,
-  ThemeIcon,
-} from "../../components/icon/index";
+import { GithubIcon, LanguageIcon, ThemeIcon } from "@/components/icon";
 import Skeleton from "@/components/Skeleton";
 import FirstTreeMap from "@/components/FirstTreeMap";
 import SizeTree from "@/components/SizeTree";
@@ -28,17 +24,14 @@ export default function AnalyzePage() {
     setGraphRes,
     rootLoading,
     setRootLoading,
-    setSizeLoading,
   } = useStore((state) => state, shallow);
   const svg = useRef(null);
 
   useEffect(() => {
     if (import.meta.env.VITE_BUILD_MODE == "online") {
       setRootLoading(true);
-      setSizeLoading(true);
       setGraphRes(searchParams.get("q") || info, depth).then(() => {
         setRootLoading(false);
-        setSizeLoading(false);
       });
     }
   }, [depth, info]);

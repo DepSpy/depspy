@@ -69,7 +69,6 @@ export function Export({ svgRef, width, height, json }) {
     zoomScreen("Full", sb);
     const toExport = svgDom.cloneNode(true);
     const bb = svgDom.getBBox();
-    console.log(sb, bb);
     const serializer = new XMLSerializer();
     toExport.setAttribute(
       "viewBox",

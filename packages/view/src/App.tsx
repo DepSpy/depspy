@@ -8,23 +8,24 @@ import AnalyzePage from "./pages/AnalyzePage";
 import { useStore } from "@/contexts";
 import useLanguage from "./i18n/hooks/useLanguage";
 import { useEffect } from "react";
+import StaticAnalyzePage from "./pages/StaticAnalyzePage";
 
+const routeElement = [
+  { path: "search", element: <SearchPage /> },
+  { path: "analyze", element: <AnalyzePage /> },
+  { path: "/static-analyze", element: <StaticAnalyzePage /> },
+  {
+    path: "*",
+    element: (
+      <Navigate
+        to={
+          import.meta.env.VITE_BUILD_MODE == "online" ? "/search" : "/analyze"
+        }
+      />
+    ),
+  },
+];
 function App() {
-  const routeElement = [
-    { path: "search", element: <SearchPage /> },
-    { path: "analyze", element: <AnalyzePage /> },
-    {
-      path: "*",
-      element: (
-        <Navigate
-          to={
-            import.meta.env.VITE_BUILD_MODE == "online" ? "/search" : "/analyze"
-          }
-        />
-      ),
-    },
-  ];
-
   const router = createBrowserRouter(routeElement);
 
   const theme = useStore((state) => state.theme);
