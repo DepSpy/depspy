@@ -23,25 +23,30 @@ export function getPkgResolvePath(info: string, baseDir: string) {
 }
 
 //实现npm依赖冒泡查找机制,返回其根路径
-function resolve(name: string, baseDir: string) {
-  const currentDir = path.join(baseDir, "node_modules");
-  if (fs.existsSync(currentDir)) {
-    //在当前目录下尝试寻找
-    const optionPath = path.join(baseDir, "node_modules", name);
-    if (fs.existsSync(optionPath)) {
-      return optionPath;
+function resolve(name: string, firstDir: string) {
+  for (
+    let currentDir = firstDir, nexDir = path.join(firstDir, "..");
+    currentDir !== nexDir;
+    currentDir = nexDir, nexDir = path.join(currentDir, "..")
+  ) {
+    const baseDir = path.join(currentDir, "node_modules");
+    if (fs.existsSync(baseDir)) {
+      //在当前目录下尝试寻找
+      const optionPath = path.join(currentDir, "node_modules", name);
+      if (fs.existsSync(optionPath)) {
+        return optionPath;
+      }
     }
   }
-  const root = process.cwd();
-  if (root != baseDir) {
-    baseDir = path.join(baseDir, "../");
-    return resolve(name, baseDir);
-  }
-  throw new Error(`Cannot find module '${name}' from '${baseDir}'`);
+  //到达顶层依旧未搜索到结果
+  throw new Error(`Cannot find module '${name}' from '${firstDir}'`);
 }
 
 //处理linkPath到最近的node_modules
 function transformLinkToBase(linkPath: string) {
+  if (!linkPath.includes("node_modules")) {
+    return linkPath;
+  }
   const splitPath = linkPath.split(path.sep);
   for (let i = splitPath.length - 1; i >= 0; i--) {
     if (splitPath[i] === "node_modules") {
@@ -55,8 +60,17 @@ function transformLinkToBase(linkPath: string) {
 
 //判断是不是pnpm
 function isPnpm(): boolean {
-  const pnpmCachePath = path.resolve(process.cwd(), "node_modules", ".pnpm");
-  return fs.existsSync(pnpmCachePath);
+  for (
+    let currentDir = process.cwd(), nextDir = path.join("..");
+    currentDir !== nextDir;
+    currentDir = nextDir, nextDir = path.join(currentDir, "..")
+  ) {
+    const pnpmCachePath = path.resolve(currentDir, "node_modules", ".pnpm");
+    if (fs.existsSync(pnpmCachePath)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 // macOS 系统下读取软连接的绝对路径

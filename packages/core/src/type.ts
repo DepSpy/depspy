@@ -36,6 +36,7 @@ export interface Config {
 export type Resolve<POOL_TASK extends unknown[], RESULT_TYPE> = (result: {
   data: RESULT_TYPE;
   worker: Worker<POOL_TASK, RESULT_TYPE>;
+  error: Error;
 }) => void;
 
 export type Task<POOL_TASK extends unknown[], RESULT_TYPE> = {
