@@ -44,6 +44,7 @@ function resolve(name: string, firstDir: string) {
 
 //处理linkPath到最近的node_modules
 function transformLinkToBase(linkPath: string) {
+  // monorepo子包之间的相互依赖（linkPath不包含node_modules,例如/Users/***/depspy/packages/core）
   if (!linkPath.includes("node_modules")) {
     return linkPath;
   }
@@ -60,6 +61,7 @@ function transformLinkToBase(linkPath: string) {
 
 //判断是不是pnpm
 function isPnpm(): boolean {
+  //冒泡查找.pnpm文件夹（为适配monorepo的子包）
   for (
     let currentDir = process.cwd(), nextDir = path.join("..");
     currentDir !== nextDir;
