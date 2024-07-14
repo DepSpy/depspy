@@ -12,6 +12,7 @@
     "test": "vitest --no-threads",
     "dev": "node ./scripts/index.mjs",
     "build": "lerna run build",
+    "pm": "node scripts/performance/index.mjs",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
