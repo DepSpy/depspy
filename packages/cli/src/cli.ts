@@ -41,11 +41,11 @@ cli
       throw new Error("depth 必须为正整数");
     }
 
-    options.ui = [
+    options.output = [
       await new Confirm({
-        name: "ui",
-        message: "是否启动可视化界面?",
-        initial: true,
+        name: "json",
+        message: "是否输出依赖树的文件?",
+        initial: false,
       }).run(),
     ];
 
@@ -55,15 +55,20 @@ cli
     const graph = generateGraph("", options);
 
     const spinner = ora(blue("🕵️ 正在潜入\n")).start();
-    await graph.outputToFile();
+    //构建树
+    await graph.ensureGraph();
+
+    //是否输出依赖树文件
+    if (options.output) {
+      await graph.outputToFile();
+    }
+
     spinner.stop();
 
     console.log(green(`破解完成,耗时 ${yellow(Date.now() - startTime)} ms`));
 
-    // 如果开启 ui，则启动可视化界面
-    if (options.ui) {
-      createServer(graph, options);
-    }
+    // 启动可视化界面
+    createServer(graph, options);
   });
 
 cli.help();
