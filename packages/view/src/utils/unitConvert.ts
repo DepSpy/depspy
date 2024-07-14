@@ -6,8 +6,8 @@ export function unitConvert(number: number, units: string[]) {
     if (index === units.length - 1) {
       return result.toFixed(2) + unit;
     }
-    if (result > 1000) {
-      result /= 1000;
+    if (result > 1024) {
+      result /= 1024;
     } else {
       return result.toFixed(2) + unit;
     }

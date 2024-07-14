@@ -14,7 +14,7 @@ export default class Pool<POOL_TASK extends unknown[], RESULT_TYPE> {
       this.freeWorkers.push(createWorker(i));
     }
   }
-  addTask(task: POOL_TASK): Promise<RESULT_TYPE> {
+  addTask(task: POOL_TASK): Promise<[RESULT_TYPE, Error]> {
     return new Promise((resolve) => {
       //尝试加入空闲线程中执行
       if (this.freeWorkers.length > 0) {
@@ -28,13 +28,15 @@ export default class Pool<POOL_TASK extends unknown[], RESULT_TYPE> {
       ({
         data,
         worker,
+        error,
       }: {
         data: RESULT_TYPE;
         worker: Worker<POOL_TASK, RESULT_TYPE>;
+        error: Error;
       }) => {
         // 执行结束
         this.runNext(worker);
-        return data;
+        return [data, error];
       },
     );
   }
@@ -63,13 +65,12 @@ export class Worker<POOL_TASK extends unknown[], RESULT_TYPE> {
   }
   message(data: RESULT_TYPE) {
     //任务已完成
-    this.resolve({ data, worker: this });
+    this.resolve({ data, worker: this, error: null });
     //清空当前任务
     this.resolve = null;
   }
-  error(error: string) {
-    console.error(error);
-    this.resolve && this.resolve(null);
+  error(error: Error) {
+    this.resolve && this.resolve({ data: null, worker: this, error: error });
     this.resolve = null;
   }
 }
@@ -86,7 +87,7 @@ export class OffLineWorker<
       super.message(data);
     });
     this.worker.on("error", (error) => {
-      super.error(String(error));
+      super.error(error);
     });
   }
   public run({
