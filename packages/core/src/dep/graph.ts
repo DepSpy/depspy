@@ -19,6 +19,7 @@ export class Graph {
   private async generateNode(
     moduleInfo: MODULE_INFO_TYPE,
     paths: string[],
+    pathsSet: Set<string>,
   ): Promise<Node> {
     const {
       name,
@@ -29,7 +30,7 @@ export class Graph {
       description,
     } = moduleInfo;
     //循环依赖
-    if (paths.includes(name)) {
+    if (pathsSet.has(name)) {
       //直接截断返回循环依赖
       const circularNode = new GraphNode(
         name,
@@ -110,7 +111,7 @@ export class Graph {
       if (error) {
         throw error;
       }
-      this.graph = await this.generateNode(rootModule, []);
+      this.graph = await this.generateNode(rootModule, [], new Set());
     }
   }
   private writeJson(
@@ -227,6 +228,7 @@ export class Graph {
             childName,
           ]) as MODULE_INFO_TYPE,
           paths,
+          new Set(paths),
         );
         curNode.dependencies[childName] = cloneChild;
         curNode.size += cloneChild.size;
@@ -251,7 +253,11 @@ export class Graph {
               const index = childVersion.indexOf("$");
               childVersionPure = childVersion.slice(index + 1, -1);
             }
-            const child = await this.generateNode(childModuleInfo, paths);
+            const child = await this.generateNode(
+              childModuleInfo,
+              paths,
+              new Set(paths),
+            );
             /*⬅️⬅️⬅️  后序处理逻辑  ➡️➡️➡️*/
             child.declarationVersion = childVersionPure || childVersion;
             //将子节点加入父节点（注意是children是引入类型，所以可以直接加）
