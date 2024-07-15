@@ -31,35 +31,33 @@ export class Graph {
     if (paths.includes(name)) {
       //直接截断返回循环依赖
       const circularNode = new GraphNode({
-          name,
-          version,
-          dependencies: {},
-          dependenciesList:{}, //循环依赖不需要再加载子节点
-          resolvePath,
-          path: [...paths, name],
-          childrenNumber: Infinity,
-          description: description,
-          circlePath: [...paths, name],
-          size
-        }
-      );
+        name,
+        version,
+        dependencies: {},
+        dependenciesList: {}, //循环依赖不需要再加载子节点
+        resolvePath,
+        path: [...paths, name],
+        childrenNumber: Infinity,
+        description: description,
+        circlePath: [...paths, name],
+        size,
+      });
       this.circularDependency.add(circularNode);
       return circularNode;
     }
     //生成父节点（初始化一系列等下要用的变量）
     const children: Record<string, Node> = {};
     const curNode = new GraphNode({
-        name,
-        version,
-        dependencies: children,
-        dependenciesList,
-        resolvePath,
-        path: [...paths, name],
-        childrenNumber: 0,
-        description,
-        size
-      }
-    );
+      name,
+      version,
+      dependencies: children,
+      dependenciesList,
+      resolvePath,
+      path: [...paths, name],
+      childrenNumber: 0,
+      description,
+      size,
+    });
     const id = name + version;
     //将子节点插入到当前节点上
     await this.insertChildren(curNode, dependenciesList);
@@ -300,19 +298,18 @@ class GraphNode implements Node {
   public resolvePath: string;
   public path: string[];
   public childrenNumber: number;
-  constructor(
-    property: {
-      name: string,
-      version: string,
-      dependencies: Record<string, Node>,
-      dependenciesList: Record<string, string>,
-      resolvePath: string,
-      path: string[],
-      childrenNumber: number,
-      description?: string,
-      circlePath?: string[],
-      size?: number,}
-  ) {
+  constructor(property: {
+    name: string;
+    version: string;
+    dependencies: Record<string, Node>;
+    dependenciesList: Record<string, string>;
+    resolvePath: string;
+    path: string[];
+    childrenNumber: number;
+    description?: string;
+    circlePath?: string[];
+    size?: number;
+  }) {
     this.selfSize = property.size;
     Object.entries(property).forEach(([key, value]) => {
       if (value || value === 0) this[key] = value;
