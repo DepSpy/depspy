@@ -30,37 +30,35 @@ export class Graph {
     //循环依赖
     if (paths.includes(name)) {
       //直接截断返回循环依赖
-      const circularNode = new GraphNode(
-        name,
-        version,
-        {},
-        {}, //循环依赖不需要再加载子节点
-        resolvePath,
-        [...paths, name],
-        Infinity,
-        {
-          description,
+      const circularNode = new GraphNode({
+          name,
+          version,
+          dependencies: {},
+          dependenciesList:{}, //循环依赖不需要再加载子节点
+          resolvePath,
+          path: [...paths, name],
+          childrenNumber: Infinity,
+          description: description,
           circlePath: [...paths, name],
-          size,
-        },
+          size
+        }
       );
       this.circularDependency.add(circularNode);
       return circularNode;
     }
     //生成父节点（初始化一系列等下要用的变量）
     const children: Record<string, Node> = {};
-    const curNode = new GraphNode(
-      name,
-      version,
-      children,
-      dependenciesList,
-      resolvePath,
-      [...paths, name],
-      0,
-      {
+    const curNode = new GraphNode({
+        name,
+        version,
+        dependencies: children,
+        dependenciesList,
+        resolvePath,
+        path: [...paths, name],
+        childrenNumber: 0,
         description,
-        size,
-      },
+        size
+      }
     );
     const id = name + version;
     //将子节点插入到当前节点上
@@ -295,24 +293,29 @@ class GraphNode implements Node {
   selfSize: number;
   description?: string;
   circlePath?: string[];
+  public name: string;
+  public version: string;
+  public dependencies: Record<string, Node>;
+  public dependenciesList: Record<string, string>; //用于记录当前节点的pack.json中记录的内容
+  public resolvePath: string;
+  public path: string[];
+  public childrenNumber: number;
   constructor(
-    public name: string,
-    public version: string,
-    public dependencies: Record<string, Node>,
-    public dependenciesList: Record<string, string>, //用于记录当前节点的pack.json中记录的内容
-    public resolvePath: string,
-    public path: string[],
-    public childrenNumber: number,
-    otherFields: {
-      description?: string;
-      circlePath?: string[];
-      size?: number;
-    },
+    property: {
+      name: string,
+      version: string,
+      dependencies: Record<string, Node>,
+      dependenciesList: Record<string, string>,
+      resolvePath: string,
+      path: string[],
+      childrenNumber: number,
+      description?: string,
+      circlePath?: string[],
+      size?: number,}
   ) {
-    this.selfSize = otherFields.size;
-    this.size = otherFields.size; //初始化为自身的size大小
-    Object.entries(otherFields).forEach(([key, value]) => {
-      if (value) this[key] = value;
+    this.selfSize = property.size;
+    Object.entries(property).forEach(([key, value]) => {
+      if (value || value === 0) this[key] = value;
     });
     //拦截set，剔除无效属性
     return new Proxy(this, {
