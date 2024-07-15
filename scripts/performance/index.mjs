@@ -35,7 +35,7 @@ executePerformance().then((spinner) => {
     const success = ((results.length / COUNT) * 100).toFixed(2);
     console.log(`🥳成功率：${success}%`);
     const average =
-      results.reduce((sum, curr) => (sum += curr), 0) / results.length;
+      (results.reduce((sum, curr) => (sum += curr), 0) / results.length).toFixed(2);
     console.log(`🚄平均耗时：${average}ms`);
     results.sort();
     const center =

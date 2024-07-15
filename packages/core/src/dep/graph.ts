@@ -1,9 +1,9 @@
 import { MODULE_INFO_TYPE } from "@dep-spy/utils";
-import { Config, Node } from "../type";
+import { Config, MODULE_INFO_TASK, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
-import Pool from "../pool";
 const inBrowser = typeof window !== "undefined";
+import pool from "../pool";
 //TODO 做本地缓存（LRU 限制缓存数量，--clear 清空缓存）
 export class Graph {
   private graph: Node; //整个图
@@ -14,7 +14,6 @@ export class Graph {
   constructor(
     private readonly info: string,
     private readonly config: Config = {},
-    private readonly pool: Pool<[string, string], MODULE_INFO_TYPE>,
   ) {}
   private async generateNode(
     moduleInfo: MODULE_INFO_TYPE,
@@ -103,10 +102,13 @@ export class Graph {
   }
   public async ensureGraph() {
     if (!this.graph) {
-      const [rootModule, error] = await this.pool.addTask([
-        this.info,
-        inBrowser ? null : process.cwd(),
-      ]); //解析首个节点
+      const [rootModule, error] = await pool.addTask<
+        MODULE_INFO_TASK,
+        MODULE_INFO_TYPE
+      >({
+        type: "moduleInfo",
+        params: [this.info, inBrowser ? null : process.cwd()],
+      }); //解析首个节点
       if (error) {
         throw error;
       }
@@ -236,7 +238,10 @@ export class Graph {
             ? 0
             : cloneChild.childrenNumber) + 1; //child 子依赖数量 + 自身
       } else {
-        const moduleInfoPromise = this.pool.addTask([childName, resolvePath]);
+        const moduleInfoPromise = pool.addTask<
+          MODULE_INFO_TASK,
+          MODULE_INFO_TYPE
+        >({ type: "moduleInfo", params: [childName, resolvePath] });
         this.cache.set(id, moduleInfoPromise);
         const generatePromise = moduleInfoPromise.then(
           async ([childModuleInfo, error]) => {
