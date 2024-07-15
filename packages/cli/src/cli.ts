@@ -41,7 +41,7 @@ cli
       throw new Error("depth 必须为正整数");
     }
 
-    options.output = [
+    options.isOutput = [
       await new Confirm({
         name: "json",
         message: "是否输出依赖树的文件?",
@@ -59,7 +59,7 @@ cli
     await graph.ensureGraph();
 
     //是否输出依赖树文件
-    if (options.output) {
+    if (options.isOutput) {
       await graph.outputToFile();
     }
 
