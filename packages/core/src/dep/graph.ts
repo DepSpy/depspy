@@ -1,20 +1,19 @@
 import { MODULE_INFO_TYPE } from "@dep-spy/utils";
-import { Config, Node } from "../type";
+import { Config, MODULE_INFO_TASK, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
-import Pool from "../pool";
 const inBrowser = typeof window !== "undefined";
+import pool from "../pool";
 //TODO 做本地缓存（LRU 限制缓存数量，--clear 清空缓存）
 export class Graph {
   private graph: Node; //整个图
-  private cache: Map<string, Promise<MODULE_INFO_TYPE>> = new Map(); //用来缓存计算过的节点(用promise的原因是避免重复的读文件操作占用线程)
+  private cache: Map<string, Promise<[MODULE_INFO_TYPE, Error]>> = new Map(); //用来缓存计算过的节点(用promise的原因是避免重复的读文件操作占用线程)
   private coMap = new Map<string, Node>(); //记录所有节点的id,用于判断相同依赖(coId: 是实际下载的包的name + version)
   private codependency: Map<string, Node[]> = new Map(); //记录相同的节点
   private circularDependency: Set<Node> = new Set(); //记录存在循环引用的节点
   constructor(
     private readonly info: string,
     private readonly config: Config = {},
-    private readonly pool: Pool<[string, string], MODULE_INFO_TYPE>,
   ) {}
   private async generateNode(
     moduleInfo: MODULE_INFO_TYPE,
@@ -31,38 +30,34 @@ export class Graph {
     //循环依赖
     if (paths.includes(name)) {
       //直接截断返回循环依赖
-      const circularNode = new GraphNode(
+      const circularNode = new GraphNode({
         name,
         version,
-        {},
-        {}, //循环依赖不需要再加载子节点
+        dependencies: {},
+        dependenciesList: {}, //循环依赖不需要再加载子节点
         resolvePath,
-        [...paths, name],
-        Infinity,
-        {
-          description,
-          circlePath: [...paths, name],
-          size,
-        },
-      );
+        path: [...paths, name],
+        childrenNumber: Infinity,
+        description: description,
+        circlePath: [...paths, name],
+        size,
+      });
       this.circularDependency.add(circularNode);
       return circularNode;
     }
     //生成父节点（初始化一系列等下要用的变量）
     const children: Record<string, Node> = {};
-    const curNode = new GraphNode(
+    const curNode = new GraphNode({
       name,
       version,
-      children,
+      dependencies: children,
       dependenciesList,
       resolvePath,
-      [...paths, name],
-      0,
-      {
-        description,
-        size,
-      },
-    );
+      path: [...paths, name],
+      childrenNumber: 0,
+      description,
+      size,
+    });
     const id = name + version;
     //将子节点插入到当前节点上
     await this.insertChildren(curNode, dependenciesList);
@@ -103,10 +98,16 @@ export class Graph {
   }
   public async ensureGraph() {
     if (!this.graph) {
-      const rootModule = await this.pool.addTask([
-        this.info,
-        inBrowser ? null : process.cwd(),
-      ]); //解析首个节点
+      const [rootModule, error] = await pool.addTask<
+        MODULE_INFO_TASK,
+        MODULE_INFO_TYPE
+      >({
+        type: "moduleInfo",
+        params: [this.info, inBrowser ? null : process.cwd()],
+      }); //解析首个节点
+      if (error) {
+        throw error;
+      }
       this.graph = await this.generateNode(rootModule, []);
     }
   }
@@ -213,8 +214,13 @@ export class Graph {
       const id = childName + childVersion;
       //不再读文件，走缓存
       if (this.cache.has(id)) {
+        const [moduleInfo, error] = await this.cache.get(id);
+        if (error) {
+          console.error(error);
+          continue;
+        }
         const cloneChild = await this.generateNode(
-          this.cloneCache(await this.cache.get(id), [
+          this.cloneCache(moduleInfo, [
             ...paths,
             childName,
           ]) as MODULE_INFO_TYPE,
@@ -228,13 +234,17 @@ export class Graph {
             ? 0
             : cloneChild.childrenNumber) + 1; //child 子依赖数量 + 自身
       } else {
-        const moduleInfoPromise: Promise<MODULE_INFO_TYPE> = this.pool.addTask([
-          childName,
-          resolvePath,
-        ]);
+        const moduleInfoPromise = pool.addTask<
+          MODULE_INFO_TASK,
+          MODULE_INFO_TYPE
+        >({ type: "moduleInfo", params: [childName, resolvePath] });
         this.cache.set(id, moduleInfoPromise);
         const generatePromise = moduleInfoPromise.then(
-          async (childModuleInfo: MODULE_INFO_TYPE) => {
+          async ([childModuleInfo, error]) => {
+            if (error) {
+              console.error(error);
+              return;
+            }
             //添加实际声明的依赖
             // 如果 childVersion 以 $ 结尾，表明需要特殊处理
             let childVersionPure: string | undefined;
@@ -281,24 +291,28 @@ class GraphNode implements Node {
   selfSize: number;
   description?: string;
   circlePath?: string[];
-  constructor(
-    public name: string,
-    public version: string,
-    public dependencies: Record<string, Node>,
-    public dependenciesList: Record<string, string>, //用于记录当前节点的pack.json中记录的内容
-    public resolvePath: string,
-    public path: string[],
-    public childrenNumber: number,
-    otherFields: {
-      description?: string;
-      circlePath?: string[];
-      size?: number;
-    },
-  ) {
-    this.selfSize = otherFields.size;
-    this.size = otherFields.size; //初始化为自身的size大小
-    Object.entries(otherFields).forEach(([key, value]) => {
-      if (value) this[key] = value;
+  public name: string;
+  public version: string;
+  public dependencies: Record<string, Node>;
+  public dependenciesList: Record<string, string>; //用于记录当前节点的pack.json中记录的内容
+  public resolvePath: string;
+  public path: string[];
+  public childrenNumber: number;
+  constructor(property: {
+    name: string;
+    version: string;
+    dependencies: Record<string, Node>;
+    dependenciesList: Record<string, string>;
+    resolvePath: string;
+    path: string[];
+    childrenNumber: number;
+    description?: string;
+    circlePath?: string[];
+    size?: number;
+  }) {
+    this.selfSize = property.size;
+    Object.entries(property).forEach(([key, value]) => {
+      if (value || value === 0) this[key] = value;
     });
     //拦截set，剔除无效属性
     return new Proxy(this, {

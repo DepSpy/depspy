@@ -36,16 +36,10 @@ $ pnpm add @dep-spy/cli -D
 }
 ```
 
-如果想根据默认配置直接生成依赖分析 `JSON` 文件，直接在命令行中运行：
+默认开启UI界面，直接在命令行中运行：
 
 ```bash
 $ pnpm run ds
-```
-
-如果需要届时开启 UI 页面，请格外传入 `--ui` 参数（对于更多配置参数，或使用配置文件进行配置，请查看[配置](#配置)）：
-
-```bash
-$ pnpm run ds --ui
 ```
 
 接着你能通过 `http://localhost:2023/analyze` 访问 DepSpy UI 页面：
@@ -91,7 +85,6 @@ ds --depth 3 --graph my-graph.json
 ```javascript
 {
   depth: 3, // 最大嵌套深度
-  size: false, // 是否计算size
   output: {
     graph: "ds.graph.json", // 依赖图输出路径
     circularDependency: "ds.circular.json", // 循环依赖输出路径
