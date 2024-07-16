@@ -24,8 +24,10 @@ function DrawRect({ treeMap, isHierarchy }: DrawRectProps) {
     [forTree.length <= 4 ? 8 : forTree.length * 2, 0],
     d3.interpolateMagma,
   );
+
   return (
     <div style={{ position: "relative" }}>
+      {/* 全屏状态 */}
       {isHierarchy && (
         <DrawChildrenRect
           x0={treeMap.x0}
@@ -38,10 +40,7 @@ function DrawRect({ treeMap, isHierarchy }: DrawRectProps) {
         ></DrawChildrenRect>
       )}
       {forTree.map(
-        (
-          { x0, y0, x1, y1, data, value }: d3.HierarchyRectangularNode<Data>,
-          i,
-        ) => {
+        ({ x0, y0, x1, y1, data }: d3.HierarchyRectangularNode<Data>, i) => {
           return (
             <DrawChildrenRect
               x0={x0}
@@ -49,7 +48,8 @@ function DrawRect({ treeMap, isHierarchy }: DrawRectProps) {
               x1={x1}
               y1={y1}
               data={data}
-              key={value || 0}
+              // 强制刷新
+              key={Math.random()}
               color={colorScale(i)}
             ></DrawChildrenRect>
           );
@@ -87,6 +87,7 @@ export const DrawChildrenRect = ({
     }
     if (!ref || !ref.current) return;
     const { current } = ref;
+
     if (
       current.scrollWidth > current.clientWidth ||
       current.scrollHeight > current.clientHeight
@@ -99,6 +100,7 @@ export const DrawChildrenRect = ({
     if (!data._children || data._children.length === 0) return;
     handle_rect_click(data)(e);
   };
+
   return (
     <>
       {hidden ? (

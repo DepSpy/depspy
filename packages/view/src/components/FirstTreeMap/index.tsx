@@ -96,6 +96,7 @@ const FirstTreeMap = ({
   const updateTreeMap = useCallback(
     (data: Data) => {
       if (!data) return;
+
       const dataTree = {
         name: data.name,
         _size: data.size,
