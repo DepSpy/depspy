@@ -17,12 +17,14 @@ let tsConfig;
 let matchPath;
 //避免浏览器引入报错
 if (!inBrowser) {
-  cwd = process.cwd();
-  tsConfig = tsPaths.loadConfig(cwd);
-  matchPath = tsPaths.createMatchPath(
-    tsConfig["absoluteBaseUrl"],
-    tsConfig["paths"],
-  );
+  try {
+    cwd = process.cwd();
+    tsConfig = tsPaths.loadConfig(cwd);
+    matchPath = tsPaths.createMatchPath(
+      tsConfig["absoluteBaseUrl"],
+      tsConfig["paths"],
+    );
+  } catch {}
 }
 //兼容不同类型的path并返回关键信息
 export default function getFileInfo(path: string, baseDir: string = cwd) {
