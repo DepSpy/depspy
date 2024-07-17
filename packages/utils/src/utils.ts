@@ -82,10 +82,10 @@ function getAbsoluteLinkTarget(linkPath = "") {
     const absoluteTarget = path.resolve(path.dirname(linkPath), relativeTarget);
     return absoluteTarget;
   } catch (error) {
-    throw new Error("Error reading or resolving symlink: " + error.message);
+    //如果linkpath不是软连接，直接返回当前路径
+    return linkPath;
   }
 }
-
 //获取json文件的对象格式
 export function getPkgByPath<T>(path: string): T {
   const info = fs.readFileSync(path, "utf8");
