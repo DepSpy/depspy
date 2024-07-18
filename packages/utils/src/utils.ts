@@ -63,7 +63,7 @@ function transformLinkToBase(linkPath: string) {
 function isPnpm(): boolean {
   //冒泡查找.pnpm文件夹（为适配monorepo的子包）
   for (
-    let currentDir = process.cwd(), nextDir = path.join("..");
+    let currentDir = process.cwd(), nextDir = path.join(currentDir, "..");
     currentDir !== nextDir;
     currentDir = nextDir, nextDir = path.join(currentDir, "..")
   ) {
