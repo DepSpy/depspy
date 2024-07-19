@@ -13,7 +13,6 @@ import pool from "../pool";
 export class Graph {
   private graph: Node; //整个图
   private cache: Map<string, Promise<[MODULE_INFO_TYPE, Error]>> = new Map(); //用来缓存计算过的节点(用promise的原因是避免重复的读文件操作占用线程)
-  private nodeMap: Map<string, Node> = new Map();
   private coMap = new Map<string, Node>(); //记录所有节点的id,用于判断相同依赖(coId: 是实际下载的包的name + version)
   private codependency: Map<string, Node[]> = new Map(); //记录相同的节点
   private circularDependency: Set<Node> = new Set(); //记录存在循环引用的节点
@@ -263,8 +262,6 @@ export class Graph {
               1; //child 子依赖数量 + 自身
             //累加size
             curNode.size += child.size;
-            //存入Map方便下次快速搜寻到节点
-            this.nodeMap.set(childName + childVersion, child);
           },
         );
         promises.push(generatePromise);
@@ -291,7 +288,7 @@ export class Graph {
       //root节点
       resultNode = this.graph;
     } else {
-      resultNode = this.nodeMap.get(id);
+      resultNode = this.coMap.get(id);
     }
 
     return JSON.stringify(
