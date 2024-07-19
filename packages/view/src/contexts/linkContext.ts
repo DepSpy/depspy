@@ -1,5 +1,6 @@
 import { Store } from "~/types";
 import type { StoreApi } from "zustand";
+import { compose, toInfinity } from "@dep-spy/utils";
 import { EventBus } from "./eventBus";
 import { useStaticStore } from "./index";
 
@@ -17,7 +18,9 @@ export function linkContext(useStore: StoreApi<Store>) {
     ws.addEventListener("message", (result) => {
       const { type, data } = parseMes(result.data);
       EventBus[type](
-        typeof data === "string" ? JSON.parse(data, nullToInfinity) : data,
+        typeof data === "string"
+          ? JSON.parse(data, compose([toInfinity]))
+          : data,
         ws,
       );
     });
@@ -33,13 +36,5 @@ export function linkContext(useStore: StoreApi<Store>) {
 }
 
 function parseMes(mes: string) {
-  return JSON.parse(mes, nullToInfinity);
-}
-
-function nullToInfinity(key: string, value: unknown) {
-  // Infinity 经过序列化会变成null
-  if (key === "childrenNumber" && value === null) {
-    return Infinity;
-  }
-  return value;
+  return JSON.parse(mes, compose([toInfinity]));
 }
