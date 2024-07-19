@@ -1,5 +1,5 @@
 import { Express } from "express";
-import { Graph, Node } from "@dep-spy/core";
+import { Graph } from "@dep-spy/core";
 
 export function createHttp(app: Express, graph: Graph) {
   app.get<{ id?: string; depth: number }, string>(
