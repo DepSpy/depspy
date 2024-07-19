@@ -1,4 +1,9 @@
-import { MODULE_INFO_TYPE } from "@dep-spy/utils";
+import {
+  MODULE_INFO_TYPE,
+  compose,
+  toInfinity,
+  limitDepth,
+} from "@dep-spy/utils";
 import { Config, MODULE_INFO_TASK, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
@@ -8,6 +13,7 @@ import pool from "../pool";
 export class Graph {
   private graph: Node; //整个图
   private cache: Map<string, Promise<[MODULE_INFO_TYPE, Error]>> = new Map(); //用来缓存计算过的节点(用promise的原因是避免重复的读文件操作占用线程)
+  private nodeMap: Map<string, Node> = new Map();
   private coMap = new Map<string, Node>(); //记录所有节点的id,用于判断相同依赖(coId: 是实际下载的包的name + version)
   private codependency: Map<string, Node[]> = new Map(); //记录相同的节点
   private circularDependency: Set<Node> = new Set(); //记录存在循环引用的节点
@@ -117,13 +123,7 @@ export class Graph {
   ) {
     fs.writeFileSync(
       path.join(process.cwd(), outDir),
-      JSON.stringify(result, (key, value) => {
-        //当为Infinity时需要特殊处理，否则会变成null
-        if (key === "childrenNumber" && value === Infinity) {
-          return "Infinity";
-        }
-        return value;
-      }),
+      JSON.stringify(result, compose([toInfinity])),
       {
         flag: "w",
       },
@@ -263,6 +263,8 @@ export class Graph {
               1; //child 子依赖数量 + 自身
             //累加size
             curNode.size += child.size;
+            //存入Map方便下次快速搜寻到节点
+            this.nodeMap.set(childName + childVersion, child);
           },
         );
         promises.push(generatePromise);
@@ -282,6 +284,22 @@ export class Graph {
     } else {
       this.coMap.set(id, node);
     }
+  }
+  public getNode(id: string, depth: number): string {
+    let resultNode: Node;
+    if (!id) {
+      //root节点
+      resultNode = this.graph;
+    } else {
+      resultNode = this.nodeMap.get(id);
+    }
+
+    return JSON.stringify(
+      resultNode,
+      compose([toInfinity, limitDepth], {
+        depth: resultNode.path.length + depth - 1,
+      }),
+    );
   }
 }
 
