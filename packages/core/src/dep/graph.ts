@@ -4,7 +4,7 @@ import {
   toInfinity,
   limitDepth,
 } from "@dep-spy/utils";
-import { Config, MODULE_INFO_TASK, Node } from "../type";
+import { Config, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
 const inBrowser = typeof window !== "undefined";
@@ -20,6 +20,7 @@ export class Graph {
     private readonly info: string,
     private readonly config: Config = {},
   ) {}
+  //生成单个node节点（调用insertChildren去插入子节点）
   private async generateNode(
     moduleInfo: MODULE_INFO_TYPE,
     paths: string[],
@@ -70,24 +71,34 @@ export class Graph {
     this.addCodependency(curNode, id);
     return curNode;
   }
+  //相同依赖复制新的节点
   private cloneCache(cache: MODULE_INFO_TYPE, path: string[]) {
     return {
       ...cache,
       path,
     };
   }
-  async getGraph() {
+  //获取root
+  public async getGraph() {
     await this.ensureGraph();
     return this.graph;
   }
-  async getCodependency() {
+  //获取相同依赖
+  public async getCodependency() {
     await this.ensureGraph();
     return Object.fromEntries(this.codependency);
   }
-  async getCircularDependency() {
+  //获取循环依赖
+  public async getCircularDependency() {
     await this.ensureGraph();
     return Array.from(this.circularDependency);
   }
+  //获取coMap
+  public async getCoMap() {
+    await this.ensureGraph();
+    return Object.fromEntries(this.coMap);
+  }
+  //输出到文件
   async outputToFile() {
     await this.ensureGraph();
     const { graph, circularDependency, codependency } = this.config.output;
@@ -101,14 +112,12 @@ export class Graph {
       this.writeJson(await this.getCodependency(), codependency);
     }
   }
+  //确保树已经被生成
   public async ensureGraph() {
     if (!this.graph) {
-      const [rootModule, error] = await pool.addTask<
-        MODULE_INFO_TASK,
-        MODULE_INFO_TYPE
-      >({
+      const [rootModule, error] = await pool.addTask<MODULE_INFO_TYPE>({
         type: "moduleInfo",
-        params: [this.info, inBrowser ? null : process.cwd()],
+        params: { info: this.info, baseDir: inBrowser ? null : process.cwd() },
       }); //解析首个节点
       if (error) {
         throw error;
@@ -116,6 +125,7 @@ export class Graph {
       this.graph = await this.generateNode(rootModule, []);
     }
   }
+  //序列化
   private writeJson(
     result: Node[] | Node | Record<string, Node[]>,
     outDir: string,
@@ -128,6 +138,7 @@ export class Graph {
       },
     );
   }
+  //根据新的深度来更新树
   public async update(newDepth: number): Promise<void> {
     //重置全局变量
     if (this.config.depth != newDepth) {
@@ -145,6 +156,7 @@ export class Graph {
       await this.dfs(this.graph, this.increaseHandler.bind(this));
     }
   }
+  //遍历
   private async dfs(node: Node, handler: (node: Node) => Promise<void> | true) {
     const { name, version } = node;
     const id = name + version;
@@ -174,6 +186,7 @@ export class Graph {
     //收集相同依赖
     this.addCodependency(node, id);
   }
+  //加深树的深度
   private increaseHandler(node: Node): Promise<void> | true {
     const dependenceEntries = Object.entries(node.dependencies);
     if (dependenceEntries.length === 0) {
@@ -185,6 +198,7 @@ export class Graph {
     }
     return true;
   }
+  //减小树的深度，做截断
   private decreaseHandler(node: Node) {
     if (this.config.depth && this.config.depth == node.path.length) {
       //截断
@@ -193,6 +207,7 @@ export class Graph {
     }
     return true;
   }
+  //插入节点的子节点（调用generateNode 去生成子节点）
   private async insertChildren(
     curNode: Node,
     dependenciesList: Record<string, string>,
@@ -233,10 +248,10 @@ export class Graph {
             ? 0
             : cloneChild.childrenNumber) + 1; //child 子依赖数量 + 自身
       } else {
-        const moduleInfoPromise = pool.addTask<
-          MODULE_INFO_TASK,
-          MODULE_INFO_TYPE
-        >({ type: "moduleInfo", params: [childName, resolvePath] });
+        const moduleInfoPromise = pool.addTask<MODULE_INFO_TYPE>({
+          type: "moduleInfo",
+          params: { info: childName, baseDir: resolvePath },
+        });
         this.cache.set(id, moduleInfoPromise);
         const generatePromise = moduleInfoPromise.then(
           async ([childModuleInfo, error]) => {
@@ -269,6 +284,7 @@ export class Graph {
     }
     await Promise.all(promises); //等待所有子节点创造完毕再归
   }
+  //判断是否为相同依赖，并添加到coMap
   private addCodependency(node: Node, id: string) {
     if (this.coMap.has(id)) {
       //标记相同依赖
@@ -282,6 +298,7 @@ export class Graph {
       this.coMap.set(id, node);
     }
   }
+  //根据id来获取节点的信息，在序列化时根据depth参数做截断处理
   public getNode(id: string, depth: number): string {
     let resultNode: Node;
     if (!id) {
@@ -294,7 +311,7 @@ export class Graph {
     return JSON.stringify(
       resultNode,
       compose([toInfinity, limitDepth], {
-        depth: resultNode.path.length + depth - 1,
+        depth: depth ? resultNode.path.length + depth - 1 : -1, //-1 时永远无法中断，一直达底,
       }),
     );
   }

@@ -6,11 +6,15 @@ import { getPkgByPath, getPkgResolvePath } from "./utils";
 const inBrowser = typeof window !== "undefined";
 
 //给定想要获取模块的info，输出指定模块的详情
-export default async function getModuleInfo(
-  info: string = "",
-  baseDir: string,
-  npm_domain?: string,
-): Promise<MODULE_INFO_TYPE> {
+export default async function getModuleInfo({
+  info,
+  baseDir,
+  npm_domain = "",
+}: {
+  info: string;
+  baseDir: string;
+  npm_domain?: string;
+}): Promise<MODULE_INFO_TYPE> {
   let pak: PACKAGE_TYPE;
   switch (transformInfo(info)) {
     case INFO_TYPES.GITHUB:

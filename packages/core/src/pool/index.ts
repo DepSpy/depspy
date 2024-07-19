@@ -9,8 +9,18 @@ export default new Pool(
   os.cpus ? os.cpus().length : NPM_DOMAINS.length * HOST_MAX_FETCH_NUMBER,
   (index: number) => {
     const url = NPM_DOMAINS[Math.floor(index % NPM_DOMAINS.length)];
-    function getModuleInfoByDomains(info: string, baseDir: string) {
-      return getModuleInfo(info, baseDir, url);
+    function getModuleInfoByDomains({
+      info,
+      baseDir,
+    }: {
+      info: string;
+      baseDir: string;
+    }) {
+      return getModuleInfo({
+        info,
+        baseDir,
+        npm_domain: url,
+      });
     }
     if (inBrowser) {
       return new OnlineWorker(getModuleInfoByDomains);
