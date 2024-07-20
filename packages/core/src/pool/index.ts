@@ -28,3 +28,6 @@ export default new Pool(
     return new OffLineWorker(path.join(__dirname, "./pool/worker.js"));
   },
 );
+
+export { Pool, OffLineWorker, OnlineWorker };
+export { TASK_TYPE } from "./worker";

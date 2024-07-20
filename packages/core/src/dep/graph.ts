@@ -7,8 +7,7 @@ import {
 import { Config, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
-import pool from "../pool";
-import { TASK_TYPE } from "../pool/worker";
+import pool, { TASK_TYPE } from "../pool";
 
 const inBrowser = typeof window !== "undefined";
 
