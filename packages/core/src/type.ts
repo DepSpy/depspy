@@ -34,18 +34,3 @@ export interface Config {
     codependency?: string;
   };
 }
-export type Event = {
-  [K in keyof typeof EventBus]: {
-    Task: {
-      type: K;
-      params: Parameters<(typeof EventBus)[K]>[0];
-    };
-    Result: Awaited<ReturnType<(typeof EventBus)[K]>>;
-  };
-};
-
-export type Resolve<T extends keyof Event> = (result: {
-  data: Event[T]["Result"];
-  worker: Worker;
-  error: Error;
-}) => unknown;

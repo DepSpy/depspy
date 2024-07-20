@@ -1,13 +1,18 @@
 import threads from "worker_threads";
 import EventEmitter from "events";
-import { Resolve, Event } from "../type";
-
-type EventItem = Event[keyof Event];
+import {
+  Resolve,
+  Event,
+  COMMON_TASK,
+  TASK,
+  RESULT_TYPE,
+  COMMON_RESULT_TYPE,
+} from "./worker";
 
 export default class Pool {
   private taskQueue: {
-    task: EventItem["Task"];
-    resolve: Resolve<keyof Event>;
+    task: COMMON_TASK;
+    resolve: Resolve;
   }[] = []; //任务队列
   private freeWorkers: Worker[] = [];
   constructor(maxPoolSize: number, createWorker: (index: number) => Worker) {
@@ -16,9 +21,11 @@ export default class Pool {
       this.freeWorkers.push(createWorker(i));
     }
   }
-  addTask<RESULT_TYPE>(task: EventItem["Task"]): Promise<[RESULT_TYPE, Error]> {
+  addTask<TASK_TYPE extends keyof Event>(
+    task: TASK<TASK_TYPE>,
+  ): Promise<[RESULT_TYPE<TASK_TYPE>, Error]> {
     return new Promise((resolve) => {
-      const typeTask = task as EventItem["Task"];
+      const typeTask = task as COMMON_TASK;
       //尝试加入空闲线程中执行
       if (this.freeWorkers.length > 0) {
         const worker = this.freeWorkers.shift();
@@ -33,7 +40,7 @@ export default class Pool {
         worker,
         error,
       }: {
-        data: RESULT_TYPE;
+        data: RESULT_TYPE<TASK_TYPE>;
         worker: Worker;
         error: Error;
       }) => {
@@ -55,18 +62,18 @@ export default class Pool {
   //TODO 对线程阻塞逻辑做优化处理
 }
 export class Worker {
-  private resolve: Resolve<keyof Event>;
+  private resolve: Resolve;
   run({
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     task,
     resolve,
   }: {
-    task: EventItem["Task"];
-    resolve: Resolve<keyof Event>;
+    task: COMMON_TASK;
+    resolve: Resolve;
   }) {
     this.resolve = resolve;
   }
-  message(data: EventItem["Result"]) {
+  message(data: COMMON_RESULT_TYPE) {
     //任务已完成
     this.resolve({ data, worker: this, error: null });
     //清空当前任务
@@ -90,13 +97,7 @@ export class OffLineWorker extends Worker {
       super.error(error);
     });
   }
-  public run({
-    task,
-    resolve,
-  }: {
-    task: EventItem["Task"];
-    resolve: Resolve<keyof Event>;
-  }) {
+  public run({ task, resolve }: { task: COMMON_TASK; resolve: Resolve }) {
     this.worker.postMessage(task);
     super.run({ task, resolve });
   }
@@ -105,18 +106,12 @@ export class OffLineWorker extends Worker {
 export class OnlineWorker extends Worker {
   constructor(
     private readonly fn: (
-      params: EventItem["Task"]["params"],
-    ) => Promise<EventItem["Result"]>,
+      params: COMMON_TASK["params"],
+    ) => Promise<COMMON_RESULT_TYPE>,
   ) {
     super();
   }
-  public run({
-    task,
-    resolve,
-  }: {
-    task: EventItem["Task"];
-    resolve: Resolve<keyof Event>;
-  }) {
+  public run({ task, resolve }: { task: COMMON_TASK; resolve: Resolve }) {
     this.fn(task.params)
       .then((data) => {
         this.message(data);

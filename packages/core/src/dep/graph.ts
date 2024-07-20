@@ -1,14 +1,17 @@
 import {
-  MODULE_INFO_TYPE,
   compose,
-  toInfinity,
   limitDepth,
+  MODULE_INFO_TYPE,
+  toInfinity,
 } from "@dep-spy/utils";
 import { Config, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
-const inBrowser = typeof window !== "undefined";
 import pool from "../pool";
+import { TASK_TYPE } from "../pool/worker";
+
+const inBrowser = typeof window !== "undefined";
+
 //TODO 做本地缓存（LRU 限制缓存数量，--clear 清空缓存）
 export class Graph {
   private graph: Node; //整个图
@@ -115,8 +118,8 @@ export class Graph {
   //确保树已经被生成
   public async ensureGraph() {
     if (!this.graph) {
-      const [rootModule, error] = await pool.addTask<MODULE_INFO_TYPE>({
-        type: "moduleInfo",
+      const [rootModule, error] = await pool.addTask<TASK_TYPE.MODULE_INFO>({
+        type: TASK_TYPE.MODULE_INFO,
         params: { info: this.info, baseDir: inBrowser ? null : process.cwd() },
       }); //解析首个节点
       if (error) {
@@ -248,8 +251,8 @@ export class Graph {
             ? 0
             : cloneChild.childrenNumber) + 1; //child 子依赖数量 + 自身
       } else {
-        const moduleInfoPromise = pool.addTask<MODULE_INFO_TYPE>({
-          type: "moduleInfo",
+        const moduleInfoPromise = pool.addTask<TASK_TYPE.MODULE_INFO>({
+          type: TASK_TYPE.MODULE_INFO,
           params: { info: childName, baseDir: resolvePath },
         });
         this.cache.set(id, moduleInfoPromise);
