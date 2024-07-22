@@ -1,4 +1,4 @@
-import Pool, { OffLineWorker, OnlineWorker } from "./pool";
+import Pool, { OffLineWorker, OnlineWorker, TASK_TYPE } from "./pool";
 import { getModuleInfo } from "@dep-spy/utils";
 import os from "os";
 import { HOST_MAX_FETCH_NUMBER, NPM_DOMAINS } from "../constant";
@@ -29,5 +29,4 @@ export default new Pool(
   },
 );
 
-export { Pool, OffLineWorker, OnlineWorker };
-export { TASK_TYPE } from "./worker";
+export { Pool, OffLineWorker, OnlineWorker, TASK_TYPE };

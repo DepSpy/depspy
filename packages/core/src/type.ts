@@ -1,6 +1,3 @@
-import { EventBus } from "./pool/worker";
-import { Worker } from "./pool/pool";
-
 export interface Node {
   name: string;
   version: string;

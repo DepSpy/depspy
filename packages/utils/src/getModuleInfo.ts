@@ -88,7 +88,7 @@ function transformPackage(pkg: PACKAGE_TYPE): MODULE_INFO_TYPE {
   MODULE_INFO.forEach((key) => {
     // 对于本地命令行在线模式，当前项目本身没有 dist 属性
     if (online && pkg.dist && key === "size") {
-      result[key] = pkg.dist[key];
+      result[key] = pkg.dist[key] || pkg.dist["unpackedSize"];
     } else if (online && pkg[key] && key === "dependencies") {
       // 给 dependencies 里的包的键值设置为 name/version$
       const dependencies = pkg[key];

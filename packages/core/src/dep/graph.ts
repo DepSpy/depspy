@@ -114,7 +114,7 @@ export class Graph {
       this.writeJson(await this.getCodependency(), codependency);
     }
   }
-  //确保树已经被生成
+  //确保树已经被生成(开启root的构造)
   public async ensureGraph() {
     if (!this.graph) {
       const [rootModule, error] = await pool.addTask<TASK_TYPE.MODULE_INFO>({
@@ -124,6 +124,7 @@ export class Graph {
       if (error) {
         throw error;
       }
+      rootModule.size = 0;
       this.graph = await this.generateNode(rootModule, []);
     }
   }
@@ -140,7 +141,7 @@ export class Graph {
       },
     );
   }
-  //根据新的深度来更新树
+  //根据新的深度来更新树（调用dfs）
   public async update(newDepth: number): Promise<void> {
     //重置全局变量
     if (this.config.depth != newDepth) {
@@ -188,7 +189,7 @@ export class Graph {
     //收集相同依赖
     this.addCodependency(node, id);
   }
-  //加深树的深度
+  //加深树的深度处理函数
   private increaseHandler(node: Node): Promise<void> | true {
     const dependenceEntries = Object.entries(node.dependencies);
     if (dependenceEntries.length === 0) {
@@ -200,7 +201,7 @@ export class Graph {
     }
     return true;
   }
-  //减小树的深度，做截断
+  //减小树的深度处理函数，做截断
   private decreaseHandler(node: Node) {
     if (this.config.depth && this.config.depth == node.path.length) {
       //截断
