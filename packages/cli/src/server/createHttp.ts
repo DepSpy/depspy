@@ -9,7 +9,7 @@ export function createHttp(app: Express, graph: Graph) {
     res.send(graph.getNode(id, depth));
   });
   //搜索
-  app.get<{ key: string }, Node[]>("/search", async (req, res) => {
+  app.get<{ key: string }, Node[]>("/searchNode", async (req, res) => {
     const key = req.query.key as string;
     const results: Node[] = [];
     const codependency = await graph.getCodependency();

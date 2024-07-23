@@ -15,7 +15,7 @@ const inBrowser = typeof window !== "undefined";
 export class Graph {
   private graph: Node; //整个图
   private cache: Map<string, Promise<[MODULE_INFO_TYPE, Error]>> = new Map(); //用来缓存计算过的节点(用promise的原因是避免重复的读文件操作占用线程)
-  private coMap = new Map<string, Node>(); //记录所有节点的id,用于判断相同依赖(coId: 是实际下载的包的name + version)
+  private coMap = new Map<string, Node>(); //记录所有节点的id,用于判断相同依赖(key 是声明的name和version)
   private codependency: Map<string, Node[]> = new Map(); //记录相同的节点
   private circularDependency: Set<Node> = new Set(); //记录存在循环引用的节点
   constructor(
@@ -66,11 +66,8 @@ export class Graph {
       description,
       size,
     });
-    const id = name + version;
     //将子节点插入到当前节点上
     await this.insertChildren(curNode, dependenciesList);
-    //收集相同依赖
-    this.addCodependency(curNode, id);
     return curNode;
   }
   //相同依赖复制新的节点
@@ -161,18 +158,20 @@ export class Graph {
   }
   //遍历
   private async dfs(node: Node, handler: (node: Node) => Promise<void> | true) {
-    const { name, version } = node;
-    const id = name + version;
     //纠正参数
     node.childrenNumber = node.childrenNumber === Infinity ? Infinity : 0;
     node.size = node.selfSize;
     const promises: Promise<void>[] = [];
     const handlerPromise = handler(node);
     if (handlerPromise === true) {
-      const dependenceEntries = Object.entries(node.dependencies);
-      for (const [, child] of dependenceEntries) {
+      const dependenceEntries = Object.entries(node.dependenciesList);
+      for (const [childName, childVersion] of dependenceEntries) {
+        const child = node[childName];
+        const id = childName + childVersion;
         //递归子节点
         const dfsPromise = this.dfs(child, handler).then(() => {
+          //收集相同依赖
+          this.addCodependency(child, id);
           //修成所有子节点数总和
           node.childrenNumber +=
             (child.childrenNumber === Infinity ? 0 : child.childrenNumber) + 1; //child 子依赖数量 + 自身
@@ -186,8 +185,6 @@ export class Graph {
     }
     //等到promises结束才能归
     await Promise.all(promises);
-    //收集相同依赖
-    this.addCodependency(node, id);
   }
   //加深树的深度处理函数
   private increaseHandler(node: Node): Promise<void> | true {
@@ -255,6 +252,7 @@ export class Graph {
           type: TASK_TYPE.MODULE_INFO,
           params: { info: childName, baseDir: resolvePath },
         });
+        //存入缓存
         this.cache.set(id, moduleInfoPromise);
         const generatePromise = moduleInfoPromise.then(
           async ([childModuleInfo, error]) => {
@@ -271,6 +269,8 @@ export class Graph {
             }
             const child = await this.generateNode(childModuleInfo, paths);
             /*⬅️⬅️⬅️  后序处理逻辑  ➡️➡️➡️*/
+            //添加相同依赖
+            this.addCodependency(child, id);
             child.declarationVersion = childVersionPure || childVersion;
             //将子节点加入父节点（注意是children是引入类型，所以可以直接加）
             curNode.dependencies[childName] = child;
