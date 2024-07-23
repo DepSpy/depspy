@@ -55,9 +55,13 @@ export default class Pool {
       this.freeWorkers.push(createWorker(i));
     }
   }
-  addTask<TASK_TYPE extends keyof Event>(
-    task: TASK<TASK_TYPE>,
-  ): Promise<[RESULT_TYPE<TASK_TYPE>, Error]> {
+  addTask(
+    task: Event[TASK_TYPE.MODULE_INFO]["Task"],
+  ): Promise<[Event[TASK_TYPE.MODULE_INFO]["Result"], Error]>;
+  addTask(
+    task: Event[TASK_TYPE.MESSAGE]["Task"],
+  ): Promise<[Event[TASK_TYPE.MESSAGE]["Result"], Error]>;
+  addTask(task: COMMON_TASK): Promise<[COMMON_RESULT_TYPE, Error]> {
     return new Promise((resolve) => {
       const typeTask = task as COMMON_TASK;
       //尝试加入空闲线程中执行
@@ -69,15 +73,7 @@ export default class Pool {
         this.taskQueue.push({ task: typeTask, resolve });
       }
     }).then(
-      ({
-        data,
-        worker,
-        error,
-      }: {
-        data: RESULT_TYPE<TASK_TYPE>;
-        worker: Worker;
-        error: Error;
-      }) => {
+      ({ data, worker, error }: { data; worker: Worker; error: Error }) => {
         // 执行结束
         this.runNext(worker);
         return [data, error];

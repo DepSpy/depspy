@@ -114,7 +114,7 @@ export class Graph {
   //确保树已经被生成(开启root的构造)
   public async ensureGraph() {
     if (!this.graph) {
-      const [rootModule, error] = await pool.addTask<TASK_TYPE.MODULE_INFO>({
+      const [rootModule, error] = await pool.addTask({
         type: TASK_TYPE.MODULE_INFO,
         params: { info: this.info, baseDir: inBrowser ? null : process.cwd() },
       }); //解析首个节点
@@ -248,7 +248,7 @@ export class Graph {
             ? 0
             : cloneChild.childrenNumber) + 1; //child 子依赖数量 + 自身
       } else {
-        const moduleInfoPromise = pool.addTask<TASK_TYPE.MODULE_INFO>({
+        const moduleInfoPromise = pool.addTask({
           type: TASK_TYPE.MODULE_INFO,
           params: { info: childName, baseDir: resolvePath },
         });
