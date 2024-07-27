@@ -4,12 +4,14 @@ import path from "path";
 import express from "express";
 import { blueBright, green } from "chalk";
 import { createWs } from "./createWs";
+import { createHttp } from "./createHttp";
 
 const root = path.join(staticPath, "vite");
 
 export function createServer(graph: Graph, option: Config) {
   createWs(graph, option);
   const app = express();
+  createHttp(app, graph);
   app.use(express.static(root));
   app.get("*", (_, res) => {
     res.sendFile(path.join(root, "index.html"));
