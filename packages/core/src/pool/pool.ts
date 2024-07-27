@@ -38,6 +38,8 @@ export const EventBus = {
   }) => {
     return await getModuleInfo(options);
   },
+
+  //测试示例
   [TASK_TYPE.MESSAGE]: async (options: { name: number }) => {
     console.log(options.name);
   },
@@ -55,13 +57,9 @@ export default class Pool {
       this.freeWorkers.push(createWorker(i));
     }
   }
-  addTask(
-    task: Event[TASK_TYPE.MODULE_INFO]["Task"],
-  ): Promise<[Event[TASK_TYPE.MODULE_INFO]["Result"], Error]>;
-  addTask(
-    task: Event[TASK_TYPE.MESSAGE]["Task"],
-  ): Promise<[Event[TASK_TYPE.MESSAGE]["Result"], Error]>;
-  addTask(task: COMMON_TASK): Promise<[COMMON_RESULT_TYPE, Error]> {
+  addTask<T extends keyof Event>(
+    task: Event[T]["Task"],
+  ): Promise<[Event[T]["Result"], Error]> {
     return new Promise((resolve) => {
       const typeTask = task as COMMON_TASK;
       //尝试加入空闲线程中执行
@@ -73,7 +71,15 @@ export default class Pool {
         this.taskQueue.push({ task: typeTask, resolve });
       }
     }).then(
-      ({ data, worker, error }: { data; worker: Worker; error: Error }) => {
+      ({
+        data,
+        worker,
+        error,
+      }: {
+        data: Event[T]["Result"];
+        worker: Worker;
+        error: Error;
+      }) => {
         // 执行结束
         this.runNext(worker);
         return [data, error];
