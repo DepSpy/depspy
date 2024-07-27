@@ -2,22 +2,17 @@ import threads from "worker_threads";
 import EventEmitter from "events";
 import { getModuleInfo } from "@dep-spy/utils";
 
-//type
-export type Event = {
-  [K in keyof typeof EventBus]: {
-    Task: {
-      type: K;
-      params: Parameters<(typeof EventBus)[K]>[0];
-    };
-    Result: Awaited<ReturnType<(typeof EventBus)[K]>>;
-  };
-};
+export type EventBus = typeof EventBus;
+export type EventBusKey = keyof typeof EventBus;
+export type Params<K extends EventBusKey> = Parameters<EventBus[K]>[0]; // 取元组的第一个
+export type Return<K extends EventBusKey> = Awaited<ReturnType<EventBus[K]>>;
 
-export type TASK<TASK_TYPE extends keyof Event> = Event[TASK_TYPE]["Task"];
-export type RESULT_TYPE<TASK_TYPE extends keyof Event> =
-  Event[TASK_TYPE]["Result"];
-export type COMMON_TASK = Event[keyof Event]["Task"];
-export type COMMON_RESULT_TYPE = Event[keyof Event]["Result"];
+//type
+export type COMMON_TASK = {
+  type: EventBusKey;
+  params: Params<EventBusKey>;
+};
+export type COMMON_RESULT_TYPE = Return<EventBusKey>;
 
 export type Resolve = (result: {
   data: COMMON_RESULT_TYPE;
@@ -57,9 +52,10 @@ export default class Pool {
       this.freeWorkers.push(createWorker(i));
     }
   }
-  addTask<T extends keyof Event>(
-    task: Event[T]["Task"],
-  ): Promise<[Event[T]["Result"], Error]> {
+  addTask<T extends EventBusKey>(task: {
+    type: T;
+    params: Params<T>;
+  }): Promise<[Return<T>, Error]> {
     return new Promise((resolve) => {
       const typeTask = task as COMMON_TASK;
       //尝试加入空闲线程中执行
@@ -76,7 +72,7 @@ export default class Pool {
         worker,
         error,
       }: {
-        data: Event[T]["Result"];
+        data: Return<T>;
         worker: Worker;
         error: Error;
       }) => {
