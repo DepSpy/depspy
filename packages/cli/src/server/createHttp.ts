@@ -39,4 +39,10 @@ export function createHttp(app: Express, graph: Graph) {
   app.get("/codependency", (res, req) => {
     req.send(graph.getCodependency());
   });
+  //更新depth
+  app.post("/updateDepth", async (req, res) => {
+    const newDepth = req.body.depth as number;
+    await graph.update(newDepth);
+    res.send("ok");
+  });
 }
