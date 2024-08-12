@@ -350,6 +350,12 @@ function findDepBypath(paths, data) {
   return dep;
 }
 //为第二层以下的节点添加originDeps字段
+/**
+ * 
+ * @param {*} data 
+ * @param {Boolean} collapse 是否折叠
+ * @returns 
+ */
 function filterData(data, collapse) {
   let depth = 1;
   function traverse(data) {
@@ -364,6 +370,7 @@ function filterData(data, collapse) {
     for (let i = 0; i < entries.length; i++) {
       const [name, dependency] = entries[i];
       const child = traverse(dependency);
+    // collapse命中展开所有
       if (depth <= 2 || !collapse) newData.dependencies[name] = child;
       newData.originDeps[name] = child;
     }
