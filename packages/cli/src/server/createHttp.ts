@@ -24,6 +24,7 @@ export function createHttp(app: Express, graph: Graph) {
         circularDependency,
         codependency,
       });
+      return;
     }
     res.send(graph.getNode(id, depth));
   });
@@ -51,8 +52,8 @@ export function createHttp(app: Express, graph: Graph) {
     res.send(results);
   });
   //更新depth
-  app.post("/updateDepth", async (req, res) => {
-    const newDepth = req.body.depth as number;
+  app.get<{ depth: number }>("/updateDepth", async (req, res) => {
+    const newDepth = req.query.depth as unknown as number;
     await graph.update(newDepth);
     res.send("ok");
   });
