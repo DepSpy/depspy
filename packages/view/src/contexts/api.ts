@@ -15,16 +15,19 @@ export const searchNode = async (query: {
     return res.json()
 }
 
-export const circularDependency = async () => {
-    const res = await fetch(`${baseUrl}/circularDependency`)
+export const updateDepth = async (query: {
+    depth: number
+}) => {
+    const res = await fetch(`${baseUrl}/updateDepth`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(query),
+    })
     return res.json()
-
 }
 
-export const codependency = async () => {
-    const res = await fetch(`${baseUrl}/codependency`)
-    return res.json()
-}
 
 function stringifyObjToParams(obj: any) {
     return Object.entries(obj)

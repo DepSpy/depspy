@@ -1,12 +1,13 @@
 import { StaticNode } from "@dep-spy/core";
 import { useStaticStore, useStore } from "./index";
 import { searchNodePath } from "./searchNode";
+import { updateDepth } from "./api";
 export const EventType = {
   init: "init",
   depth: "depth",
 };
 export const EventBus = {
-  init: ({ root, circularDependency, codependency, depth }, ws?: WebSocket) => {
+  init: ({ root, circularDependency, codependency, depth }) => {
     useStore.setState({ rootLoading: false });
     //连接初始化回调
     useStore.setState({
@@ -19,8 +20,13 @@ export const EventBus = {
     });
     useStore.subscribe(
       (state) => state.depth,
-      (newDepth) => {
-        ws?.send(JSON.stringify({ type: "depth", newDepth }));
+      async (newDepth) => {
+        console.log(newDepth, 'newDepth');
+        
+        await updateDepth({
+          depth: newDepth
+        });
+
       },
     );
   },

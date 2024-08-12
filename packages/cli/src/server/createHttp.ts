@@ -3,10 +3,29 @@ import { Graph, Node } from "@dep-spy/core";
 
 export function createHttp(app: Express, graph: Graph) {
   //获取节点信息
-  app.get<{ id?: string; depth?: number }, string>("/getNode", (req, res) => {
+  app.get<
+    { id?: string; depth?: number },
+    | string
+    | {
+        root: Node;
+        circularDependency: Node[];
+        codependency: Record<string, Node[]>;
+      }
+  >("/getNode", async (req, res) => {
     const id = req.query.id as string;
     const depth = Number(req.query.depth);
-    res.send(graph.getNode(id, depth));
+    // root节点
+    if (!id) {
+      const circularDependency = await graph.getCircularDependency();
+      const codependency = await graph.getCodependency();
+      const root = JSON.parse(graph.getNode(id, depth));
+      return res.send({
+        root,
+        circularDependency,
+        codependency,
+      });
+    }
+    return res.send(graph.getNode(id, depth));
   });
   //搜索
   app.get<{ key: string }, Node[]>("/searchNode", async (req, res) => {
@@ -29,14 +48,18 @@ export function createHttp(app: Express, graph: Graph) {
       }
     }
 
-    res.send(results);
+    return res.send(results);
   });
-  //获取循环依赖
-  app.get("/circularDependency", (_, res) => {
-    res.send(graph.getCircularDependency());
-  });
-  //获取相同依赖
-  app.get("/codependency", (res, req) => {
-    req.send(graph.getCodependency());
+  //更新depth
+  app.post("/updateDepth", async (req, res) => {
+    let data = "";
+    req.on("data", (chunk) => {
+      data += chunk;
+    });
+    req.on("end", async () => {
+      const newDepth = JSON.parse(req.body).depth as number;
+      await graph.update(newDepth);
+      return res.send("ok");
+    });
   });
 }

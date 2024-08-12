@@ -17,7 +17,12 @@ export function createServer(graph: Graph, option: Config) {
     res.sendFile(path.join(root, "index.html"));
   });
 
-  app.listen(2023, () => {
-    console.log(green("服务器启动成功:"), blueBright("http://localhost:2023"));
+  //携带初始化的depth信息
+  const depth = option.depth ?? 3;
+  const port = 2023;
+  const url = `http://localhost:${2023}/analyze?depth=${depth}`;
+
+  app.listen(port, () => {
+    console.log(green("服务器启动成功:"), blueBright(url));
   });
 }
