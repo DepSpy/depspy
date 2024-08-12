@@ -54,7 +54,7 @@ export function createHttp(app: Express, graph: Graph) {
   //更新depth
   app.get<{ depth: number }>("/updateDepth", async (req, res) => {
     const newDepth = req.query.depth as unknown as number;
-    await graph.update(newDepth);
+    await graph.update(Number(newDepth));
     res.send("ok");
   });
 }
