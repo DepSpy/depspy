@@ -140,6 +140,8 @@ export class Graph {
   }
   //根据新的深度来更新树（调用dfs）
   public async update(newDepth: number): Promise<void> {
+    //确保已经有图
+    await this.ensureGraph();
     //重置全局变量
     if (this.config.depth != newDepth) {
       this.coMap = new Map();
@@ -150,7 +152,7 @@ export class Graph {
       //执行截断逻辑
       await this.dfs(this.graph, this.decreaseHandler.bind(this));
       return;
-    } else {
+    } else if (this.config.depth < newDepth) {
       this.config.depth = newDepth;
       //执行加深递归逻辑
       await this.dfs(this.graph, this.increaseHandler.bind(this));
@@ -166,7 +168,7 @@ export class Graph {
     if (handlerPromise === true) {
       const dependenceEntries = Object.entries(node.dependenciesList);
       for (const [childName, childVersion] of dependenceEntries) {
-        const child = node[childName];
+        const child = node.dependencies[childName];
         const id = childName + childVersion;
         //递归子节点
         const dfsPromise = this.dfs(child, handler).then(() => {

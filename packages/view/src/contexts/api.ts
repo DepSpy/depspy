@@ -18,13 +18,7 @@ export const searchNode = async (query: {
 export const updateDepth = async (query: {
     depth: number
 }) => {
-    const res = await fetch(`${baseUrl}/updateDepth`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(query),
-    })
+    const res = await fetch(`${baseUrl}/updateDepth?${stringifyObjToParams(query)}`)
     return res.json()
 }
 
