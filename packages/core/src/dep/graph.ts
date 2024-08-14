@@ -312,6 +312,10 @@ export class Graph {
     } else {
       resultNode = this.coMap.get(id);
     }
+    // 没查找到结果
+    if (!resultNode) {
+      return null;
+    }
 
     return JSON.stringify(
       resultNode,
