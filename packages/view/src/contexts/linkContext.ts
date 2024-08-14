@@ -16,15 +16,10 @@ export async function linkContext(useStore: StoreApi<Store>) {
   useStaticStore.setState({
     staticRootLoading: true,
   });
-  const {root, circularDependency, codependency} = await getNode({});
-  const data = {
-    root,
-    circularDependency,
-    codependency,
-    depth: 3
-  };
 
-  EventBus["init"](data);
+  EventBus["init"]({
+    depth: 3,
+  });
 }
 
 function parseMes(mes: string) {

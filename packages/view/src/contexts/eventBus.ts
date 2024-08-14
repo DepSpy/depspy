@@ -1,13 +1,17 @@
 import { StaticNode } from "@dep-spy/core";
 import { useStaticStore, useStore } from "./index";
 import { searchNodePath } from "./searchNode";
-import { updateDepth } from "./api";
+import { getNode, updateDepth } from "./api";
 export const EventType = {
   init: "init",
   depth: "depth",
 };
 export const EventBus = {
-  init: ({ root, circularDependency, codependency, depth }) => {
+  init: async ({ depth }) => {
+    EventBus.update({  depth: 3 });
+    const { root, circularDependency, codependency } = await getNode({
+      depth: 3,
+    });
     useStore.setState({ rootLoading: false });
     //连接初始化回调
     useStore.setState({
@@ -20,15 +24,28 @@ export const EventBus = {
     });
     useStore.subscribe(
       (state) => state.depth,
-      async (newDepth) => {
-        console.log(newDepth, 'newDepth');
-        
-        await updateDepth({
-          depth: newDepth
-        });
-
+      (newDepth) => {
+        EventBus.update({  depth: newDepth });
       },
     );
+    useStore.subscribe((state) => state.selectedNode, async (newNode) => {
+      console.log(newNode, '11');
+      const res = await getNode({
+        id: newNode.name + newNode.declarationVersion,
+        depth: newNode.path.length + 2,
+      })
+      console.log(res);
+      
+    })
+  },
+  update: async ({ depth, id }: {depth: number, id?: string}) => {
+    try {
+      await updateDepth({
+        depth: depth,
+      });
+    } catch (error) {
+      console.error(`updateDepth ERROR`, error);
+    }
   },
   initStatic: (staticRoot: StaticNode) => {
     useStaticStore.setState({ staticRoot, staticRootLoading: false });

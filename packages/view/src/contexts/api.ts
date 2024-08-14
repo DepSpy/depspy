@@ -19,7 +19,7 @@ export const updateDepth = async (query: {
     depth: number
 }) => {
     const res = await fetch(`${baseUrl}/updateDepth?${stringifyObjToParams(query)}`)
-    return res.json()
+    return res
 }
 
 
