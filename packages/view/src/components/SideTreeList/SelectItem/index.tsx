@@ -51,7 +51,7 @@ export default function SelectItem({
           handleNodeClick(node, curExpandedHandleSet, curNodeParents)
         }
       >
-        {Object.keys(node.dependencies).length !== 0 ? (
+        { node.dependencies && Object.keys(node.dependencies).length !== 0 ? (
           <div
             className="treelist-selected-arc border-border"
             style={{
@@ -77,7 +77,7 @@ export default function SelectItem({
           {node.name}@{node.declarationVersion || node.version}
         </div>
       </div>
-      {Object.keys(node.dependencies).length > 0 ? (
+      {node.dependencies && Object.keys(node.dependencies).length > 0 ? (
         <div
           style={{
             marginLeft: `1rem`,
