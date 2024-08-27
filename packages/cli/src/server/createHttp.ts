@@ -26,7 +26,7 @@ function errorHandler(res: Response, data: unknown) {
 export function createHttp(app: Express, graph: Graph) {
   //获取节点信息
   app.get<
-    { id?: string; depth?: number },
+    { id?: string; depth?: number; path: string },
     RES<{
       root: Node;
       circularDependency?: Node[];
@@ -35,6 +35,7 @@ export function createHttp(app: Express, graph: Graph) {
   >("/getNode", async (req, res) => {
     const id = req.query.id as string;
     const depth = Number(req.query.depth);
+    const path = JSON.parse(req.query.path as string) as string[];
     // root节点
     if (!id) {
       const circularDependency = await graph.getCircularDependency();
@@ -47,7 +48,7 @@ export function createHttp(app: Express, graph: Graph) {
       });
       return;
     }
-    const node = graph.getNode(id, depth);
+    const node = JSON.parse(graph.getNode(id, depth, path)) as Node;
 
     //没有该节点
     if (!node) {
@@ -55,7 +56,7 @@ export function createHttp(app: Express, graph: Graph) {
       return;
     }
 
-    successHandler(res, JSON.parse(node));
+    successHandler(res, node);
   });
   //搜索
   app.get<{ key: string }, RES<Node[]>>("/searchNode", async (req, res) => {

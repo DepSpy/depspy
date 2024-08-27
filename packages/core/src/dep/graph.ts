@@ -293,13 +293,24 @@ export class Graph {
     }
   }
   //根据id来获取节点的信息，在序列化时根据depth参数做截断处理
-  public getNode(id: string, depth: number): string {
+  public getNode(id: string, depth: number, path?: string[]): string {
     let resultNode: Node;
     if (!id) {
       //root节点
       resultNode = this.graph;
     } else {
       resultNode = this.coMap.get(id);
+
+      if (this.isCorrectNode(path, resultNode)) {
+        const nodes = this.codependency.get(id);
+        for (let i = 0; i < nodes.length; i++) {
+          const node = nodes[i];
+          if (this.isCorrectNode(path, node)) {
+            resultNode = node;
+            break;
+          }
+        }
+      }
     }
     // 没查找到结果
     if (!resultNode) {
@@ -312,6 +323,16 @@ export class Graph {
         depth: depth ? resultNode.path.length + depth - 1 : -1, //-1 时永远无法中断，一直达底,
       }),
     );
+  }
+
+  //根据path来区分相同依赖
+  private isCorrectNode(path: string[], node: Node) {
+    if (path.length !== node.path.length) {
+      return false;
+    }
+    return node.path.every((pathName, index) => {
+      return pathName === path[index];
+    });
   }
   //处理childVersion
   //添加实际声明的依赖
