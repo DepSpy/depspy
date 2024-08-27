@@ -16,9 +16,9 @@ export async function linkContext(useStore: StoreApi<Store>) {
   useStaticStore.setState({
     staticRootLoading: true,
   });
-
+  // TODO: 从url获取depth
   EventBus["init"]({
-    depth: 3,
+    depth: 9,
   });
 }
 

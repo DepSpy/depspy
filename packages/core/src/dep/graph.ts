@@ -227,28 +227,23 @@ export class Graph {
         string,
         string,
       ];
-      const id = childName + childVersion;
+      const id = childName + this.handleChildVersion(childVersion);
       //不再读文件，走缓存
+      let generatePromise: Promise<Node>;
       if (this.cache.has(id)) {
         const [moduleInfo, error] = await this.cache.get(id);
         if (error) {
           console.error(error);
           continue;
         }
-        const cloneChild = await this.generateNode(
+        //生成子节点
+        generatePromise = this.generateNode(
           this.cloneCache(moduleInfo, [
             ...paths,
             childName,
           ]) as MODULE_INFO_TYPE,
           paths,
         );
-        curNode.dependencies[childName] = cloneChild;
-        curNode.size += cloneChild.size;
-        //更新父节点子依赖数量
-        curNode.childrenNumber +=
-          (cloneChild.childrenNumber === Infinity
-            ? 0
-            : cloneChild.childrenNumber) + 1; //child 子依赖数量 + 自身
       } else {
         const moduleInfoPromise = pool.addTask({
           type: TASK_TYPE.MODULE_INFO,
@@ -256,36 +251,30 @@ export class Graph {
         });
         //存入缓存
         this.cache.set(id, moduleInfoPromise);
-        const generatePromise = moduleInfoPromise.then(
+        generatePromise = moduleInfoPromise.then(
           async ([childModuleInfo, error]) => {
             if (error) {
               console.error(error);
               return;
             }
-            //添加实际声明的依赖
-            // 如果 childVersion 以 $ 结尾，表明需要特殊处理
-            let childVersionPure: string | undefined;
-            if (childVersion.endsWith("$")) {
-              const index = childVersion.indexOf("$");
-              childVersionPure = childVersion.slice(index + 1, -1);
-            }
-            const child = await this.generateNode(childModuleInfo, paths);
-            /*⬅️⬅️⬅️  后序处理逻辑  ➡️➡️➡️*/
-            //添加相同依赖
-            this.addCodependency(child, id);
-            child.declarationVersion = childVersionPure || childVersion;
-            //将子节点加入父节点（注意是children是引入类型，所以可以直接加）
-            curNode.dependencies[childName] = child;
-            //更新父节点子依赖数量
-            curNode.childrenNumber +=
-              (child.childrenNumber === Infinity ? 0 : child.childrenNumber) +
-              1; //child 子依赖数量 + 自身
-            //累加size
-            curNode.size += child.size;
+            return await this.generateNode(childModuleInfo, paths);
           },
         );
-        promises.push(generatePromise);
       }
+      const childPromise = generatePromise.then(async (child) => {
+        /*⬅️⬅️⬅️  后序处理逻辑  ➡️➡️➡️*/
+        //添加相同依赖
+        this.addCodependency(child, id);
+        child.declarationVersion = this.handleChildVersion(childVersion);
+        //将子节点加入父节点（注意是children是引入类型，所以可以直接加）
+        curNode.dependencies[childName] = child;
+        //更新父节点子依赖数量
+        curNode.childrenNumber +=
+          (child.childrenNumber === Infinity ? 0 : child.childrenNumber) + 1; //child 子依赖数量 + 自身
+        //累加size
+        curNode.size += child.size;
+      });
+      promises.push(childPromise);
     }
     await Promise.all(promises); //等待所有子节点创造完毕再归
   }
@@ -323,6 +312,21 @@ export class Graph {
         depth: depth ? resultNode.path.length + depth - 1 : -1, //-1 时永远无法中断，一直达底,
       }),
     );
+  }
+  //处理childVersion
+  //添加实际声明的依赖
+  // 如果 childVersion 以 $ 结尾，表明需要特殊处理
+  private handleChildVersion(childVersion: string) {
+    if (!childVersion) {
+      return childVersion;
+    }
+    //需要特殊处理
+    if (childVersion.endsWith("$")) {
+      const index = childVersion.indexOf("$");
+      return childVersion.slice(index + 1, -1);
+    }
+
+    return childVersion;
   }
 }
 

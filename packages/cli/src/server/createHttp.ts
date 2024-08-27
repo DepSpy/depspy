@@ -45,6 +45,7 @@ export function createHttp(app: Express, graph: Graph) {
         circularDependency,
         codependency,
       });
+      return;
     }
     const node = graph.getNode(id, depth);
 

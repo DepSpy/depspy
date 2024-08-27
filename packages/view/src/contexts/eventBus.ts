@@ -8,10 +8,14 @@ export const EventType = {
 };
 export const EventBus = {
   init: async ({ depth }) => {
-    EventBus.update({  depth: 3 });
-    const { root, circularDependency, codependency } = await getNode({
+    EventBus.update({  depth: 9 });
+    // 初始请求前3层
+    const res = await getNode({
       depth: 3,
     });
+    console.log(res);
+    
+    const { root, circularDependency, codependency } = res.data;
     useStore.setState({ rootLoading: false });
     //连接初始化回调
     useStore.setState({
@@ -22,20 +26,22 @@ export const EventBus = {
       depth,
       selectedNodeHistory: [root],
     });
+
     useStore.subscribe(
       (state) => state.depth,
       (newDepth) => {
         EventBus.update({  depth: newDepth });
       },
     );
+    // 当用户选择节点时进行更新，预加载下面两层
     useStore.subscribe((state) => state.selectedNode, async (newNode) => {
-      console.log(newNode, '11');
+      console.log(newNode, '11', newNode.path.length + 2);
       const res = await getNode({
         id: newNode.name + newNode.declarationVersion,
         depth: newNode.path.length + 2,
       })
-      console.log(res);
-      
+      newNode.dependencies = res.data.dependencies;
+      useStore.setState({root: {...useStore.getState().root}});
     })
   },
   update: async ({ depth, id }: {depth: number, id?: string}) => {
