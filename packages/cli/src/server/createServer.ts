@@ -9,7 +9,7 @@ import { createHttp } from "./createHttp";
 const root = path.join(staticPath, "vite");
 
 export function createServer(graph: Graph, option: Config) {
-  createWs(graph, option);
+  // createWs(graph, option);
   const app = express();
   createHttp(app, graph);
   app.use(express.static(root));

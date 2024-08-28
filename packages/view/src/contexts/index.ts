@@ -25,7 +25,9 @@ export const useStore = createWithEqualityFn<Store>()(
     selectedCodependency: [],
     selectedCircularDependency: null,
     selectedNodeHistory: [],
-    setRoot: (root: Node) => set({ root }),
+    setRoot: (root: Node & {
+      unfold?: boolean;
+    }) => set({ root }),
     setDepth: (depth: number) => set({ depth }),
     setInfo: (info: string) => set({ info }),
     setSizeTree: (sizeTree: boolean) => set({ sizeTree }),
