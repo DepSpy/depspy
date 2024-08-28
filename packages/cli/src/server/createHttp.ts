@@ -33,30 +33,34 @@ export function createHttp(app: Express, graph: Graph) {
       codependency?: Record<string, Node[]>;
     }>
   >("/getNode", async (req, res) => {
-    const id = req.query.id as string;
-    const depth = Number(req.query.depth);
-    const path = JSON.parse(req.query.path as string) as string[];
-    // root节点
-    if (!id) {
-      const circularDependency = await graph.getCircularDependency();
-      const codependency = await graph.getCodependency();
-      const root = JSON.parse(graph.getNode(id, depth));
-      successHandler(res, {
-        root,
-        circularDependency,
-        codependency,
-      });
-      return;
-    }
-    const node = JSON.parse(graph.getNode(id, depth, path)) as Node;
+    try {
+      const id = req.query.id as string;
+      const depth = Number(req.query.depth);
+      const path = JSON.parse(req.query.path as string) as string[];
+      // root节点
+      if (!id) {
+        const circularDependency = await graph.getCircularDependency();
+        const codependency = await graph.getCodependency();
+        const root = JSON.parse(graph.getNode(id, depth));
+        successHandler(res, {
+          root,
+          circularDependency,
+          codependency,
+        });
+        return;
+      }
+      const node = JSON.parse(graph.getNode(id, depth, path)) as Node;
 
-    //没有该节点
-    if (!node) {
-      errorHandler(res, "there is no such node");
-      return;
-    }
+      //没有该节点
+      if (!node) {
+        errorHandler(res, "there is no such node");
+        return;
+      }
 
-    successHandler(res, node);
+      successHandler(res, node);
+    } catch (error) {
+      errorHandler(res, error.toString());
+    }
   });
   //搜索
   app.get<{ key: string }, RES<Node[]>>("/searchNode", async (req, res) => {
