@@ -301,7 +301,8 @@ export class Graph {
     } else {
       resultNode = this.coMap.get(id);
 
-      if (this.isCorrectNode(path, resultNode)) {
+      if (!this.isCorrectNode(path, resultNode)) {
+        resultNode = null;
         const nodes = this.codependency.get(id);
         for (let i = 0; i < nodes.length; i++) {
           const node = nodes[i];
