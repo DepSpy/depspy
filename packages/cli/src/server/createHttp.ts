@@ -36,7 +36,9 @@ export function createHttp(app: Express, graph: Graph) {
     try {
       const id = req.query.id as string;
       const depth = Number(req.query.depth);
-      const path = JSON.parse(req.query.path as string) as string[];
+      const path = req.query.path
+        ? (JSON.parse(req.query.path as string) as string[])
+        : undefined;
       // root节点
       if (!id) {
         const circularDependency = await graph.getCircularDependency();
@@ -49,6 +51,7 @@ export function createHttp(app: Express, graph: Graph) {
         });
         return;
       }
+
       const node = JSON.parse(graph.getNode(id, depth, path)) as Node;
 
       //没有该节点

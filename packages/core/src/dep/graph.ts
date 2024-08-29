@@ -328,6 +328,9 @@ export class Graph {
 
   //根据path来区分相同依赖
   private isCorrectNode(path: string[], node: Node) {
+    if (!path) {
+      return true;
+    }
     if (path.length !== node.path.length) {
       return false;
     }
