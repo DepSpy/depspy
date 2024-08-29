@@ -171,7 +171,6 @@ function Tree({ width = window.innerWidth }, svg) {
                 unfold,
               },
             } = d;
-            console.log(d);
             
             const declarationId = `${name}@${declarationVersion || version}`;
             const id = `${name}@${version}`;
@@ -216,10 +215,8 @@ function Tree({ width = window.innerWidth }, svg) {
                       onClick={(e) => {
                         // 阻止触发父级
                         e.stopPropagation()
-                        if(d.data.name === '"strip-ansi"') console.log(d, 'ccwa');
                         
                         const currentNode = findDepBypath(d.data.path, root);
-                        console.log(d.data.path, currentNode, 'fff');
 
                         
                         if (collapseFlag == "+") {
@@ -228,6 +225,7 @@ function Tree({ width = window.innerWidth }, svg) {
                           currentNode.unfold = false;
                         }
                         if(selectedNode !== currentNode) {
+                          
                           setSelectNode(currentNode)
                         } else {
                           setRoot({...root})
@@ -379,6 +377,7 @@ function findDepBypath(paths, data) {
  * @returns 
  */
 function filterData(data, collapse) {
+  
   let depth = 1;
   function traverse(data) {
     const newData = {
@@ -386,7 +385,6 @@ function filterData(data, collapse) {
       originDeps: { ...data.dependencies },
       dependencies: { ...data.dependencies },
     };
-    if(newData.name === "ora") console.log(newData, 'asd');
     
     if (depth > 1) newData.dependencies = {};
     const entries = Object.entries(newData.originDeps);
@@ -402,7 +400,6 @@ function filterData(data, collapse) {
     return newData;
   }
   const root = traverse(data);
-  console.log(root, root);
   
   return root;
 }
