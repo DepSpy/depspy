@@ -41,7 +41,7 @@ export const EventBus = {
         if (useStore.getState().collapse) {
           const res = await getNode({
             id: newNode.name + newNode.declarationVersion,
-            depth: newNode.path.length + 2,
+            depth: 3,
             path: newNode.path ? newNode.path : "",
           });
           newNode.dependencies = res.data.dependencies;
