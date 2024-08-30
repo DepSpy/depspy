@@ -10,19 +10,45 @@ export default function Collapse() {
     root: state.root,
     setRoot: state.setRoot,
   }));
-  function dfs() {
-    const deps = []
+  async function dfs(roots: Node[]) {
+    const deps: Node[] = [];
     function dfsKid(node: Node) {
-      if(Object.values(node.dependencies).length === 0) {
-        deps.push(node)
-        return
+      if(!node || !node.dependencies) return;
+      if (Object.values(node.dependencies).length === 0) {
+
+        deps.push(node);
+        return;
       }
-      for(let v of Object.values(node.dependencies)) {
-        dfsKid(v)
+      for (let v of Object.values(node.dependencies)) {
+        dfsKid(v);
       }
     }
-    dfsKid(root)
-    return deps;
+    for (const root of roots) {
+      dfsKid(root);
+    }
+    const d = (await Promise.all(
+      Object.values(deps)
+        .filter((dep) => Object.values((dep as any).dependenciesList).length)
+        .map(async (dep) => {
+          const res = await getNode({
+            id: dep.name + dep.declarationVersion,
+            depth: 3,
+            path: dep.path ? dep.path : "",
+          });
+          dep.dependencies = res.data.dependencies;
+
+          return dep;
+        }),
+    )).filter(dep => dep && dep.dependencies && Object.values(dep.dependencies).length);
+    console.log(d.length, Object.values(deps).length);
+    
+
+    if (d.length) {
+      dfs(d); // 递归
+      return;
+    }
+    setRoot({ ...root });
+    setCollapse(!collapse);
   }
   return (
     <section
@@ -32,23 +58,9 @@ export default function Collapse() {
       content-[attr(id)])`}
     >
       <div
-        onClick={() => {
+        onClick={async () => {
           if (collapse) {
-            const deps = dfs();
-            Promise.all(
-              Object.values(deps).map(async (dep) => {
-                const res = await getNode({
-                  id: dep.name + dep.declarationVersion,
-                  depth: 3,
-                  path: dep.path ? dep.path : "",
-                });
-                dep.dependencies = res.data.dependencies;
-                return dep
-              }),
-            ).then(() => {
-              setRoot({ ...root });
-              setCollapse(!collapse);
-            });
+            await dfs([root]);
           } else {
             setCollapse(!collapse);
           }

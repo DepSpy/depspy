@@ -24,8 +24,8 @@ export default function Depth() {
           min={1}
           defaultValue={depth}
           onBlur={(e) => {
-            setDepth(parseInt(e.target.value));
             setRootLoading(true);
+            setDepth(parseInt(e.target.value));
           }}
           className="p-1 h-2rem w-5rem outline-primary-base text-center text-text bg-bg-container"
           border="solid 2 rd-0.5rem primary-border-hover hover:primary-hover"

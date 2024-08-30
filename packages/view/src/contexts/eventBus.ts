@@ -9,24 +9,8 @@ export const EventType = {
 };
 export const EventBus = {
   init: async ({ depth }) => {
-    EventBus.update({ depth: 9 });
-    // 初始请求前3层
-    const res = await getNode({
-      depth: 3,
-    });
-    console.log(res);
-
-    const { root, circularDependency, codependency } = res.data;
-    useStore.setState({ rootLoading: false });
-    //连接初始化回调
-    useStore.setState({
-      root,
-      circularDependency,
-      codependency,
-      selectedNode: root,
-      depth,
-      selectedNodeHistory: [root],
-    });
+    EventBus.update({ depth: depth });
+    
 
     useStore.subscribe(
       (state) => state.depth,
@@ -38,7 +22,8 @@ export const EventBus = {
     useStore.subscribe(
       (state) => state.selectedNode,
       async (newNode) => {
-        if (useStore.getState().collapse) {
+        const {collapse, root} = useStore.getState()
+        if (collapse && newNode.name + newNode.declarationVersion !== root.name + root.declarationVersion) {
           const res = await getNode({
             id: newNode.name + newNode.declarationVersion,
             depth: 3,
@@ -47,7 +32,7 @@ export const EventBus = {
           newNode.dependencies = res.data.dependencies;
         }
 
-        useStore.setState({ root: { ...useStore.getState().root } });
+        useStore.setState({ root: { ...root } });
       },
     );
   },
@@ -56,9 +41,27 @@ export const EventBus = {
       await updateDepth({
         depth: depth,
       });
+      // 初始请求前3层
+    const res = await getNode({
+      depth: 3,
+    });
+    
+    const { root, circularDependency, codependency } = res.data;
+    useStore.setState({ rootLoading: false });
+    //连接初始化回调
+      useStore.setState({
+        root,
+        circularDependency,
+        codependency,
+        selectedNode: root,
+        depth,
+        selectedNodeHistory: [root],
+        collapse: true,
+      });
     } catch (error) {
       console.error(`updateDepth ERROR`, error);
     }
+    useStore.setState({ rootLoading: false });
   },
   initStatic: (staticRoot: StaticNode) => {
     useStaticStore.setState({ staticRoot, staticRootLoading: false });
