@@ -17,8 +17,9 @@ export async function linkContext(useStore: StoreApi<Store>) {
     staticRootLoading: true,
   });
   // TODO: 从url获取depth
+  const query = new URLSearchParams(window.location.search);
   EventBus["init"]({
-    depth: 9,
+    depth: Number(query.get("depth")) || 3,
   });
 }
 
