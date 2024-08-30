@@ -1,6 +1,7 @@
 import { StaticNode } from "@dep-spy/core";
 import { useStaticStore, useStore } from "./index";
 import { searchNodePath } from "./searchNode";
+import type { Node } from "~/types";
 import { getNode, updateDepth } from "./api";
 export const EventType = {
   init: "init",
@@ -8,13 +9,13 @@ export const EventType = {
 };
 export const EventBus = {
   init: async ({ depth }) => {
-    EventBus.update({  depth: 9 });
+    EventBus.update({ depth: 9 });
     // 初始请求前3层
     const res = await getNode({
       depth: 3,
     });
     console.log(res);
-    
+
     const { root, circularDependency, codependency } = res.data;
     useStore.setState({ rootLoading: false });
     //连接初始化回调
@@ -30,21 +31,27 @@ export const EventBus = {
     useStore.subscribe(
       (state) => state.depth,
       (newDepth) => {
-        EventBus.update({  depth: newDepth });
+        EventBus.update({ depth: newDepth });
       },
     );
     // 当用户选择节点时进行更新，预加载下面两层
-    useStore.subscribe((state) => state.selectedNode, async (newNode) => {
-      console.log(newNode, '11', newNode.path.length + 2);
-      const res = await getNode({
-        id: newNode.name + newNode.declarationVersion,
-        depth: newNode.path.length + 2,
-      })
-      newNode.dependencies = res.data.dependencies;
-      useStore.setState({root: {...useStore.getState().root}});
-    })
+    useStore.subscribe(
+      (state) => state.selectedNode,
+      async (newNode) => {
+        if (useStore.getState().collapse) {
+          const res = await getNode({
+            id: newNode.name + newNode.declarationVersion,
+            depth: 3,
+            path: newNode.path ? newNode.path : "",
+          });
+          newNode.dependencies = res.data.dependencies;
+        }
+
+        useStore.setState({ root: { ...useStore.getState().root } });
+      },
+    );
   },
-  update: async ({ depth, id }: {depth: number, id?: string}) => {
+  update: async ({ depth, id }: { depth: number; id?: string }) => {
     try {
       await updateDepth({
         depth: depth,
