@@ -18,7 +18,7 @@ function successHandler(res: Response, data: unknown) {
 function errorHandler(res: Response, data: unknown) {
   res.send({
     code: 0,
-    message: "success",
+    message: "fail",
     data,
   });
 }
