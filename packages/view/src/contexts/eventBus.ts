@@ -1,7 +1,6 @@
 import { StaticNode } from "@dep-spy/core";
 import { useStaticStore, useStore } from "./index";
 import { searchNodePath } from "./searchNode";
-import type { Node } from "~/types";
 import { getNode, updateDepth } from "./api";
 export const EventType = {
   init: "init",
@@ -10,11 +9,10 @@ export const EventType = {
 export const EventBus = {
   init: async ({ depth }) => {
     EventBus.update({ depth: depth });
-    
-
     useStore.subscribe(
       (state) => state.depth,
       (newDepth) => {
+        
         EventBus.update({ depth: newDepth });
       },
     );
