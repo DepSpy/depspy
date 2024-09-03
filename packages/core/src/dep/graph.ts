@@ -302,15 +302,7 @@ export class Graph {
       resultNode = this.coMap.get(id);
 
       if (!this.isCorrectNode(path, resultNode)) {
-        resultNode = null;
-        const nodes = this.codependency.get(id);
-        for (let i = 0; i < nodes.length; i++) {
-          const node = nodes[i];
-          if (this.isCorrectNode(path, node)) {
-            resultNode = node;
-            break;
-          }
-        }
+        resultNode = this.getNodeByPath(path);
       }
     }
     // 没查找到结果
@@ -325,8 +317,15 @@ export class Graph {
       }),
     );
   }
+  // 通过path来获取node
+  private getNodeByPath(path: string[]) {
+    //首个pathName 可以省略
+    return path.slice(1).reduce((node: Node, pathName: string) => {
+      return node.dependencies[pathName];
+    }, this.graph);
+  }
 
-  //根据path来区分相同依赖
+  //根据path来区分相同依赖（id相同的依赖需要用到path来做区分）
   private isCorrectNode(path: string[], node: Node) {
     if (!path) {
       return true;
