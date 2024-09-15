@@ -3,7 +3,7 @@ import ora from "ora";
 import { blue, green, yellow } from "chalk";
 import { generateGraph } from "@dep-spy/core";
 import { conformConfig } from "./conformConfig";
-import { createServer } from "./createServer";
+import { createServer } from "./server/createServer";
 const cli = cac();
 cli
   .command("[analysis,ana]", "解析本地项目依赖关系图")
@@ -11,6 +11,9 @@ cli
     type: ["string"],
   })
   .option("--co,--codependency <codependency>", "输出相同依赖的文件路径", {
+    type: ["string"],
+  })
+  .option("--entry <entry>", "项目的入口路径", {
     type: ["string"],
   })
   .option(
@@ -29,7 +32,7 @@ cli
         await new Input({
           name: "depth",
           message: "请输入依赖图最大深度",
-          initial: 10,
+          initial: 3,
         }).run(),
       ),
     ];
@@ -38,36 +41,34 @@ cli
       throw new Error("depth 必须为正整数");
     }
 
-    options.size = [
+    options.isOutput = [
       await new Confirm({
-        name: "size",
-        message: "是否计算文件大小?",
-        initial: true,
-      }).run(),
-    ];
-
-    options.ui = [
-      await new Confirm({
-        name: "ui",
-        message: "是否启动可视化界面?",
-        initial: true,
+        name: "json",
+        message: "是否输出依赖树的文件?",
+        initial: false,
       }).run(),
     ];
 
     options = await conformConfig(options);
 
-    const spinner = ora(blue("🕵️ 正在潜入\n")).start();
     const startTime = Date.now();
-
     const graph = generateGraph("", options);
-    await graph.outputToFile();
+
+    const spinner = ora(blue("🕵️ 正在潜入\n")).start();
+    //构建树
+    await graph.ensureGraph();
+
+    //是否输出依赖树文件
+    if (options.isOutput) {
+      await graph.outputToFile();
+    }
 
     spinner.stop();
+
     console.log(green(`破解完成,耗时 ${yellow(Date.now() - startTime)} ms`));
-    // 如果开启 ui，则启动可视化界面
-    if (options.ui) {
-      createServer(graph, options);
-    }
+
+    // 启动可视化界面
+    createServer(graph, options);
   });
 
 cli.help();

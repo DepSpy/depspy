@@ -18,6 +18,7 @@
     }
   },
   "scripts": {
+    "dev": "vite",
     "build": "npm run build:vite && npm run build:tsup",
     "build:vite": "vite build --mode offline",
     "build:tsup": "tsup",
@@ -34,15 +35,20 @@
   "license": "ISC",
   "devDependencies": {
     "@iconify-json/carbon": "^1.1.20",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
     "@types/react": "^18.2.18",
     "@types/react-dom": "^18.2.7",
     "@unocss/preset-attributify": "^0.55.2",
     "@unocss/transformer-variant-group": "^0.55.2",
+    "rollup-plugin-node-builtins": "^2.1.2",
+    "rollup-plugin-node-globals": "^1.4.0",
     "sass": "^1.65.1",
     "tsup": "^7.1.0",
     "unocss": "^0.55.2"
   },
   "dependencies": {
+    "@antv/g6": "^4.8.24",
     "@dep-spy/core": "workspace:^",
     "@types/d3": "^7.4.0",
     "@vitejs/plugin-react": "^4.0.4",

@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { Data } from "./types";
 import { context } from "./store/context";
 import { Tooltip } from "./Tooltip";
+import { unitConvert } from "@/utils/unitConvert.ts";
 interface DrawRectProps {
   treeMap: d3.HierarchyRectangularNode<Data>;
   isHierarchy: boolean;
@@ -105,7 +106,7 @@ export const DrawChildrenRect = ({
           content={
             <>
               <div>name: {data.name}</div>
-              <div>size: {data.size}</div>
+              <div>size: {unitConvert(data.size, ["B", "KB", "MB"])}</div>
             </>
           }
         >
@@ -158,7 +159,10 @@ export const DrawChildrenRect = ({
           {data.size != null || data._size != null ? (
             <>
               <div>name: {data.name}</div>
-              <div>size: {data.size ? data.size : 0}</div>
+              <div>
+                size:{" "}
+                {unitConvert(data.size ? data.size : 0, ["B", "KB", "MB"])}
+              </div>
             </>
           ) : (
             loading

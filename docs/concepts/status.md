@@ -17,12 +17,9 @@ export interface Store {
   rootLoading: boolean; // 总依赖树加载状态
   collapse: boolean; // 总依赖树是否折叠
 
-  sizeRoot: Node; // 体积树
   sizeTree: boolean; // 是否显示体积树
-  sizeLoading: boolean; // 体积树加载状态
 
   selectedNode: Node; // 选中的节点
-  selectedSizeNode: Node; // 选中的体积节点
   selectedCodependency: Node[] | []; // 选中的相同依赖
   selectedCircularDependency: Node | null; // 选中的循环依赖
   selectedNodeHistory: Node[]; // 选中节点的历史记录

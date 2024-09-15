@@ -1,12 +1,12 @@
-import { defaultConfig } from "./constant";
-import { Config } from "./constant";
+import { defaultConfig } from "../constant";
+import { Config } from "../type";
 import { Graph } from "./graph";
 
 export function generateGraph(
   info: string,
   config: Config = defaultConfig,
 ): Graph {
-  let graph: Graph | null = null;
+  let graph: Graph;
   // 本地模式，info 为 ""
   if (!info) {
     graph = new Graph("", config);
