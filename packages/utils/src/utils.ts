@@ -63,7 +63,7 @@ function transformLinkToBase(linkPath: string) {
 function isPnpm(): boolean {
   //冒泡查找.pnpm文件夹（为适配monorepo的子包）
   for (
-    let currentDir = process.cwd(), nextDir = path.join("..");
+    let currentDir = process.cwd(), nextDir = path.join(currentDir, "..");
     currentDir !== nextDir;
     currentDir = nextDir, nextDir = path.join(currentDir, "..")
   ) {
@@ -82,10 +82,10 @@ function getAbsoluteLinkTarget(linkPath = "") {
     const absoluteTarget = path.resolve(path.dirname(linkPath), relativeTarget);
     return absoluteTarget;
   } catch (error) {
-    throw new Error("Error reading or resolving symlink: " + error.message);
+    //如果linkpath不是软连接，直接返回当前路径
+    return linkPath;
   }
 }
-
 //获取json文件的对象格式
 export function getPkgByPath<T>(path: string): T {
   const info = fs.readFileSync(path, "utf8");

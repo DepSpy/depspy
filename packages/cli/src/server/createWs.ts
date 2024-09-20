@@ -17,8 +17,6 @@ export function createWs(graph: Graph, option: Config) {
     initStaticGraph(option, ws); //初始化静态代码依赖图
     ws.addEventListener("message", async (mes) => {
       const wsData = JSON.parse(mes.data as string);
-      console.log(wsData);
-
       EventBus[wsData.type](wsData, option, ws, graph);
     });
     ws.on("close", () => {
@@ -79,26 +77,22 @@ function HMR(option: Config, ws: ws) {
       console.log(err);
       return;
     }
-
     prePkgJSON = analysePkgInfo(data);
   });
   chokidar.watch(pkgRoot).on("change", async () => {
     // 读取 package.json 中的 dependencies
-    setTimeout(() => {
-      readFile(pkgRoot, "utf-8", async (err, data) => {
-        if (err) {
-          console.log(err);
-          return;
-        }
-
-        const newPkgJSON = analysePkgInfo(data);
-        if (newPkgJSON !== prePkgJSON) {
-          prePkgJSON = newPkgJSON;
-          const graph = generateGraph("", option);
-          ws.send(formatMes("update", await combineRes(graph, option)));
-          console.log(green("实时更新成功"));
-        }
-      });
-    }, 0);
+    readFile(pkgRoot, "utf-8", async (err, data) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      const newPkgJSON = analysePkgInfo(data);
+      if (newPkgJSON !== prePkgJSON) {
+        prePkgJSON = newPkgJSON;
+        const graph = generateGraph("", option);
+        ws.send(formatMes("update", await combineRes(graph, option)));
+        console.log(green("实时更新成功"));
+      }
+    });
   });
 }
