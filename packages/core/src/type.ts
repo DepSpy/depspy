@@ -31,8 +31,3 @@ export interface Config {
     codependency?: string;
   };
 }
-
-export type MODULE_INFO_TASK = {
-  type: "moduleInfo";
-  params: [string, string];
-};
