@@ -1,20 +1,28 @@
-import { MODULE_INFO_TYPE } from "@dep-spy/utils";
-import { Config, MODULE_INFO_TASK, Node } from "../type";
+import {
+  compose,
+  limitDepth,
+  MODULE_INFO_TYPE,
+  toInfinity,
+} from "@dep-spy/utils";
+import { Config, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
+import pool, { TASK_TYPE } from "../pool";
+
 const inBrowser = typeof window !== "undefined";
-import pool from "../pool";
+
 //TODO 做本地缓存（LRU 限制缓存数量，--clear 清空缓存）
 export class Graph {
   private graph: Node; //整个图
   private cache: Map<string, Promise<[MODULE_INFO_TYPE, Error]>> = new Map(); //用来缓存计算过的节点(用promise的原因是避免重复的读文件操作占用线程)
-  private coMap = new Map<string, Node>(); //记录所有节点的id,用于判断相同依赖(coId: 是实际下载的包的name + version)
+  private coMap = new Map<string, Node>(); //记录所有节点的id,用于判断相同依赖(key 是声明的name和version)
   private codependency: Map<string, Node[]> = new Map(); //记录相同的节点
   private circularDependency: Set<Node> = new Set(); //记录存在循环引用的节点
   constructor(
     private readonly info: string,
     private readonly config: Config = {},
   ) {}
+  //生成单个node节点（调用insertChildren去插入子节点）
   private async generateNode(
     moduleInfo: MODULE_INFO_TYPE,
     paths: string[],
@@ -58,31 +66,38 @@ export class Graph {
       description,
       size,
     });
-    const id = name + version;
     //将子节点插入到当前节点上
     await this.insertChildren(curNode, dependenciesList);
-    //收集相同依赖
-    this.addCodependency(curNode, id);
     return curNode;
   }
+  //相同依赖复制新的节点
   private cloneCache(cache: MODULE_INFO_TYPE, path: string[]) {
     return {
       ...cache,
       path,
     };
   }
-  async getGraph() {
+  //获取root
+  public async getGraph() {
     await this.ensureGraph();
     return this.graph;
   }
-  async getCodependency() {
+  //获取相同依赖
+  public async getCodependency() {
     await this.ensureGraph();
     return Object.fromEntries(this.codependency);
   }
-  async getCircularDependency() {
+  //获取循环依赖
+  public async getCircularDependency() {
     await this.ensureGraph();
     return Array.from(this.circularDependency);
   }
+  //获取coMap
+  public async getCoMap() {
+    await this.ensureGraph();
+    return Object.fromEntries(this.coMap);
+  }
+  //输出到文件
   async outputToFile() {
     await this.ensureGraph();
     const { graph, circularDependency, codependency } = this.config.output;
@@ -96,40 +111,37 @@ export class Graph {
       this.writeJson(await this.getCodependency(), codependency);
     }
   }
+  //确保树已经被生成(开启root的构造)
   public async ensureGraph() {
     if (!this.graph) {
-      const [rootModule, error] = await pool.addTask<
-        MODULE_INFO_TASK,
-        MODULE_INFO_TYPE
-      >({
-        type: "moduleInfo",
-        params: [this.info, inBrowser ? null : process.cwd()],
+      const [rootModule, error] = await pool.addTask({
+        type: TASK_TYPE.MODULE_INFO,
+        params: { info: this.info, baseDir: inBrowser ? null : process.cwd() },
       }); //解析首个节点
       if (error) {
         throw error;
       }
+      rootModule.size = 0;
       this.graph = await this.generateNode(rootModule, []);
     }
   }
+  //序列化
   private writeJson(
     result: Node[] | Node | Record<string, Node[]>,
     outDir: string,
   ) {
     fs.writeFileSync(
       path.join(process.cwd(), outDir),
-      JSON.stringify(result, (key, value) => {
-        //当为Infinity时需要特殊处理，否则会变成null
-        if (key === "childrenNumber" && value === Infinity) {
-          return "Infinity";
-        }
-        return value;
-      }),
+      JSON.stringify(result, compose([toInfinity])),
       {
         flag: "w",
       },
     );
   }
+  //根据新的深度来更新树（调用dfs）
   public async update(newDepth: number): Promise<void> {
+    //确保已经有图
+    await this.ensureGraph();
     //重置全局变量
     if (this.config.depth != newDepth) {
       this.coMap = new Map();
@@ -140,25 +152,28 @@ export class Graph {
       //执行截断逻辑
       await this.dfs(this.graph, this.decreaseHandler.bind(this));
       return;
-    } else {
+    } else if (this.config.depth < newDepth) {
       this.config.depth = newDepth;
       //执行加深递归逻辑
       await this.dfs(this.graph, this.increaseHandler.bind(this));
     }
   }
+  //遍历
   private async dfs(node: Node, handler: (node: Node) => Promise<void> | true) {
-    const { name, version } = node;
-    const id = name + version;
     //纠正参数
     node.childrenNumber = node.childrenNumber === Infinity ? Infinity : 0;
     node.size = node.selfSize;
     const promises: Promise<void>[] = [];
     const handlerPromise = handler(node);
     if (handlerPromise === true) {
-      const dependenceEntries = Object.entries(node.dependencies);
-      for (const [, child] of dependenceEntries) {
+      const dependenceEntries = Object.entries(node.dependenciesList);
+      for (const [childName, childVersion] of dependenceEntries) {
+        const child = node.dependencies[childName];
+        const id = childName + childVersion;
         //递归子节点
         const dfsPromise = this.dfs(child, handler).then(() => {
+          //收集相同依赖
+          this.addCodependency(child, id);
           //修成所有子节点数总和
           node.childrenNumber +=
             (child.childrenNumber === Infinity ? 0 : child.childrenNumber) + 1; //child 子依赖数量 + 自身
@@ -172,9 +187,8 @@ export class Graph {
     }
     //等到promises结束才能归
     await Promise.all(promises);
-    //收集相同依赖
-    this.addCodependency(node, id);
   }
+  //加深树的深度处理函数
   private increaseHandler(node: Node): Promise<void> | true {
     const dependenceEntries = Object.entries(node.dependencies);
     if (dependenceEntries.length === 0) {
@@ -186,6 +200,7 @@ export class Graph {
     }
     return true;
   }
+  //减小树的深度处理函数，做截断
   private decreaseHandler(node: Node) {
     if (this.config.depth && this.config.depth == node.path.length) {
       //截断
@@ -194,6 +209,7 @@ export class Graph {
     }
     return true;
   }
+  //插入节点的子节点（调用generateNode 去生成子节点）
   private async insertChildren(
     curNode: Node,
     dependenciesList: Record<string, string>,
@@ -211,65 +227,58 @@ export class Graph {
         string,
         string,
       ];
-      const id = childName + childVersion;
+      const id = childName + this.handleChildVersion(childVersion);
       //不再读文件，走缓存
+      let generatePromise: Promise<Node>;
       if (this.cache.has(id)) {
         const [moduleInfo, error] = await this.cache.get(id);
         if (error) {
           console.error(error);
           continue;
         }
-        const cloneChild = await this.generateNode(
+        //生成子节点
+        generatePromise = this.generateNode(
           this.cloneCache(moduleInfo, [
             ...paths,
             childName,
           ]) as MODULE_INFO_TYPE,
           paths,
         );
-        curNode.dependencies[childName] = cloneChild;
-        curNode.size += cloneChild.size;
-        //更新父节点子依赖数量
-        curNode.childrenNumber +=
-          (cloneChild.childrenNumber === Infinity
-            ? 0
-            : cloneChild.childrenNumber) + 1; //child 子依赖数量 + 自身
       } else {
-        const moduleInfoPromise = pool.addTask<
-          MODULE_INFO_TASK,
-          MODULE_INFO_TYPE
-        >({ type: "moduleInfo", params: [childName, resolvePath] });
+        const moduleInfoPromise = pool.addTask({
+          type: TASK_TYPE.MODULE_INFO,
+          params: { info: childName, baseDir: resolvePath },
+        });
+        //存入缓存
         this.cache.set(id, moduleInfoPromise);
-        const generatePromise = moduleInfoPromise.then(
+        generatePromise = moduleInfoPromise.then(
           async ([childModuleInfo, error]) => {
             if (error) {
               console.error(error);
               return;
             }
-            //添加实际声明的依赖
-            // 如果 childVersion 以 $ 结尾，表明需要特殊处理
-            let childVersionPure: string | undefined;
-            if (childVersion.endsWith("$")) {
-              const index = childVersion.indexOf("$");
-              childVersionPure = childVersion.slice(index + 1, -1);
-            }
-            const child = await this.generateNode(childModuleInfo, paths);
-            /*⬅️⬅️⬅️  后序处理逻辑  ➡️➡️➡️*/
-            child.declarationVersion = childVersionPure || childVersion;
-            //将子节点加入父节点（注意是children是引入类型，所以可以直接加）
-            curNode.dependencies[childName] = child;
-            //更新父节点子依赖数量
-            curNode.childrenNumber +=
-              (child.childrenNumber === Infinity ? 0 : child.childrenNumber) +
-              1; //child 子依赖数量 + 自身
-            //累加size
-            curNode.size += child.size;
+            return await this.generateNode(childModuleInfo, paths);
           },
         );
-        promises.push(generatePromise);
       }
+      const childPromise = generatePromise.then(async (child) => {
+        /*⬅️⬅️⬅️  后序处理逻辑  ➡️➡️➡️*/
+        //添加相同依赖
+        this.addCodependency(child, id);
+        child.declarationVersion = this.handleChildVersion(childVersion);
+        //将子节点加入父节点（注意是children是引入类型，所以可以直接加）
+        curNode.dependencies[childName] = child;
+        //更新父节点子依赖数量
+        curNode.childrenNumber +=
+          (child.childrenNumber === Infinity ? 0 : child.childrenNumber) + 1; //child 子依赖数量 + 自身
+        //累加size
+        curNode.size += child.size;
+      });
+      promises.push(childPromise);
     }
     await Promise.all(promises); //等待所有子节点创造完毕再归
   }
+  //判断是否为相同依赖，并添加到coMap
   private addCodependency(node: Node, id: string) {
     if (this.coMap.has(id)) {
       //标记相同依赖
@@ -282,6 +291,66 @@ export class Graph {
     } else {
       this.coMap.set(id, node);
     }
+  }
+  //根据id来获取节点的信息，在序列化时根据depth参数做截断处理
+  public getNode(id: string, depth: number, path?: string[]): string {
+    let resultNode: Node;
+    if (!id) {
+      //root节点
+      resultNode = this.graph;
+    } else {
+      resultNode = this.coMap.get(id);
+
+      if (!this.isCorrectNode(path, resultNode)) {
+        resultNode = this.getNodeByPath(path);
+      }
+    }
+    // 没查找到结果
+    if (!resultNode) {
+      return null;
+    }
+
+    return JSON.stringify(
+      resultNode,
+      compose([toInfinity, limitDepth], {
+        depth: depth ? resultNode.path.length + depth - 1 : -1, //-1 时永远无法中断，一直达底,
+      }),
+    );
+  }
+  // 通过path来获取node
+  private getNodeByPath(path: string[]) {
+    //首个pathName 可以省略
+    return path.slice(1).reduce((node: Node, pathName: string) => {
+      return node.dependencies[pathName];
+    }, this.graph);
+  }
+
+  //根据path来区分相同依赖（id相同的依赖需要用到path来做区分）
+  private isCorrectNode(path: string[], node: Node) {
+    if (!path) {
+      return true;
+    }
+    if (path.length !== node.path.length) {
+      return false;
+    }
+    return node.path.every((pathName, index) => {
+      return pathName === path[index];
+    });
+  }
+  //处理childVersion
+  //添加实际声明的依赖
+  // 如果 childVersion 以 $ 结尾，表明需要特殊处理
+  private handleChildVersion(childVersion: string) {
+    if (!childVersion) {
+      return childVersion;
+    }
+    //需要特殊处理
+    if (childVersion.endsWith("$")) {
+      const index = childVersion.indexOf("$");
+      return childVersion.slice(index + 1, -1);
+    }
+
+    return childVersion;
   }
 }
 
