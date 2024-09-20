@@ -40,7 +40,6 @@ export default function Collapse() {
           return dep;
         }),
     )).filter(dep => dep && dep.dependencies && Object.values(dep.dependencies).length);
-    console.log(d.length, Object.values(deps).length);
     
 
     if (d.length) {
