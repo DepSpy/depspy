@@ -21,7 +21,9 @@ export default function CoDepList() {
             setSelectCodependency([]);
             return;
           }
-          setSelectCodependency(codependency[node.name + node.version]);
+          setSelectCodependency(
+            codependency[node.name + node.declarationVersion],
+          );
         }}
       />
     </div>
