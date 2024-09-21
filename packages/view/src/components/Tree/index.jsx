@@ -33,6 +33,7 @@ function Tree({ width = window.innerWidth }, svg) {
   const [data, setData] = useState(() => [filterData(root, collapse)]);
   const [offsetY, setOffsetY] = useState({});
   const [links, setLinks] = useState([]);
+  const preHighlight = useRef([])
   useEffect(() => {
     setData([filterData(root, collapse)]);
   }, [root, collapse]);
@@ -105,10 +106,19 @@ function Tree({ width = window.innerWidth }, svg) {
   //高亮相同依赖
   useEffect(() => {
     if (selectedCodependency?.length) {
-      selectedCodependency.forEach((node) => {
-        findDepBypath(node.path, data[0]);
+      const selectedNodes = selectedCodependency.map((node) => {
+        const dep = findDepBypath(node.path, root);
+        dep.highlight = true;
+        return dep;
       });
-      setSelectNode(selectedCodependency[0]);
+      useStore.subscribe((state) => state.selectedCodependency, () => {
+        preHighlight.current.forEach((node) => {
+          node.highlight = false;
+        })
+      })
+      preHighlight.current = selectedNodes;
+
+      setSelectNode(selectedNodes[0]);
     }
   }, [selectedCodependency]);
   //➡️
@@ -360,13 +370,17 @@ function findDepBypath(paths, data) {
   let dep = data;
   
   paths.slice(1).forEach((path) => {
+    console.log(path, !parent.dependencies[path], parent.originDeps);
+    
     if (!parent.dependencies[path]) {
-      parent.dependencies = parent.originDeps;
-      return;
+      if(parent.originDeps) parent.dependencies = parent.originDeps;
+      else return;
     }
     dep = parent.dependencies[path];
     parent = dep;
+    dep.unfold = true; //标记为展开
   });
+  
   return dep;
 }
 //为第二层以下的节点添加originDeps字段
@@ -387,6 +401,7 @@ function filterData(data, collapse) {
     };
     
     if (depth > 1) newData.dependencies = {};
+    if(data.unfold) newData.unfold = true;
     const entries = Object.entries(newData.originDeps);
     depth++;
     for (let i = 0; i < entries.length; i++) {
