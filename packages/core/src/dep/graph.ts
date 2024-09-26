@@ -23,10 +23,15 @@ export class Graph {
     private readonly config: Config = {},
   ) {}
   //生成单个node节点（调用insertChildren去插入子节点）
-  private async generateNode(
-    moduleInfo: MODULE_INFO_TYPE,
-    paths: string[],
-  ): Promise<Node> {
+  private async generateNode({
+    moduleInfo,
+    paths,
+    realNamePath,
+  }: {
+    moduleInfo: MODULE_INFO_TYPE;
+    paths: string[];
+    realNamePath: string[];
+  }): Promise<Node> {
     const {
       name,
       version,
@@ -36,7 +41,7 @@ export class Graph {
       description,
     } = moduleInfo;
     //循环依赖
-    if (paths.includes(name)) {
+    if (realNamePath.includes(name)) {
       //直接截断返回循环依赖
       const circularNode = new GraphNode({
         name,
@@ -44,10 +49,11 @@ export class Graph {
         dependencies: {},
         dependenciesList: {}, //循环依赖不需要再加载子节点
         resolvePath,
-        path: [...paths, name],
+        path: paths,
+        realNamePath: [...realNamePath, name],
         childrenNumber: Infinity,
         description: description,
-        circlePath: [...paths, name],
+        circlePath: paths,
         size,
       });
       this.circularDependency.add(circularNode);
@@ -61,7 +67,8 @@ export class Graph {
       dependencies: children,
       dependenciesList,
       resolvePath,
-      path: [...paths, name],
+      path: paths,
+      realNamePath: [...realNamePath, name],
       childrenNumber: 0,
       description,
       size,
@@ -122,7 +129,11 @@ export class Graph {
         throw error;
       }
       rootModule.size = 0;
-      this.graph = await this.generateNode(rootModule, []);
+      this.graph = await this.generateNode({
+        moduleInfo: rootModule,
+        paths: [rootModule.name],
+        realNamePath: [],
+      });
     }
   }
   //序列化
@@ -214,9 +225,10 @@ export class Graph {
     curNode: Node,
     dependenciesList: Record<string, string>,
   ) {
-    const { path: paths, resolvePath } = curNode;
+    const { path: paths, resolvePath, realNamePath } = curNode;
     const dependenceEntries = Object.entries(dependenciesList);
     const promises: Promise<void>[] = [];
+
     for (let i = 0; i < dependenceEntries.length; i++) {
       //深度判断
       if (this.config.depth && paths.length == this.config.depth) {
@@ -227,6 +239,7 @@ export class Graph {
         string,
         string,
       ];
+
       const id = childName + this.handleChildVersion(childVersion);
       //不再读文件，走缓存
       let generatePromise: Promise<Node>;
@@ -237,13 +250,11 @@ export class Graph {
           continue;
         }
         //生成子节点
-        generatePromise = this.generateNode(
-          this.cloneCache(moduleInfo, [
-            ...paths,
-            childName,
-          ]) as MODULE_INFO_TYPE,
-          paths,
-        );
+        generatePromise = this.generateNode({
+          moduleInfo: moduleInfo,
+          paths: [...paths, childName],
+          realNamePath: realNamePath,
+        });
       } else {
         const moduleInfoPromise = pool.addTask({
           type: TASK_TYPE.MODULE_INFO,
@@ -257,7 +268,11 @@ export class Graph {
               console.error(error);
               return;
             }
-            return await this.generateNode(childModuleInfo, paths);
+            return await this.generateNode({
+              moduleInfo: childModuleInfo,
+              paths: [...paths, childName],
+              realNamePath: realNamePath,
+            });
           },
         );
       }
@@ -295,13 +310,16 @@ export class Graph {
   //根据id来获取节点的信息，在序列化时根据depth参数做截断处理
   public getNode(id: string, depth: number, path?: string[]): string {
     let resultNode: Node;
-    if (!id) {
+    if (!id && !path) {
       //root节点
       resultNode = this.graph;
     } else {
-      resultNode = this.coMap.get(id);
-
-      if (!this.isCorrectNode(path, resultNode)) {
+      // 仅有id时
+      if (id && !path) {
+        resultNode = this.coMap.get(id);
+      }
+      // 有path时查询
+      if (!resultNode && path) {
         resultNode = this.getNodeByPath(path);
       }
     }
@@ -365,7 +383,8 @@ class GraphNode implements Node {
   public dependencies: Record<string, Node>;
   public dependenciesList: Record<string, string>; //用于记录当前节点的pack.json中记录的内容
   public resolvePath: string;
-  public path: string[];
+  public path: string[]; // 此处的包名来着父节点的package.json中的声明（记录根节点到该节点处的路径）
+  public realNamePath: string[]; // 此处的包名来自实际安装的名字（用于判断是否出现循环依赖）
   public childrenNumber: number;
   constructor(property: {
     name: string;
@@ -374,6 +393,7 @@ class GraphNode implements Node {
     dependenciesList: Record<string, string>;
     resolvePath: string;
     path: string[];
+    realNamePath: string[];
     childrenNumber: number;
     description?: string;
     circlePath?: string[];

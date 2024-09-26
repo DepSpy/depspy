@@ -18,6 +18,7 @@ async function getNodeByPaths(curRoot: any, paths: string[]) {
 
       curRoot.dependencies = res.data.dependencies;
     }
+
     curRoot = curRoot.dependencies[path];
   }
 }
@@ -65,7 +66,7 @@ export const EventBus = {
 
       const { root, circularDependency, codependency } = res.data;
       let paths: string[];
-      let curRoot: any = root;
+      const curRoot: any = root;
       // 加载循环依赖节点
       for (const selectedCircularDependency of circularDependency) {
         paths = selectedCircularDependency.circlePath.slice(1);

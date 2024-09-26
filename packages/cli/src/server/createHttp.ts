@@ -40,7 +40,7 @@ export function createHttp(app: Express, graph: Graph) {
         ? (JSON.parse(req.query.path as string) as string[])
         : undefined;
       // root节点
-      if (!id) {
+      if (!id && !path) {
         const circularDependency = await graph.getCircularDependency();
         const codependency = await graph.getCodependency();
         const root = JSON.parse(graph.getNode(id, depth));
