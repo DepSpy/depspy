@@ -7,7 +7,7 @@ export const EventType = {
   depth: "depth",
 };
 
-async function getNodeByPaths(curRoot: any, paths: string[]) {
+export async function getNodeByPaths(curRoot: any, paths: string[]) {
   for (const path of paths) {
     if (!curRoot.dependencies || !curRoot.dependencies[path]) {
       const res = await getNode({
@@ -67,18 +67,18 @@ export const EventBus = {
       const { root, circularDependency, codependency } = res.data;
       let paths: string[];
       const curRoot: any = root;
-      // 加载循环依赖节点
-      for (const selectedCircularDependency of circularDependency) {
-        paths = selectedCircularDependency.circlePath.slice(1);
-        await getNodeByPaths(curRoot, paths);
-      }
+      // // 加载循环依赖节点
+      // for (const selectedCircularDependency of circularDependency) {
+      //   paths = selectedCircularDependency.circlePath.slice(1);
+      //   await getNodeByPaths(curRoot, paths);
+      // }
       // 加载相同依赖节点
-      for (const selectedCodependency of Object.values(codependency)) {
-        for (const coNode of selectedCodependency as any[]) {
-          paths = coNode.path.slice(1);
-          await getNodeByPaths(curRoot, paths);
-        }
-      }
+      // for (const selectedCodependency of Object.values(codependency)) {
+      //   for (const coNode of selectedCodependency as any[]) {
+      //     paths = coNode.path.slice(1);
+      //     await getNodeByPaths(curRoot, paths);
+      //   }
+      // }
 
       useStore.setState({ rootLoading: false });
       //连接初始化回调
