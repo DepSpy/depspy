@@ -6,7 +6,7 @@ import { unitConvert } from "@/utils/unitConvert.ts";
 
 export default function SideModule() {
   const { t } = useLanguage();
-  const { selectedNode } = useStore((state) => state);
+  const { selectedNode, root } = useStore((state) => state);
   return (
     <div>
       <div className="module-title">{t("aside.module.information")}</div>
@@ -50,7 +50,10 @@ export default function SideModule() {
         <div className="module-size">
           <div className="title">{t("aside.module.size")}</div>
           <div className="size">
-            {unitConvert(selectedNode.selfSize, ["B", "KB", "MB"])}&nbsp;/&nbsp;
+            {selectedNode === root
+              ? "-"
+              : unitConvert(selectedNode.selfSize, ["B", "KB", "MB"])}
+            &nbsp;/&nbsp;
             {unitConvert(selectedNode.size, ["B", "KB", "MB"])}
           </div>
         </div>

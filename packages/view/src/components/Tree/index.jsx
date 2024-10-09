@@ -15,6 +15,7 @@ function Tree({ width = window.innerWidth }, svg) {
     selectedNode,
     selectedCodependency,
     selectedCircularDependency,
+    setRoot,
   } = useStore(
     (state) => ({
       theme: state.theme,
@@ -24,6 +25,7 @@ function Tree({ width = window.innerWidth }, svg) {
       selectedNode: state.selectedNode,
       selectedCodependency: state.selectedCodependency,
       selectedCircularDependency: state.selectedCircularDependency,
+      setRoot: state.setRoot,
     }),
     shallow,
   );
@@ -31,6 +33,7 @@ function Tree({ width = window.innerWidth }, svg) {
   const [data, setData] = useState(() => [filterData(root, collapse)]);
   const [offsetY, setOffsetY] = useState({});
   const [links, setLinks] = useState([]);
+  const preHighlight = useRef([]);
   useEffect(() => {
     setData([filterData(root, collapse)]);
   }, [root, collapse]);
@@ -103,10 +106,22 @@ function Tree({ width = window.innerWidth }, svg) {
   //高亮相同依赖
   useEffect(() => {
     if (selectedCodependency?.length) {
-      selectedCodependency.forEach((node) => {
-        findDepBypath(node.path, data[0]);
+      const selectedNodes = selectedCodependency.map((node) => {
+        const dep = findDepBypath(node.path, root);
+        dep.highlight = true;
+        return dep;
       });
-      setSelectNode(selectedCodependency[0]);
+      useStore.subscribe(
+        (state) => state.selectedCodependency,
+        () => {
+          preHighlight.current.forEach((node) => {
+            node.highlight = false;
+          });
+        },
+      );
+      preHighlight.current = selectedNodes;
+
+      setSelectNode(selectedNodes[0]);
     }
   }, [selectedCodependency]);
   //➡️
@@ -166,8 +181,10 @@ function Tree({ width = window.innerWidth }, svg) {
                 version,
                 dependencies,
                 originDeps,
+                unfold,
               },
             } = d;
+
             const declarationId = `${name}@${declarationVersion || version}`;
             const id = `${name}@${version}`;
             const coId = `${selectedCodependency[0]?.name}@${selectedCodependency[0]?.version}`;
@@ -177,10 +194,11 @@ function Tree({ width = window.innerWidth }, svg) {
             const text = textOverflow(declarationId, 130);
             const textLength = getActualWidthOfChars(text);
             const collapseFlag = Object.values(originDeps).length
-              ? Object.values(dependencies).length
+              ? unfold || Object.values(dependencies).length
                 ? "-"
                 : "+"
               : "";
+
             if (highlight) {
               d3.select(svg.current).attr(
                 "viewBox",
@@ -207,14 +225,24 @@ function Tree({ width = window.innerWidth }, svg) {
                       }
                       pointerEvents={"auto"}
                       transform={`translate(${width / 2 + 2},${-32})`}
-                      onClick={() => {
-                        const currentNode = findDepBypath(d.data.path, data[0]);
+                      onClick={(e) => {
+                        // 阻止触发父级
+                        e.stopPropagation();
+
+                        const currentNode = findDepBypath(d.data.path, root);
+
                         if (collapseFlag == "+") {
-                          currentNode.dependencies = currentNode.originDeps;
+                          currentNode.unfold = true;
                         } else {
-                          currentNode.dependencies = {};
+                          currentNode.unfold = false;
                         }
-                        setData([...data]);
+                        if (selectedNode !== currentNode) {
+                          setSelectNode(currentNode);
+                        } else {
+                          setRoot({ ...root });
+                        }
+
+                        // setData([...data]);
                       }}
                     >
                       {collapseFlag == "+" ? (
@@ -331,6 +359,7 @@ function generateTree(data) {
       };
       offsetY[d.target.data.path.join()] = { ...d.target, y: d.target.y };
     }
+
     links.push(d);
   }
   return { offsetY, links, rootLength };
@@ -340,16 +369,28 @@ function findDepBypath(paths, data) {
   if (paths.length == 1) return data;
   let parent = data;
   let dep = data;
+
   paths.slice(1).forEach((path) => {
+    console.log(path, !parent.dependencies[path], parent.originDeps);
+
     if (!parent.dependencies[path]) {
-      parent.dependencies = parent.originDeps;
+      if (parent.originDeps) parent.dependencies = parent.originDeps;
+      else return;
     }
-    dep = parent.dependencies[path];
+    dep = parent.dependencies[path] ? parent.dependencies[path] : dep;
     parent = dep;
+    dep.unfold = true; //标记为展开
   });
+
   return dep;
 }
 //为第二层以下的节点添加originDeps字段
+/**
+ *
+ * @param {*} data
+ * @param {Boolean} collapse 是否折叠
+ * @returns
+ */
 function filterData(data, collapse) {
   let depth = 1;
   function traverse(data) {
@@ -358,19 +399,24 @@ function filterData(data, collapse) {
       originDeps: { ...data.dependencies },
       dependencies: { ...data.dependencies },
     };
+
     if (depth > 1) newData.dependencies = {};
+    if (data.unfold) newData.unfold = true;
     const entries = Object.entries(newData.originDeps);
     depth++;
     for (let i = 0; i < entries.length; i++) {
       const [name, dependency] = entries[i];
       const child = traverse(dependency);
-      if (depth <= 2 || !collapse) newData.dependencies[name] = child;
+      // collapse命中展开所有, unfold命中展开当前
+      if (depth <= 2 || !collapse || newData.unfold)
+        newData.dependencies[name] = child;
       newData.originDeps[name] = child;
     }
     depth--;
     return newData;
   }
   const root = traverse(data);
+
   return root;
 }
 //节流

@@ -1,8 +1,10 @@
+import { getNodeByPaths } from "@/contexts/eventBus";
 import { useStore } from "../../../contexts";
 import DrawerBox from "../DrawerBox";
 
 export default function CircleDepList() {
   const {
+    root,
     circularDependency,
     selectedCircularDependency,
     setSelectCircularDependency,
@@ -13,7 +15,11 @@ export default function CircleDepList() {
         title={"Circular Dependency"}
         dependencies={circularDependency}
         selectedNode={selectedCircularDependency}
-        setFn={(node) => {
+        setFn={async (node) => {
+          console.log(node, selectedCircularDependency);
+          
+          const paths = node.circlePath.slice(1);
+          await getNodeByPaths(root, paths);
           setSelectCircularDependency(node);
         }}
       />
