@@ -161,36 +161,43 @@ export class Graph {
     if (this.config.depth > newDepth) {
       this.config.depth = newDepth;
       //执行截断逻辑
-      await this.dfs(this.graph, this.decreaseHandler.bind(this));
+      await this.dfs(this.graph, this.decreaseHandler.bind(this), () => void 0);
       return;
     } else if (this.config.depth < newDepth) {
       this.config.depth = newDepth;
       //执行加深递归逻辑
-      await this.dfs(this.graph, this.increaseHandler.bind(this));
+      await this.dfs(this.graph, this.increaseHandler.bind(this), () => void 0);
     }
   }
   //遍历
-  private async dfs(node: Node, handler: (node: Node) => Promise<void> | true) {
+  private async dfs(
+    node: Node,
+    beforeHandler: (node: Node) => Promise<void> | true,
+    afterHandler: (node: Node) => Promise<void>,
+  ) {
     //纠正参数
     node.childrenNumber = node.childrenNumber === Infinity ? Infinity : 0;
     node.size = node.selfSize;
     const promises: Promise<void>[] = [];
-    const handlerPromise = handler(node);
+    const handlerPromise = beforeHandler(node);
     if (handlerPromise === true) {
       const dependenceEntries = Object.entries(node.dependenciesList);
       for (const [childName, childVersion] of dependenceEntries) {
         const child = node.dependencies[childName];
         const id = childName + childVersion;
         //递归子节点
-        const dfsPromise = this.dfs(child, handler).then(() => {
-          //收集相同依赖
-          this.addCodependency(child, id);
-          //修成所有子节点数总和
-          node.childrenNumber +=
-            (child.childrenNumber === Infinity ? 0 : child.childrenNumber) + 1; //child 子依赖数量 + 自身
-          //修正size
-          node.size += child.size;
-        });
+        const dfsPromise = this.dfs(child, beforeHandler, afterHandler).then(
+          () => {
+            //收集相同依赖
+            this.addCodependency(child, id);
+            //修成所有子节点数总和
+            node.childrenNumber +=
+              (child.childrenNumber === Infinity ? 0 : child.childrenNumber) +
+              1; //child 子依赖数量 + 自身
+            //修正size
+            node.size += child.size;
+          },
+        );
         promises.push(dfsPromise);
       }
     } else {
@@ -198,6 +205,7 @@ export class Graph {
     }
     //等到promises结束才能归
     await Promise.all(promises);
+    await afterHandler(node);
   }
   //加深树的深度处理函数
   private increaseHandler(node: Node): Promise<void> | true {
@@ -308,7 +316,11 @@ export class Graph {
     }
   }
   //根据id来获取节点的信息，在序列化时根据depth参数做截断处理
-  public getNode(id: string, depth: number, path?: string[]): string {
+  public async getNode(
+    id: string,
+    depth: number,
+    path?: string[],
+  ): Promise<Buffer> {
     let resultNode: Node;
     if (!id && !path) {
       //root节点
@@ -320,41 +332,77 @@ export class Graph {
       }
       // 有path时查询
       if (!resultNode && path) {
-        resultNode = this.getNodeByPath(path);
+        resultNode = this.searchNodeByPath(path);
       }
     }
     // 没查找到结果
     if (!resultNode) {
       return null;
     }
-
-    return JSON.stringify(
+    // 平铺展开内部结构
+    const results: Node[] = [];
+    await this.dfs(
       resultNode,
-      compose([toInfinity, limitDepth], {
-        depth: depth ? resultNode.path.length + depth - 1 : -1, //-1 时永远无法中断，一直达底,
+      (node) => {
+        // depth不存在时
+        if (!depth) {
+          return true;
+        }
+        // depth存在时
+        if (node.path.length < resultNode.path.length + depth - 1) {
+          return true;
+        }
+        return Promise.resolve();
+      },
+      async (node) => {
+        results.unshift(node);
+      },
+    );
+
+    const nodesBuffers = this.generateNodeBuffer(results);
+
+    return nodesBuffers;
+  }
+  // 将node json序列化之后生成buffer（转为二进制格式）
+  private generateNodeBuffer(nodes: Node[]) {
+    return Buffer.concat(
+      nodes.map((node) => {
+        const nodeJson = JSON.stringify(
+          node,
+          compose([toInfinity, limitDepth], {
+            depth: node.path.length,
+          }),
+        );
+        const buffer = Buffer.from(nodeJson);
+        // 获取长度
+        const sizeBuffer = Buffer.alloc(4);
+        sizeBuffer.writeInt32LE(buffer.length, 0);
+        // 写入长度信息，方便解析
+        return Buffer.concat([sizeBuffer, buffer]);
       }),
     );
   }
+
   // 通过path来获取node
-  private getNodeByPath(path: string[]) {
+  private searchNodeByPath(path: string[]) {
     //首个pathName 可以省略
     return path.slice(1).reduce((node: Node, pathName: string) => {
       return node.dependencies[pathName];
     }, this.graph);
   }
 
-  //根据path来区分相同依赖（id相同的依赖需要用到path来做区分）
-  private isCorrectNode(path: string[], node: Node) {
-    if (!path) {
-      return true;
-    }
-    if (path.length !== node.path.length) {
-      return false;
-    }
-    return node.path.every((pathName, index) => {
-      return pathName === path[index];
-    });
+  public getNodeByPath(path: string[]) {
+    const results: Node[] = [this.graph];
+    //首个pathName 可以省略
+    path.slice(1).reduce((node: Node, pathName: string) => {
+      const nextNode = node.dependencies[pathName];
+      results.push(nextNode);
+      return nextNode;
+    }, this.graph);
+
+    return this.generateNodeBuffer(results);
   }
+
   //处理childVersion
   //添加实际声明的依赖
   // 如果 childVersion 以 $ 结尾，表明需要特殊处理
