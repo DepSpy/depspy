@@ -185,6 +185,12 @@ export class Graph {
       for (const [childName, childVersion] of dependenceEntries) {
         const child = node.dependencies[childName];
         const id = childName + childVersion;
+
+        // 到达底部
+        if (!child) {
+          continue;
+        }
+
         //递归子节点
         const dfsPromise = this.dfs(child, beforeHandler, afterHandler).then(
           () => {
@@ -341,6 +347,7 @@ export class Graph {
     }
     // 平铺展开内部结构
     const results: Node[] = [];
+
     await this.dfs(
       resultNode,
       (node) => {
