@@ -48,6 +48,8 @@ export function createHttp(app: Express, graph: Graph) {
       // root节点
       if (!id && !path) {
         const rootBuffer = await graph.getNode(id, depth);
+        console.log(rootBuffer.slice(4 + 1091, 8+1091));
+        
         bufferHandler(res, rootBuffer);
         return;
       }
