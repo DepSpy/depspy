@@ -19,6 +19,7 @@
   "dependencies": {
     "@dep-spy/core": "workspace:^",
     "@dep-spy/view": "workspace:^",
+    "@dep-spy/utils": "workspace:^",
     "cac": "^6.7.14",
     "chalk": "^4.1.2",
     "chokidar": "^3.5.3",

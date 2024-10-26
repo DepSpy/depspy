@@ -1,9 +1,4 @@
-import {
-  compose,
-  limitDepth,
-  MODULE_INFO_TYPE,
-  toInfinity,
-} from "@dep-spy/utils";
+import { compose, MODULE_INFO_TYPE, toInfinity } from "@dep-spy/utils";
 import { Config, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
@@ -326,7 +321,7 @@ export class Graph {
     id: string,
     depth: number,
     path?: string[],
-  ): Promise<Buffer> {
+  ): Promise<Node[]> {
     let resultNode: Node;
     if (!id && !path) {
       //root节点
@@ -366,28 +361,7 @@ export class Graph {
       },
     );
 
-    const nodesBuffers = this.generateNodeBuffer(results);
-
-    return nodesBuffers;
-  }
-  // 将node json序列化之后生成buffer（转为二进制格式）
-  private generateNodeBuffer(nodes: Node[]) {
-    return Buffer.concat(
-      nodes.map((node) => {
-        const nodeJson = JSON.stringify(
-          node,
-          compose([toInfinity, limitDepth], {
-            depth: node.path.length,
-          }),
-        );
-        const buffer = Buffer.from(nodeJson);
-        // 获取长度
-        const sizeBuffer = Buffer.alloc(4);
-        sizeBuffer.writeInt32LE(buffer.length, 0);
-        // 写入长度信息，方便解析
-        return Buffer.concat([sizeBuffer, buffer]);
-      }),
-    );
+    return results;
   }
 
   // 通过path来获取node
@@ -398,16 +372,23 @@ export class Graph {
     }, this.graph);
   }
 
-  public getNodeByPath(path: string[]) {
-    const results: Node[] = [this.graph];
+  public getNodeByPath(name: string, path: string[]) {
+    const results: Node[] = [];
+    let ifTarget = false;
     //首个pathName 可以省略
     path.slice(1).reduce((node: Node, pathName: string) => {
       const nextNode = node.dependencies[pathName];
-      results.push(nextNode);
+      ifTarget && results.push(nextNode);
+
+      //遇到起点
+      if (name === pathName) {
+        ifTarget = true;
+      }
+
       return nextNode;
     }, this.graph);
 
-    return this.generateNodeBuffer(results);
+    return results;
   }
 
   //处理childVersion
