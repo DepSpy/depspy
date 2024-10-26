@@ -1,5 +1,12 @@
 import { Express, Response } from "express";
 import { Graph, Node } from "@dep-spy/core";
+import {
+  compose,
+  toInfinity,
+  limitDepth,
+  jsonsToBuffer,
+  reduceKey,
+} from "@dep-spy/utils";
 
 export type RES<T> = {
   code: number;
@@ -29,6 +36,24 @@ function errorHandler(res: Response, data: unknown) {
   });
 }
 
+//生产json数组
+function generateNodeJsons(nodes: Node[]) {
+  const nodeJsons = nodes.map((node) => {
+    return JSON.stringify(
+      node,
+      compose([toInfinity, limitDepth], {
+        depth: node.path.length,
+      }),
+    );
+  });
+  return nodeJsons;
+}
+
+function nodesToBuffer(nodes: Node[]) {
+  const nodeJsons = generateNodeJsons(nodes);
+  return jsonsToBuffer(nodeJsons);
+}
+
 export function createHttp(app: Express, graph: Graph) {
   //获取节点信息
   app.get<
@@ -48,9 +73,7 @@ export function createHttp(app: Express, graph: Graph) {
       // root节点
       if (!id && !path) {
         const rootBuffer = await graph.getNode(id, depth);
-        console.log(rootBuffer.slice(4 + 1091, 8+1091));
-        
-        bufferHandler(res, rootBuffer);
+        bufferHandler(res, nodesToBuffer(rootBuffer));
         return;
       }
 
@@ -62,7 +85,7 @@ export function createHttp(app: Express, graph: Graph) {
         return;
       }
 
-      bufferHandler(res, buffer);
+      bufferHandler(res, nodesToBuffer(buffer));
     } catch (error) {
       errorHandler(res, error.toString());
     }
@@ -88,14 +111,14 @@ export function createHttp(app: Express, graph: Graph) {
       // 扫描其他依赖
       for (const [id, node] of Object.entries(nodes) as [
         id: string,
-        node: Node[],
+        node: Node,
       ][]) {
         if (id.includes(key) && !codependency[id]) {
           results.push({ ...node, dependencies: {} });
         }
       }
 
-      successHandler(res, results);
+      bufferHandler(res, nodesToBuffer(results));
     } catch (error) {
       errorHandler(res, error);
     }
@@ -110,25 +133,62 @@ export function createHttp(app: Express, graph: Graph) {
       errorHandler(res, error);
     }
   });
-
-  app.get<{ key: string }>("/getNodeByPath", (req, res) => {
+  // 获取沿路的所有节点
+  app.get<{ name: string; path: string }>("/getNodeByPath", (req, res) => {
     try {
       const path = JSON.parse(req.query.path as string) as string[];
-      bufferHandler(res, graph.getNodeByPath(path));
+      const name = req.query.name as string;
+
+      const results = graph.getNodeByPath(name, path);
+
+      bufferHandler(res, nodesToBuffer(results));
     } catch (error) {
       errorHandler(res, error);
     }
   });
-
-  app.get("/getDependency", async (req, res) => {
+  // 循环依赖
+  app.get("/getCircularDependency", async (req, res) => {
     try {
       const circularDependency = await graph.getCircularDependency();
+
+      const nodeJsons = circularDependency.map((node) => {
+        return JSON.stringify(
+          node,
+          compose([toInfinity, reduceKey], {
+            internalKeys: [
+              "name",
+              "declarationVersion",
+              "version",
+              "path",
+              "circlePath",
+            ],
+          }),
+        );
+      });
+
+      const buffer = jsonsToBuffer(nodeJsons);
+
+      bufferHandler(res, buffer);
+    } catch (error) {
+      errorHandler(res, error);
+    }
+  });
+  //相同依赖
+  app.get("/getCodependency", async (req, res) => {
+    try {
       const codependency = await graph.getCodependency();
 
-      successHandler(res, {
-        circularDependency,
-        codependency,
+      const nodeJsons = Object.entries(codependency).map((item) => {
+        return JSON.stringify(
+          item,
+          compose([toInfinity, reduceKey], {
+            internalKeys: ["name", "declarationVersion", "version", "path"],
+          }),
+        );
       });
+      const buffer = jsonsToBuffer(nodeJsons);
+
+      bufferHandler(res, buffer);
     } catch (error) {
       errorHandler(res, error);
     }

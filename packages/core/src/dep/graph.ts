@@ -1,7 +1,7 @@
 import {
   compose,
-  limitDepth,
   MODULE_INFO_TYPE,
+  reduceKey,
   toInfinity,
 } from "@dep-spy/utils";
 import { Config, Node } from "../type";
@@ -109,13 +109,32 @@ export class Graph {
     await this.ensureGraph();
     const { graph, circularDependency, codependency } = this.config.output;
     if (graph) {
-      this.writeJson(await this.getGraph(), graph);
+      this.writeJson(
+        JSON.stringify(await this.getGraph(), compose([toInfinity])),
+        graph,
+      );
     }
     if (circularDependency) {
-      this.writeJson(await this.getCircularDependency(), circularDependency);
+      this.writeJson(
+        JSON.stringify(
+          await this.getCircularDependency(),
+          compose([toInfinity, reduceKey], {
+            internalKeys: ["name", "version", "path", "circlePath"],
+          }),
+        ),
+        circularDependency,
+      );
     }
     if (codependency) {
-      this.writeJson(await this.getCodependency(), codependency);
+      this.writeJson(
+        JSON.stringify(
+          await this.getCodependency(),
+          compose([toInfinity, reduceKey], {
+            internalKeys: ["name", "version", "path"],
+          }),
+        ),
+        codependency,
+      );
     }
   }
   //确保树已经被生成(开启root的构造)
@@ -137,17 +156,10 @@ export class Graph {
     }
   }
   //序列化
-  private writeJson(
-    result: Node[] | Node | Record<string, Node[]>,
-    outDir: string,
-  ) {
-    fs.writeFileSync(
-      path.join(process.cwd(), outDir),
-      JSON.stringify(result, compose([toInfinity])),
-      {
-        flag: "w",
-      },
-    );
+  private writeJson(result: string, outDir: string) {
+    fs.writeFileSync(path.join(process.cwd(), outDir), result, {
+      flag: "w",
+    });
   }
   //根据新的深度来更新树（调用dfs）
   public async update(newDepth: number): Promise<void> {
@@ -326,7 +338,7 @@ export class Graph {
     id: string,
     depth: number,
     path?: string[],
-  ): Promise<Buffer> {
+  ): Promise<Node[]> {
     let resultNode: Node;
     if (!id && !path) {
       //root节点
@@ -366,28 +378,7 @@ export class Graph {
       },
     );
 
-    const nodesBuffers = this.generateNodeBuffer(results);
-
-    return nodesBuffers;
-  }
-  // 将node json序列化之后生成buffer（转为二进制格式）
-  private generateNodeBuffer(nodes: Node[]) {
-    return Buffer.concat(
-      nodes.map((node) => {
-        const nodeJson = JSON.stringify(
-          node,
-          compose([toInfinity, limitDepth], {
-            depth: node.path.length,
-          }),
-        );
-        const buffer = Buffer.from(nodeJson);
-        // 获取长度
-        const sizeBuffer = Buffer.alloc(4);
-        sizeBuffer.writeInt32LE(buffer.length, 0);
-        // 写入长度信息，方便解析
-        return Buffer.concat([sizeBuffer, buffer]);
-      }),
-    );
+    return results;
   }
 
   // 通过path来获取node
@@ -398,16 +389,29 @@ export class Graph {
     }, this.graph);
   }
 
-  public getNodeByPath(path: string[]) {
-    const results: Node[] = [this.graph];
+  public getNodeByPath(name: string, path: string[]) {
+    let ifTarget = !name;
+    const results: Node[] = ifTarget ? [this.graph] : [];
+
     //首个pathName 可以省略
     path.slice(1).reduce((node: Node, pathName: string) => {
-      const nextNode = node.dependencies[pathName];
-      results.push(nextNode);
+      const nextNode = node.dependencies?.[pathName];
+
+      //遇到起点
+      if (pathName.includes(name)) {
+        ifTarget = true;
+      }
+
+      ifTarget && results.push(nextNode);
+
+      if (!nextNode) {
+        return node;
+      }
+
       return nextNode;
     }, this.graph);
 
-    return this.generateNodeBuffer(results);
+    return results;
   }
 
   //处理childVersion

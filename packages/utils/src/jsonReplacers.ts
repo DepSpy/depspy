@@ -29,7 +29,11 @@ export function toInfinity(key: string, value: unknown): unknown {
   return value;
 }
 
-export function limitDepth(key: string, value: unknown, options: jsonOptions) {
+export function limitDepth(
+  key: string,
+  value: unknown,
+  options: jsonOptions = {},
+) {
   //当达到层数时，截断，不再json化
   if (
     key === "dependencies" &&
@@ -40,4 +44,21 @@ export function limitDepth(key: string, value: unknown, options: jsonOptions) {
   }
 
   return value;
+}
+
+export function reduceKey(
+  key: string,
+  value: unknown,
+  options: jsonOptions = {},
+) {
+  // 判断当前是否为Node
+  if (!(this.dependencies && this.dependenciesList)) return value;
+  const { internalKeys, externalKeys } = options;
+  // 优先生效
+  if (internalKeys && internalKeys.includes(key)) {
+    return value;
+  }
+  if (externalKeys && !externalKeys.includes(key)) {
+    return value;
+  }
 }

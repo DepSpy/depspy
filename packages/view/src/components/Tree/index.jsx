@@ -55,7 +55,7 @@ function Tree({ width = window.innerWidth }, svg) {
   useEffect(() => {
     if (selectedCircularDependency) {
       setSelectNode({
-        ...findDepBypath(selectedCircularDependency.path, root),
+        ...findDepBypath(selectedCircularDependency.path, root, true),
       });
     } else {
       setCirclePath("");
@@ -107,7 +107,7 @@ function Tree({ width = window.innerWidth }, svg) {
   useEffect(() => {
     if (selectedCodependency?.length) {
       const selectedNodes = selectedCodependency.map((node) => {
-        const dep = findDepBypath(node.path, root);
+        const dep = findDepBypath(node.path, root, true);
         dep.highlight = true;
         return dep;
       });
@@ -181,6 +181,7 @@ function Tree({ width = window.innerWidth }, svg) {
                 version,
                 dependencies,
                 originDeps,
+                dependenciesList,
                 unfold,
               },
             } = d;
@@ -193,8 +194,10 @@ function Tree({ width = window.innerWidth }, svg) {
             const hoverTextLength = getActualWidthOfChars(hoverText);
             const text = textOverflow(declarationId, 130);
             const textLength = getActualWidthOfChars(text);
-            const collapseFlag = Object.values(originDeps).length
-              ? unfold || Object.values(dependencies).length
+            console.log(unfold);
+            
+            const collapseFlag = Object.values(dependenciesList).length || Object.values(originDeps).length
+              ? unfold
                 ? "-"
                 : "+"
               : "";
@@ -202,8 +205,7 @@ function Tree({ width = window.innerWidth }, svg) {
             if (highlight) {
               d3.select(svg.current).attr(
                 "viewBox",
-                `${y + width / 2 - innerWidth / 2}, ${
-                  x - innerHeight / 2
+                `${y + width / 2 - innerWidth / 2}, ${x - innerHeight / 2
                 }, ${innerWidth}, ${innerHeight}`,
               );
             }
@@ -229,20 +231,15 @@ function Tree({ width = window.innerWidth }, svg) {
                         // 阻止触发父级
                         e.stopPropagation();
 
-                        const currentNode = findDepBypath(d.data.path, root);
-
-                        if (collapseFlag == "+") {
-                          currentNode.unfold = true;
-                        } else {
-                          currentNode.unfold = false;
-                        }
+                        const currentNode = findDepBypath(d.data.path, root, collapseFlag == "+");
+                        console.log('我执行了', collapseFlag == "+");
+                        
+                        
                         if (selectedNode !== currentNode) {
                           setSelectNode(currentNode);
-                        } else {
-                          setRoot({ ...root });
                         }
+                          setRoot({ ...root });
 
-                        // setData([...data]);
                       }}
                     >
                       {collapseFlag == "+" ? (
@@ -365,13 +362,14 @@ function generateTree(data) {
   return { offsetY, links, rootLength };
 }
 //找到路径下的node
-function findDepBypath(paths, data) {
+function findDepBypath(paths, data, finnalUnFold) {
+  console.log('findDepByPath');
+  
   if (paths.length == 1) return data;
   let parent = data;
   let dep = data;
 
   paths.slice(1).forEach((path) => {
-    console.log(path, !parent.dependencies[path], parent.originDeps);
 
     if (!parent.dependencies[path]) {
       if (parent.originDeps) parent.dependencies = parent.originDeps;
@@ -379,8 +377,9 @@ function findDepBypath(paths, data) {
     }
     dep = parent.dependencies[path] ? parent.dependencies[path] : dep;
     parent = dep;
-    dep.unfold = true; //标记为展开
+    if(finnalUnFold != undefined)  dep.unfold = true; //标记为展开
   });
+  if(finnalUnFold != undefined) dep.unfold = finnalUnFold;// 当前选择节点是否展开
 
   return dep;
 }
@@ -393,7 +392,11 @@ function findDepBypath(paths, data) {
  */
 function filterData(data, collapse) {
   let depth = 1;
+
   function traverse(data) {
+    if (!data) {
+      return {}
+    }
     const newData = {
       ...data,
       originDeps: { ...data.dependencies },

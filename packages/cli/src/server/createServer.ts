@@ -3,7 +3,6 @@ import { staticPath } from "@dep-spy/view";
 import path from "path";
 import express from "express";
 import { blueBright, green } from "chalk";
-import { createWs } from "./createWs";
 import { createHttp } from "./createHttp";
 
 const root = path.join(staticPath, "vite");

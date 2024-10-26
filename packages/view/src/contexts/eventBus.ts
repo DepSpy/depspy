@@ -1,25 +1,28 @@
 import { StaticNode } from "@dep-spy/core";
 import { useStaticStore, useStore } from "./index";
 import { searchNodePath } from "./searchNode";
-import { getNode, updateDepth } from "./api";
+import { getDependency, getNode, getNodeByPath, updateDepth } from "./api";
 export const EventType = {
   init: "init",
   depth: "depth",
 };
 
 export async function getNodeByPaths(curRoot: any, paths: string[]) {
-  for (const path of paths) {
-    if (!curRoot.dependencies || !curRoot.dependencies[path]) {
-      const res = await getNode({
-        id: curRoot.name + curRoot.declarationVersion,
-        depth: 2,
-        path: curRoot.path,
+  for (const path of paths.slice(1)) {
+
+    if (curRoot && (!curRoot.dependencies || !curRoot.dependencies[path])) {
+      
+      const res = await getNodeByPath({
+        name: path,
+        path: paths,
       });
-
-      curRoot.dependencies = res.data.dependencies;
+      console.log(curRoot, res.data);
+      
+      curRoot = res.data || {};
+      break;
     }
-
-    curRoot = curRoot.dependencies[path];
+    curRoot = (curRoot && curRoot.dependencies)? curRoot.dependencies[path]: {};
+    
   }
 }
 
@@ -37,10 +40,11 @@ export const EventBus = {
       (state) => state.selectedNode,
       async (newNode) => {
         const { collapse, root } = useStore.getState();
+        
         if (
           collapse &&
           newNode.name + newNode.declarationVersion !==
-            root.name + root.declarationVersion
+          root.name + root.declarationVersion
         ) {
           const res = await getNode({
             id: newNode.name + newNode.declarationVersion,
@@ -63,22 +67,13 @@ export const EventBus = {
       const res = await getNode({
         depth: 3,
       });
+      const depRes = await getDependency()
+      const { codependency, circularDependency } = depRes.data;
 
-      const { root, circularDependency, codependency } = res.data;
-      let paths: string[];
-      const curRoot: any = root;
-      // // 加载循环依赖节点
-      // for (const selectedCircularDependency of circularDependency) {
-      //   paths = selectedCircularDependency.circlePath.slice(1);
-      //   await getNodeByPaths(curRoot, paths);
-      // }
-      // 加载相同依赖节点
-      // for (const selectedCodependency of Object.values(codependency)) {
-      //   for (const coNode of selectedCodependency as any[]) {
-      //     paths = coNode.path.slice(1);
-      //     await getNodeByPaths(curRoot, paths);
-      //   }
-      // }
+      const root = res.data;
+      console.log('全局初始数据', root);
+      
+
 
       useStore.setState({ rootLoading: false });
       //连接初始化回调
