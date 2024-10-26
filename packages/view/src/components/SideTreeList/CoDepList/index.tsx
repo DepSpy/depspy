@@ -25,7 +25,7 @@ export default function CoDepList() {
           for (const coNode of Object.values(
             codependency[node.name + node.declarationVersion],
           )) {
-            const paths = coNode.path.slice(1);
+            const paths = coNode.path;
             await getNodeByPaths(root, paths);
           }
 

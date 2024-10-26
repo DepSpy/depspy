@@ -22,7 +22,7 @@ function changeData(data: Node): Data | undefined {
   }
   const dep = data.dependencies;
   const newdata: Data = { name: "", children: [] };
-  const depvalues = Object.values(dep);
+  const depvalues = Object.values(dep || {});
   // console.log("depvalues", depvalues);
 
   if (depvalues.length !== 0) {
