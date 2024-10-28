@@ -169,16 +169,47 @@ export class Graph {
     if (this.config.depth != newDepth) {
       this.coMap = new Map();
       this.codependency = new Map();
+      this.circularDependency = new Set();
     }
+
+    const afterHandler = async (node: Node) => {
+      const { dependenciesList, dependencies } = node;
+
+      //无子节点，跳过
+      if (!Object.keys(dependencies).length) {
+        return;
+      }
+
+      // 参数修正
+      Object.entries(dependenciesList).forEach(([name, version]) => {
+        const id = name + version;
+
+        const child = node.dependencies[name];
+
+        //收集相同依赖
+        this.addCodependency(child, id);
+
+        if (child.circlePath?.length > 0) {
+          this.circularDependency.add(child);
+        }
+        //修成所有子节点数总和
+        node.childrenNumber +=
+          (child.childrenNumber === Infinity ? 0 : child.childrenNumber) + 1; //child 子依赖数量 + 自身
+        //修正size
+        node.size += child.size;
+      });
+    };
+
     if (this.config.depth > newDepth) {
       this.config.depth = newDepth;
       //执行截断逻辑
-      await this.dfs(this.graph, this.decreaseHandler.bind(this), () => void 0);
+      await this.dfs(this.graph, this.decreaseHandler.bind(this), afterHandler);
       return;
-    } else if (this.config.depth < newDepth) {
+    }
+    if (this.config.depth < newDepth) {
       this.config.depth = newDepth;
       //执行加深递归逻辑
-      await this.dfs(this.graph, this.increaseHandler.bind(this), () => void 0);
+      await this.dfs(this.graph, this.increaseHandler.bind(this), afterHandler);
     }
   }
   //遍历
@@ -187,35 +218,19 @@ export class Graph {
     beforeHandler: (node: Node) => Promise<void> | true,
     afterHandler: (node: Node) => Promise<void>,
   ) {
-    //纠正参数
-    node.childrenNumber = node.childrenNumber === Infinity ? Infinity : 0;
-    node.size = node.selfSize;
     const promises: Promise<void>[] = [];
+
     const handlerPromise = beforeHandler(node);
     if (handlerPromise === true) {
       const dependenceEntries = Object.entries(node.dependenciesList);
-      for (const [childName, childVersion] of dependenceEntries) {
+      for (const [childName] of dependenceEntries) {
         const child = node.dependencies[childName];
-        const id = childName + childVersion;
-
         // 到达底部
         if (!child) {
           continue;
         }
-
         //递归子节点
-        const dfsPromise = this.dfs(child, beforeHandler, afterHandler).then(
-          () => {
-            //收集相同依赖
-            this.addCodependency(child, id);
-            //修成所有子节点数总和
-            node.childrenNumber +=
-              (child.childrenNumber === Infinity ? 0 : child.childrenNumber) +
-              1; //child 子依赖数量 + 自身
-            //修正size
-            node.size += child.size;
-          },
-        );
+        const dfsPromise = this.dfs(child, beforeHandler, afterHandler);
         promises.push(dfsPromise);
       }
     } else {
@@ -227,6 +242,9 @@ export class Graph {
   }
   //加深树的深度处理函数
   private increaseHandler(node: Node): Promise<void> | true {
+    node.childrenNumber = node.childrenNumber === Infinity ? Infinity : 0;
+    node.size = node.selfSize;
+
     const dependenceEntries = Object.entries(node.dependencies);
     if (dependenceEntries.length === 0) {
       //到达最底层
@@ -239,6 +257,9 @@ export class Graph {
   }
   //减小树的深度处理函数，做截断
   private decreaseHandler(node: Node) {
+    node.childrenNumber = node.childrenNumber === Infinity ? Infinity : 0;
+    node.size = node.selfSize;
+
     if (this.config.depth && this.config.depth == node.path.length) {
       //截断
       node.dependencies = {};
@@ -306,6 +327,7 @@ export class Graph {
         /*⬅️⬅️⬅️  后序处理逻辑  ➡️➡️➡️*/
         //添加相同依赖
         this.addCodependency(child, id);
+
         child.declarationVersion = this.handleChildVersion(childVersion);
         //将子节点加入父节点（注意是children是引入类型，所以可以直接加）
         curNode.dependencies[childName] = child;
