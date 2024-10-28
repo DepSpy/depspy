@@ -175,6 +175,10 @@ export class Graph {
     const afterHandler = async (node: Node) => {
       const { dependenciesList, dependencies } = node;
 
+      // 参数修正
+      node.childrenNumber = node.childrenNumber === Infinity ? Infinity : 0;
+      node.size = node.selfSize;
+
       //无子节点，跳过
       if (!Object.keys(dependencies).length) {
         return;
@@ -225,10 +229,12 @@ export class Graph {
       const dependenceEntries = Object.entries(node.dependenciesList);
       for (const [childName] of dependenceEntries) {
         const child = node.dependencies[childName];
-        // 到达底部
+
+        //到达最底层
         if (!child) {
           continue;
         }
+
         //递归子节点
         const dfsPromise = this.dfs(child, beforeHandler, afterHandler);
         promises.push(dfsPromise);
@@ -242,9 +248,6 @@ export class Graph {
   }
   //加深树的深度处理函数
   private increaseHandler(node: Node): Promise<void> | true {
-    node.childrenNumber = node.childrenNumber === Infinity ? Infinity : 0;
-    node.size = node.selfSize;
-
     const dependenceEntries = Object.entries(node.dependencies);
     if (dependenceEntries.length === 0) {
       //到达最底层
@@ -257,9 +260,6 @@ export class Graph {
   }
   //减小树的深度处理函数，做截断
   private decreaseHandler(node: Node) {
-    node.childrenNumber = node.childrenNumber === Infinity ? Infinity : 0;
-    node.size = node.selfSize;
-
     if (this.config.depth && this.config.depth == node.path.length) {
       //截断
       node.dependencies = {};
@@ -372,7 +372,7 @@ export class Graph {
       }
       // 有path时查询
       if (!resultNode && path) {
-        resultNode = this.searchNodeByPath(path);
+        [resultNode] = this.getNodeByPath(path[path.length - 1], path);
       }
     }
     // 没查找到结果
@@ -403,14 +403,7 @@ export class Graph {
     return results;
   }
 
-  // 通过path来获取node
-  private searchNodeByPath(path: string[]) {
-    //首个pathName 可以省略
-    return path.slice(1).reduce((node: Node, pathName: string) => {
-      return node.dependencies[pathName];
-    }, this.graph);
-  }
-
+  // 通过path来获取节点
   public getNodeByPath(name: string, path: string[]) {
     let ifTarget = !name;
     const results: Node[] = ifTarget ? [this.graph] : [];
@@ -420,7 +413,7 @@ export class Graph {
       const nextNode = node.dependencies?.[pathName];
 
       //遇到起点
-      if (pathName.includes(name)) {
+      if (pathName === name) {
         ifTarget = true;
       }
 
