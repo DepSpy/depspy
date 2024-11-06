@@ -194,7 +194,10 @@ function Tree({ width = window.innerWidth }, svg) {
             const hoverTextLength = getActualWidthOfChars(hoverText);
             const text = textOverflow(declarationId, 130);
             const textLength = getActualWidthOfChars(text);
-
+            if(name === "write-pkg") {
+              console.log("write", d)
+            }
+            
             const collapseFlag =
               Object.values(dependenciesList).length ||
               Object.values(originDeps).length

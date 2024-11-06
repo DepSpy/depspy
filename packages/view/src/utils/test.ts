@@ -21,6 +21,6 @@ export const isExistDepByPath = (root: any, paths: string[]): boolean => {
 };
 
 
-export const isRightGetNodeByPath = async  (name: string, paths: string[], data: any): boolean => {
+export const isRightGetNodeByPath = (name: string, paths: string[], data: any): boolean => {
   console.log(data, name);
 }

@@ -22,7 +22,6 @@ export const getNode = async (query: {
 
   const treeRoot = treeLeaves[0];
   genarateTree(treeRoot, treeMap);
-  console.log(treeRoot);
 
   return {
     data: treeRoot,
@@ -50,7 +49,6 @@ export const getDependency = async () => {
   const cirDeps = parseNodeBuffer(reader);
   const reader2 = await res2.arrayBuffer();
   const codeps = parseNodeBuffer(reader2);
-  console.log(cirDeps.length);
 
   const result = {
     data: {
@@ -61,7 +59,6 @@ export const getDependency = async () => {
   for (const dep of codeps) {
     result.data.codependency[dep[0]] = dep[1];
   }
-  console.log(result);
 
   return result;
 };
@@ -94,8 +91,6 @@ export const getNodeByPath = async (query: {
   const treeRoot = treeLeaves[0];
 
   genarateTree(treeRoot, treeMap);
-  console.log(treeRoot);
-
   return {
     data: treeRoot,
   };
@@ -107,6 +102,7 @@ function genarateTree(node: Node, treeMap: Map<string, Node>) {
   deplists.forEach((key) => {
     if (treeMap.get([...node.path, key].join("/"))) {
       node.dependencies[key] = treeMap.get([...node.path, key].join("/"));
+      node.dependencies[key].parent = node;
     }
     genarateTree(node.dependencies[key], treeMap);
   });

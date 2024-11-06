@@ -2,7 +2,7 @@ import { StaticNode } from "@dep-spy/core";
 import { useStaticStore, useStore } from "./index";
 import { searchNodePath } from "./searchNode";
 import { getDependency, getNode, getNodeByPath, updateDepth } from "./api";
-import { isExistDepByPath, isRightGetNodeByPath } from "@/utils/test.ts";
+import { isExistDepByPath } from "@/utils/test.ts";
 export const EventType = {
   init: "init",
   depth: "depth",
@@ -16,9 +16,8 @@ export async function getNodeByPaths(curRoot: any, paths: string[]) {
         name: path,
         path: paths,
       });
-      console.log(curRoot);
-      isRightGetNodeByPath(path, paths, res);
-      curRoot = res.data || {};
+      curRoot.dependencies[path] = res.data || {};
+      curRoot.dependencies[path].parent = curRoot;
       break;
     }
     curRoot = curRoot && curRoot.dependencies ? curRoot.dependencies[path] : {};
