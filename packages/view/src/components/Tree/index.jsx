@@ -194,23 +194,22 @@ function Tree({ width = window.innerWidth }, svg) {
             const hoverTextLength = getActualWidthOfChars(hoverText);
             const text = textOverflow(declarationId, 130);
             const textLength = getActualWidthOfChars(text);
-            if(name === "write-pkg") {
-              console.log("write", d)
-            }
-            
+
+
             const collapseFlag =
-              Object.values(dependenciesList).length ||
-              Object.values(originDeps).length
+              (Object.values(dependenciesList).length ||
+                Object.values(originDeps).length)
                 ? unfold
                   ? "-"
                   : "+"
                 : "";
-
+            // if(name === "sort-keys") {
+            //   console.log("write",Object.values(dependenciesList).length,collapseFlag, d)
+            // }
             if (highlight) {
               d3.select(svg.current).attr(
                 "viewBox",
-                `${y + width / 2 - innerWidth / 2}, ${
-                  x - innerHeight / 2
+                `${y + width / 2 - innerWidth / 2}, ${x - innerHeight / 2
                 }, ${innerWidth}, ${innerHeight}`,
               );
             }
@@ -223,7 +222,7 @@ function Tree({ width = window.innerWidth }, svg) {
                 }}
               >
                 <g>
-                  {Object.values(originDeps).length && depth && (
+                  {(Object.values(originDeps).length || Object.values(dependenciesList).length) && depth && (
                     <g
                       fill={
                         d.data.highlight

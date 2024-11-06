@@ -10,17 +10,20 @@ export const EventType = {
 
 export async function getNodeByPaths(curRoot: any, paths: string[]) {
   const root = curRoot;
+  let prePath = "";
   for (const path of paths.slice(1)) {
     if (curRoot && (!curRoot.dependencies || !curRoot.dependencies[path])) {
       const res = await getNodeByPath({
-        name: path,
+        name: prePath,
         path: paths,
       });
-      curRoot.dependencies[path] = res.data || {};
-      curRoot.dependencies[path].parent = curRoot;
+      
+      curRoot.parent.dependencies[prePath] = res.data || {};
+      curRoot.parent.dependencies[prePath].parent = curRoot;
       break;
     }
     curRoot = curRoot && curRoot.dependencies ? curRoot.dependencies[path] : {};
+    prePath = path;
   }
   if (!isExistDepByPath(root, paths)) {
     console.error("getNodeByPaths error");

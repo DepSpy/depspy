@@ -415,9 +415,10 @@ export class Graph {
       //遇到起点
       if (pathName === name) {
         ifTarget = true;
+        results.push(nextNode);
       }
 
-      ifTarget && results.push(nextNode);
+      ifTarget && results.push(...Object.values(nextNode.dependencies));
 
       if (!nextNode) {
         return node;
