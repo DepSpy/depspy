@@ -4,8 +4,13 @@ import DrawerBox from "../DrawerBox";
 import { getNodeByPaths } from "@/contexts/eventBus";
 
 export default function CoDepList() {
-  const { root, codependency, selectedCodependency, setSelectCodependency } =
-    useStore((state) => state);
+  const {
+    root,
+    codependency,
+    selectedCodependency,
+    setSelectCodependency,
+    setRoot,
+  } = useStore((state) => state);
   const dependencies = useMemo(() => {
     return Object.values(codependency).map((nodes) => {
       return nodes[0];
@@ -22,16 +27,26 @@ export default function CoDepList() {
             setSelectCodependency([]);
             return;
           }
-          for (const coNode of Object.values(
-            codependency[node.name + node.declarationVersion],
-          )) {
-            const paths = coNode.path;
-            await getNodeByPaths(root, paths);
-          }
+          await Promise.all(
+            Object.values(
+              codependency[node.name + node.declarationVersion],
+            ).map(async (coNode) => {
+              const paths = coNode.path;
+              await getNodeByPaths(root, paths);
+            }),
+          );
+          // for (const coNode of Object.values(
+          //   codependency[node.name + node.declarationVersion],
+          // )) {
+          //   const paths = coNode.path;
+          //   await getNodeByPaths(root, paths);
+          // }
 
           setSelectCodependency(
             codependency[node.name + node.declarationVersion],
           );
+          setRoot({ ...root });
+          console.log(root, "asfasfasf");
         }}
       />
     </div>

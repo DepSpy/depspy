@@ -2,34 +2,31 @@ import { Node } from "~/types";
 
 const baseUrl = "http://localhost:2023";
 
-
-
 export const getNode = async (query: {
   id?: string;
   depth?: number;
   path?: string[] | string;
 }) => {
-
   const res = await fetch(
     `${baseUrl}/getNode?${stringifyObjToParams({ ...query })}`,
   );
   // 读取readableStream
   const reader = await res.arrayBuffer();
-  const treeLeaves = parseNodeBuffer(reader)
+  const treeLeaves = parseNodeBuffer(reader);
 
   // console.log(treeLeaves);
-  const treeMap = new Map()
+  const treeMap = new Map();
   treeLeaves.forEach((node) => {
-    treeMap.set(node.path.join('/'), node)
-  })
+    treeMap.set(node.path.join("/"), node);
+  });
 
-  const treeRoot = treeLeaves[0]
-  genarateTree(treeRoot, treeMap)
+  const treeRoot = treeLeaves[0];
+  genarateTree(treeRoot, treeMap);
   console.log(treeRoot);
 
   return {
-    data: treeRoot
-  }
+    data: treeRoot,
+  };
 };
 
 export const searchNode = async (query: { key?: string }) => {
@@ -50,24 +47,24 @@ export const getDependency = async () => {
   const res = await fetch(`${baseUrl}/getCircularDependency`);
   const res2 = await fetch(`${baseUrl}/getCodependency`);
   const reader = await res.arrayBuffer();
-  const cirDeps = parseNodeBuffer(reader)
+  const cirDeps = parseNodeBuffer(reader);
   const reader2 = await res2.arrayBuffer();
-  const codeps = parseNodeBuffer(reader2)
+  const codeps = parseNodeBuffer(reader2);
   console.log(cirDeps.length);
 
   const result = {
     data: {
       codependency: {},
-      circularDependency: cirDeps
-    }
-  }
+      circularDependency: cirDeps,
+    },
+  };
   for (const dep of codeps) {
-    result.data.codependency[dep[0]] = dep[1]
+    result.data.codependency[dep[0]] = dep[1];
   }
   console.log(result);
 
-  return result
-}
+  return result;
+};
 
 function stringifyObjToParams(obj: any) {
   return Object.entries(obj)
@@ -78,43 +75,46 @@ function stringifyObjToParams(obj: any) {
     .join("&");
 }
 
-export const getNodeByPath = async (query: { name: string,path: string[] }) => {
-  const res = await fetch(`${baseUrl}/getNodeByPath?${stringifyObjToParams(query)}`);
+export const getNodeByPath = async (query: {
+  name: string;
+  path: string[];
+}) => {
+  const res = await fetch(
+    `${baseUrl}/getNodeByPath?${stringifyObjToParams(query)}`,
+  );
   const reader = await res.arrayBuffer();
-  const treeLeaves = parseNodeBuffer(reader)
-  console.log(treeLeaves, query.name,query.path);
+  const treeLeaves = parseNodeBuffer(reader);
+  console.log(treeLeaves, query.name, query.path);
 
-  const treeMap = new Map()
+  const treeMap = new Map();
   treeLeaves.forEach((node) => {
-    treeMap.set(node.path.join('/'), node)
-  })
+    treeMap.set(node.path.join("/"), node);
+  });
 
-  const treeRoot = treeLeaves[0]
+  const treeRoot = treeLeaves[0];
 
-  genarateTree(treeRoot, treeMap)
+  genarateTree(treeRoot, treeMap);
   console.log(treeRoot);
 
   return {
-    data: treeRoot
-  }
-
-}
+    data: treeRoot,
+  };
+};
 
 function genarateTree(node: Node, treeMap: Map<string, Node>) {
-
   if (!node) return;
   const deplists = Object.keys(node.dependenciesList || {});
-  deplists.forEach(key => {
-    if(treeMap.get([...node.path, key].join('/'))) {
-      node.dependencies[key] = treeMap.get([...node.path, key].join('/'))
+  deplists.forEach((key) => {
+    if (treeMap.get([...node.path, key].join("/"))) {
+      node.dependencies[key] = treeMap.get([...node.path, key].join("/"));
     }
     genarateTree(node.dependencies[key], treeMap);
-  })
+  });
 }
 
 function parseNodeBuffer(buffer) {
-  if(!buffer) {
-    throw new Error('buffer is empty')
+  if (!buffer) {
+    throw new Error("buffer is empty");
   }
   const nodes = [];
   let offset = 0;
@@ -137,4 +137,3 @@ function parseNodeBuffer(buffer) {
 
   return nodes;
 }
-

@@ -8,6 +8,7 @@ export default function CircleDepList() {
     circularDependency,
     selectedCircularDependency,
     setSelectCircularDependency,
+    setRoot,
   } = useStore((state) => state);
   return (
     <div>
@@ -21,6 +22,7 @@ export default function CircleDepList() {
           const paths = node.circlePath;
           await getNodeByPaths(root, paths);
           setSelectCircularDependency(node);
+          setRoot({ ...root });
         }}
       />
     </div>
