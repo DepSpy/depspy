@@ -1,6 +1,4 @@
-import { getNodeByPath } from "@/contexts/api.ts";
-
-export const isExistDepByPath = (root: any, paths: string[]): boolean => {
+export const isExistDepByPath = (root, paths: string[]): boolean => {
   let curRoot = root;
   if (!root || root.name !== "dep-spy") {
     console.log("isExistDepByPath", root);
@@ -19,8 +17,3 @@ export const isExistDepByPath = (root: any, paths: string[]): boolean => {
   }
   return true;
 };
-
-
-export const isRightGetNodeByPath = (name: string, paths: string[], data: any): boolean => {
-  console.log(data, name);
-}

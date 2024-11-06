@@ -13,34 +13,37 @@ export default function Collapse() {
   async function dfs(roots: Node[]) {
     const deps: Node[] = [];
     function dfsKid(node: Node) {
-      if(!node || !node.dependencies) return;
+      if (!node || !node.dependencies) return;
       if (Object.values(node.dependencies).length === 0) {
-
         deps.push(node);
         return;
       }
-      for (let v of Object.values(node.dependencies)) {
+      for (const v of Object.values(node.dependencies)) {
         dfsKid(v);
       }
     }
     for (const root of roots) {
       dfsKid(root);
     }
-    const d = (await Promise.all(
-      Object.values(deps)
-        .filter((dep) => Object.values((dep as any).dependenciesList).length)
-        .map(async (dep) => {
-          const res = await getNode({
-            id: dep.name + dep.declarationVersion,
-            depth: 3,
-            path: dep.path ? dep.path : "",
-          });
-          dep.dependencies = res.data.dependencies;
+    const d = (
+      await Promise.all(
+        Object.values(deps)
+          .filter((dep) => Object.values(dep.dependenciesList).length)
+          .map(async (dep) => {
+            const res = await getNode({
+              id: dep.name + dep.declarationVersion,
+              depth: 3,
+              path: dep.path ? dep.path : "",
+            });
+            dep.dependencies = res.data.dependencies;
 
-          return dep;
-        }),
-    )).filter(dep => dep && dep.dependencies && Object.values(dep.dependencies).length);
-    
+            return dep;
+          }),
+      )
+    ).filter(
+      (dep) =>
+        dep && dep.dependencies && Object.values(dep.dependencies).length,
+    );
 
     if (d.length) {
       dfs(d); // 递归

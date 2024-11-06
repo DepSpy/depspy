@@ -8,7 +8,7 @@ export const EventType = {
   depth: "depth",
 };
 
-export async function getNodeByPaths(curRoot: any, paths: string[]) {
+export async function getNodeByPaths(curRoot, paths: string[]) {
   const root = curRoot;
   let prePath = "";
   for (const path of paths.slice(1)) {
@@ -17,7 +17,7 @@ export async function getNodeByPaths(curRoot: any, paths: string[]) {
         name: prePath,
         path: paths,
       });
-      
+
       curRoot.parent.dependencies[prePath] = res.data || {};
       curRoot.parent.dependencies[prePath].parent = curRoot;
       break;
@@ -62,7 +62,7 @@ export const EventBus = {
       },
     );
   },
-  update: async ({ depth, id }: { depth: number; id?: string }) => {
+  update: async ({ depth }: { depth: number; id?: string }) => {
     try {
       await updateDepth({
         depth: depth,
