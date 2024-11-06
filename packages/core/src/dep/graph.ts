@@ -1,4 +1,9 @@
-import { compose, MODULE_INFO_TYPE, toInfinity } from "@dep-spy/utils";
+import {
+  compose,
+  MODULE_INFO_TYPE,
+  reduceKey,
+  toInfinity,
+} from "@dep-spy/utils";
 import { Config, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
@@ -104,13 +109,32 @@ export class Graph {
     await this.ensureGraph();
     const { graph, circularDependency, codependency } = this.config.output;
     if (graph) {
-      this.writeJson(await this.getGraph(), graph);
+      this.writeJson(
+        JSON.stringify(await this.getGraph(), compose([toInfinity])),
+        graph,
+      );
     }
     if (circularDependency) {
-      this.writeJson(await this.getCircularDependency(), circularDependency);
+      this.writeJson(
+        JSON.stringify(
+          await this.getCircularDependency(),
+          compose([toInfinity, reduceKey], {
+            internalKeys: ["name", "version", "path", "circlePath"],
+          }),
+        ),
+        circularDependency,
+      );
     }
     if (codependency) {
-      this.writeJson(await this.getCodependency(), codependency);
+      this.writeJson(
+        JSON.stringify(
+          await this.getCodependency(),
+          compose([toInfinity, reduceKey], {
+            internalKeys: ["name", "version", "path"],
+          }),
+        ),
+        codependency,
+      );
     }
   }
   //确保树已经被生成(开启root的构造)
@@ -132,17 +156,10 @@ export class Graph {
     }
   }
   //序列化
-  private writeJson(
-    result: Node[] | Node | Record<string, Node[]>,
-    outDir: string,
-  ) {
-    fs.writeFileSync(
-      path.join(process.cwd(), outDir),
-      JSON.stringify(result, compose([toInfinity])),
-      {
-        flag: "w",
-      },
-    );
+  private writeJson(result: string, outDir: string) {
+    fs.writeFileSync(path.join(process.cwd(), outDir), result, {
+      flag: "w",
+    });
   }
   //根据新的深度来更新树（调用dfs）
   public async update(newDepth: number): Promise<void> {
@@ -152,16 +169,51 @@ export class Graph {
     if (this.config.depth != newDepth) {
       this.coMap = new Map();
       this.codependency = new Map();
+      this.circularDependency = new Set();
     }
+
+    const afterHandler = async (node: Node) => {
+      const { dependenciesList, dependencies } = node;
+
+      // 参数修正
+      node.childrenNumber = node.childrenNumber === Infinity ? Infinity : 0;
+      node.size = node.selfSize;
+
+      //无子节点，跳过
+      if (!Object.keys(dependencies).length) {
+        return;
+      }
+
+      // 参数修正
+      Object.entries(dependenciesList).forEach(([name, version]) => {
+        const id = name + version;
+
+        const child = node.dependencies[name];
+
+        //收集相同依赖
+        this.addCodependency(child, id);
+
+        if (child.circlePath?.length > 0) {
+          this.circularDependency.add(child);
+        }
+        //修成所有子节点数总和
+        node.childrenNumber +=
+          (child.childrenNumber === Infinity ? 0 : child.childrenNumber) + 1; //child 子依赖数量 + 自身
+        //修正size
+        node.size += child.size;
+      });
+    };
+
     if (this.config.depth > newDepth) {
       this.config.depth = newDepth;
       //执行截断逻辑
-      await this.dfs(this.graph, this.decreaseHandler.bind(this), () => void 0);
+      await this.dfs(this.graph, this.decreaseHandler.bind(this), afterHandler);
       return;
-    } else if (this.config.depth < newDepth) {
+    }
+    if (this.config.depth < newDepth) {
       this.config.depth = newDepth;
       //执行加深递归逻辑
-      await this.dfs(this.graph, this.increaseHandler.bind(this), () => void 0);
+      await this.dfs(this.graph, this.increaseHandler.bind(this), afterHandler);
     }
   }
   //遍历
@@ -170,35 +222,21 @@ export class Graph {
     beforeHandler: (node: Node) => Promise<void> | true,
     afterHandler: (node: Node) => Promise<void>,
   ) {
-    //纠正参数
-    node.childrenNumber = node.childrenNumber === Infinity ? Infinity : 0;
-    node.size = node.selfSize;
     const promises: Promise<void>[] = [];
+
     const handlerPromise = beforeHandler(node);
     if (handlerPromise === true) {
       const dependenceEntries = Object.entries(node.dependenciesList);
-      for (const [childName, childVersion] of dependenceEntries) {
+      for (const [childName] of dependenceEntries) {
         const child = node.dependencies[childName];
-        const id = childName + childVersion;
 
-        // 到达底部
+        //到达最底层
         if (!child) {
           continue;
         }
 
         //递归子节点
-        const dfsPromise = this.dfs(child, beforeHandler, afterHandler).then(
-          () => {
-            //收集相同依赖
-            this.addCodependency(child, id);
-            //修成所有子节点数总和
-            node.childrenNumber +=
-              (child.childrenNumber === Infinity ? 0 : child.childrenNumber) +
-              1; //child 子依赖数量 + 自身
-            //修正size
-            node.size += child.size;
-          },
-        );
+        const dfsPromise = this.dfs(child, beforeHandler, afterHandler);
         promises.push(dfsPromise);
       }
     } else {
@@ -289,6 +327,7 @@ export class Graph {
         /*⬅️⬅️⬅️  后序处理逻辑  ➡️➡️➡️*/
         //添加相同依赖
         this.addCodependency(child, id);
+
         child.declarationVersion = this.handleChildVersion(childVersion);
         //将子节点加入父节点（注意是children是引入类型，所以可以直接加）
         curNode.dependencies[childName] = child;
@@ -333,7 +372,7 @@ export class Graph {
       }
       // 有path时查询
       if (!resultNode && path) {
-        resultNode = this.searchNodeByPath(path);
+        [resultNode] = this.getNodeByPath(path[path.length - 1], path);
       }
     }
     // 没查找到结果
@@ -364,25 +403,24 @@ export class Graph {
     return results;
   }
 
-  // 通过path来获取node
-  private searchNodeByPath(path: string[]) {
-    //首个pathName 可以省略
-    return path.slice(1).reduce((node: Node, pathName: string) => {
-      return node.dependencies[pathName];
-    }, this.graph);
-  }
-
+  // 通过path来获取节点
   public getNodeByPath(name: string, path: string[]) {
-    const results: Node[] = [];
-    let ifTarget = false;
+    let ifTarget = !name;
+    const results: Node[] = ifTarget ? [this.graph] : [];
+
     //首个pathName 可以省略
     path.slice(1).reduce((node: Node, pathName: string) => {
-      const nextNode = node.dependencies[pathName];
-      ifTarget && results.push(nextNode);
+      const nextNode = node.dependencies?.[pathName];
 
       //遇到起点
-      if (name === pathName) {
+      if (pathName === name) {
         ifTarget = true;
+      }
+
+      ifTarget && results.push(nextNode);
+
+      if (!nextNode) {
+        return node;
       }
 
       return nextNode;

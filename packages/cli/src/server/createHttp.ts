@@ -1,6 +1,12 @@
 import { Express, Response } from "express";
 import { Graph, Node } from "@dep-spy/core";
-import { compose, toInfinity, limitDepth, jsonsToBuffer } from "@dep-spy/utils";
+import {
+  compose,
+  toInfinity,
+  limitDepth,
+  jsonsToBuffer,
+  reduceKey,
+} from "@dep-spy/utils";
 
 export type RES<T> = {
   code: number;
@@ -146,7 +152,18 @@ export function createHttp(app: Express, graph: Graph) {
       const circularDependency = await graph.getCircularDependency();
 
       const nodeJsons = circularDependency.map((node) => {
-        return JSON.stringify(node, compose([toInfinity]));
+        return JSON.stringify(
+          node,
+          compose([toInfinity, reduceKey], {
+            internalKeys: [
+              "name",
+              "declarationVersion",
+              "version",
+              "path",
+              "circlePath",
+            ],
+          }),
+        );
       });
 
       const buffer = jsonsToBuffer(nodeJsons);
@@ -160,10 +177,13 @@ export function createHttp(app: Express, graph: Graph) {
   app.get("/getCodependency", async (req, res) => {
     try {
       const codependency = await graph.getCodependency();
-      const nodeJsons = Object.entries(codependency).map(([id, nodes]) => {
+
+      const nodeJsons = Object.entries(codependency).map((item) => {
         return JSON.stringify(
-          [id, nodes.map((node: Node) => ({ ...node, dependencies: {} }))],
-          compose([toInfinity]),
+          item,
+          compose([toInfinity, reduceKey], {
+            internalKeys: ["name", "declarationVersion", "version", "path"],
+          }),
         );
       });
       const buffer = jsonsToBuffer(nodeJsons);
