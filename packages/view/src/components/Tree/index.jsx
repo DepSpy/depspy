@@ -194,14 +194,18 @@ function Tree({ width = window.innerWidth }, svg) {
             const hoverTextLength = getActualWidthOfChars(hoverText);
             const text = textOverflow(declarationId, 130);
             const textLength = getActualWidthOfChars(text);
-            console.log(unfold);
-            
-            const collapseFlag = Object.values(dependenciesList).length || Object.values(originDeps).length
-              ? unfold
-                ? "-"
-                : "+"
-              : "";
 
+
+            const collapseFlag =
+              (Object.values(dependenciesList).length ||
+                Object.values(originDeps).length)
+                ? unfold
+                  ? "-"
+                  : "+"
+                : "";
+            // if(name === "sort-keys") {
+            //   console.log("write",Object.values(dependenciesList).length,collapseFlag, d)
+            // }
             if (highlight) {
               d3.select(svg.current).attr(
                 "viewBox",
@@ -218,7 +222,7 @@ function Tree({ width = window.innerWidth }, svg) {
                 }}
               >
                 <g>
-                  {Object.values(originDeps).length && depth && (
+                  {(Object.values(originDeps).length || Object.values(dependenciesList).length) && depth && (
                     <g
                       fill={
                         d.data.highlight
@@ -231,15 +235,17 @@ function Tree({ width = window.innerWidth }, svg) {
                         // 阻止触发父级
                         e.stopPropagation();
 
-                        const currentNode = findDepBypath(d.data.path, root, collapseFlag == "+");
-                        console.log('我执行了', collapseFlag == "+");
-                        
-                        
+                        const currentNode = findDepBypath(
+                          d.data.path,
+                          root,
+                          collapseFlag == "+",
+                        );
+                        console.log("我执行了", collapseFlag == "+");
+
                         if (selectedNode !== currentNode) {
                           setSelectNode(currentNode);
                         }
-                          setRoot({ ...root });
-
+                        setRoot({ ...root });
                       }}
                     >
                       {collapseFlag == "+" ? (
@@ -363,23 +369,22 @@ function generateTree(data) {
 }
 //找到路径下的node
 function findDepBypath(paths, data, finnalUnFold) {
-  console.log('findDepByPath');
-  
+  console.log("findDepByPath");
+
   if (paths.length == 1) return data;
   let parent = data;
   let dep = data;
 
   paths.slice(1).forEach((path) => {
-
     if (!parent.dependencies[path]) {
       if (parent.originDeps) parent.dependencies = parent.originDeps;
       else return;
     }
     dep = parent.dependencies[path] ? parent.dependencies[path] : dep;
     parent = dep;
-    if(finnalUnFold != undefined)  dep.unfold = true; //标记为展开
+    if (finnalUnFold != undefined) dep.unfold = true; //标记为展开
   });
-  if(finnalUnFold != undefined) dep.unfold = finnalUnFold;// 当前选择节点是否展开
+  if (finnalUnFold != undefined) dep.unfold = finnalUnFold; // 当前选择节点是否展开
 
   return dep;
 }
@@ -395,7 +400,7 @@ function filterData(data, collapse) {
 
   function traverse(data) {
     if (!data) {
-      return {}
+      return {};
     }
     const newData = {
       ...data,

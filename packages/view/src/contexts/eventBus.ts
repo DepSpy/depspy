@@ -2,27 +2,31 @@ import { StaticNode } from "@dep-spy/core";
 import { useStaticStore, useStore } from "./index";
 import { searchNodePath } from "./searchNode";
 import { getDependency, getNode, getNodeByPath, updateDepth } from "./api";
+import { isExistDepByPath } from "@/utils/test.ts";
 export const EventType = {
   init: "init",
   depth: "depth",
 };
 
 export async function getNodeByPaths(curRoot: any, paths: string[]) {
+  const root = curRoot;
+  let prePath = "";
   for (const path of paths.slice(1)) {
-
     if (curRoot && (!curRoot.dependencies || !curRoot.dependencies[path])) {
-      
       const res = await getNodeByPath({
-        name: path,
+        name: prePath,
         path: paths,
       });
-      console.log(curRoot, res.data);
       
-      curRoot = res.data || {};
+      curRoot.parent.dependencies[prePath] = res.data || {};
+      curRoot.parent.dependencies[prePath].parent = curRoot;
       break;
     }
-    curRoot = (curRoot && curRoot.dependencies)? curRoot.dependencies[path]: {};
-    
+    curRoot = curRoot && curRoot.dependencies ? curRoot.dependencies[path] : {};
+    prePath = path;
+  }
+  if (!isExistDepByPath(root, paths)) {
+    console.error("getNodeByPaths error");
   }
 }
 
@@ -40,11 +44,11 @@ export const EventBus = {
       (state) => state.selectedNode,
       async (newNode) => {
         const { collapse, root } = useStore.getState();
-        
+
         if (
           collapse &&
           newNode.name + newNode.declarationVersion !==
-          root.name + root.declarationVersion
+            root.name + root.declarationVersion
         ) {
           const res = await getNode({
             id: newNode.name + newNode.declarationVersion,
@@ -67,13 +71,11 @@ export const EventBus = {
       const res = await getNode({
         depth: 3,
       });
-      const depRes = await getDependency()
+      const depRes = await getDependency();
       const { codependency, circularDependency } = depRes.data;
 
       const root = res.data;
-      console.log('全局初始数据', root);
-      
-
+      console.log("全局初始数据", root);
 
       useStore.setState({ rootLoading: false });
       //连接初始化回调
