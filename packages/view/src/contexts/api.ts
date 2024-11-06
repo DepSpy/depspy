@@ -63,7 +63,7 @@ export const getDependency = async () => {
   return result;
 };
 
-function stringifyObjToParams(obj: any) {
+function stringifyObjToParams(obj) {
   return Object.entries(obj)
     .map(([key, value]) => {
       if (typeof value === "object") return `${key}=${JSON.stringify(value)}`;
