@@ -27,14 +27,13 @@ export default function CoDepList() {
             setSelectCodependency([]);
             return;
           }
-          await Promise.all(
-            Object.values(
-              codependency[node.name + node.declarationVersion],
-            ).map(async (coNode) => {
-              const paths = coNode.path;
-              await getNodeByPaths(root, paths);
-            }),
-          );
+          const paths = Object.values(
+            codependency[node.name + node.declarationVersion],
+          ).map((coNode) => {
+            const paths = coNode.path;
+            return paths;
+          });
+          await getNodeByPaths(root, paths);
           // for (const coNode of Object.values(
           //   codependency[node.name + node.declarationVersion],
           // )) {

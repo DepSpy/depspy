@@ -2,32 +2,69 @@ import { StaticNode } from "@dep-spy/core";
 import { useStaticStore, useStore } from "./index";
 import { searchNodePath } from "./searchNode";
 import { getDependency, getNode, getNodeByPath, updateDepth } from "./api";
-import { isExistDepByPath } from "@/utils/test.ts";
 export const EventType = {
   init: "init",
   depth: "depth",
 };
 
-export async function getNodeByPaths(curRoot, paths: string[]) {
-  const root = curRoot;
+export async function getNodeByPaths(curRoot, paths: string[][]) {
+  const params = [];
+  for (const path of paths) {
+    const finalNode = findFinalNode(curRoot, path);
+    if (finalNode) {
+      params.push({
+        start: finalNode.finalNodeParentName,
+        path: path,
+      });
+    }
+  }
+  const res = await getNodeByPath({
+    pathList: params,
+  });
+  const { data } = res;
+  data.forEach((item) => {
+    const finalNode = findFinalNode(curRoot, item.path, true);
+    console.log(finalNode.finalNode);
+
+    finalNode.finalNode.parent.dependencies[item.path[item.path.length - 1]] =
+      item;
+    item.parent = finalNode.finalNode.parent;
+  });
+
+  // if (!isExistDepByPath(root, paths)) {
+  //   console.error("getNodeByPaths error");
+  // }
+}
+
+function findFinalNode(root, paths: string[], byPath: boolean = false) {
+  let curRoot = root;
   let prePath = "";
   for (const path of paths.slice(1)) {
     if (curRoot && (!curRoot.dependencies || !curRoot.dependencies[path])) {
-      const res = await getNodeByPath({
-        name: prePath,
-        path: paths,
-      });
+      // const res = await getNodeByPath({
+      //   name: prePath,
+      //   path: paths,
+      // });
 
-      curRoot.parent.dependencies[prePath] = res.data || {};
-      curRoot.parent.dependencies[prePath].parent = curRoot;
-      break;
+      // curRoot.parent.dependencies[prePath] = res.data || {};
+      // curRoot.parent.dependencies[prePath].parent = curRoot;
+      return {
+        finalNode: curRoot,
+        finalNodeName: path,
+        finalNodeParentName: prePath,
+        finalNodeParent: curRoot.parent,
+        path: curRoot.path,
+      };
     }
     curRoot = curRoot && curRoot.dependencies ? curRoot.dependencies[path] : {};
     prePath = path;
   }
-  if (!isExistDepByPath(root, paths)) {
-    console.error("getNodeByPaths error");
+  if (byPath) {
+    return {
+      finalNode: curRoot,
+    };
   }
+  return null;
 }
 
 export const EventBus = {
