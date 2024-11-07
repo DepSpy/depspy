@@ -2,6 +2,54 @@ import { Node } from "~/types";
 
 const baseUrl = "http://localhost:2023";
 
+function getChildKey(node: Node, key: string) {
+  return [...node.path, key].join("/");
+}
+// function getKey(node: Node) {
+//   return node.path.join("/");
+// }
+function getParentkey(key: string) {
+  return key.split("/").slice(0, -1).join("/");
+}
+
+const genarateFnByRoot = (node: Node, treeMap: Map<string, Node>) => {
+  if (!node) return;
+  const deplists = Object.keys(node.dependenciesList || {});
+  deplists.forEach((key) => {
+    if (treeMap.has(getChildKey(node, key))) {
+      node.dependencies[key] = treeMap.get(getChildKey(node, key));
+      node.dependencies[key].parent = node;
+    }
+    genarateFnByRoot(node.dependencies[key], treeMap);
+  });
+};
+
+const genarateFnByUnion = (node: Node, treeMap: Map<string, Node>) => {
+  const roots = [];
+
+  for (const [key, value] of treeMap) {
+    if (treeMap.has(getParentkey(key))) {
+      const parent = treeMap.get(getParentkey(key));
+      Object.keys(parent.dependenciesList).forEach((k) => {
+        if (treeMap.has(getChildKey(parent, k))) {
+          parent.dependencies[k] = treeMap.get(getChildKey(parent, k));
+          parent.dependencies[k].parent = parent;
+        }
+      });
+    } else {
+      roots.push(value);
+    }
+  }
+  console.log(roots);
+
+  return roots;
+};
+
+const GENARATE_FN = {
+  BYROOT: genarateFnByRoot,
+  BYUNION: genarateFnByUnion,
+};
+
 export const getNode = async (query: {
   id?: string;
   depth?: number;
@@ -21,7 +69,7 @@ export const getNode = async (query: {
   });
 
   const treeRoot = treeLeaves[0];
-  genarateTree(treeRoot, treeMap);
+  genarateTree(GENARATE_FN.BYROOT, treeRoot, treeMap);
 
   return {
     data: treeRoot,
@@ -73,39 +121,37 @@ function stringifyObjToParams(obj) {
 }
 
 export const getNodeByPath = async (query: {
-  name: string;
-  path: string[];
+  pathList: {
+    name: string;
+    path: string[];
+  }[];
 }) => {
   const res = await fetch(
     `${baseUrl}/getNodeByPath?${stringifyObjToParams(query)}`,
   );
   const reader = await res.arrayBuffer();
   const treeLeaves = parseNodeBuffer(reader);
-  console.log(treeLeaves, query.name, query.path);
 
   const treeMap = new Map();
   treeLeaves.forEach((node) => {
     treeMap.set(node.path.join("/"), node);
   });
+  console.log(treeMap, "treeMap");
 
-  const treeRoot = treeLeaves[0];
+  const treeRoot = genarateTree(GENARATE_FN.BYUNION, null, treeMap);
+  console.log(treeRoot, "asfasf");
 
-  genarateTree(treeRoot, treeMap);
   return {
     data: treeRoot,
   };
 };
 
-function genarateTree(node: Node, treeMap: Map<string, Node>) {
-  if (!node) return;
-  const deplists = Object.keys(node.dependenciesList || {});
-  deplists.forEach((key) => {
-    if (treeMap.get([...node.path, key].join("/"))) {
-      node.dependencies[key] = treeMap.get([...node.path, key].join("/"));
-      node.dependencies[key].parent = node;
-    }
-    genarateTree(node.dependencies[key], treeMap);
-  });
+function genarateTree(
+  fn: (node: Node, treeMap: Map<string, Node>) => void,
+  node: Node,
+  treeMap: Map<string, Node>,
+) {
+  return fn(node, treeMap);
 }
 
 function parseNodeBuffer(buffer) {

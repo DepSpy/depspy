@@ -8,6 +8,7 @@ import "./index.scss";
 function Tree({ width = window.innerWidth }, svg) {
   //➡️全局数据
   const {
+    globalDepth,
     theme,
     root,
     setSelectNode,
@@ -26,6 +27,7 @@ function Tree({ width = window.innerWidth }, svg) {
       selectedCodependency: state.selectedCodependency,
       selectedCircularDependency: state.selectedCircularDependency,
       setRoot: state.setRoot,
+      globalDepth: state.depth,
     }),
     shallow,
   );
@@ -195,10 +197,10 @@ function Tree({ width = window.innerWidth }, svg) {
             const text = textOverflow(declarationId, 130);
             const textLength = getActualWidthOfChars(text);
 
-
+            
             const collapseFlag =
-              (Object.values(dependenciesList).length ||
-                Object.values(originDeps).length)
+              ((Object.values(dependenciesList).length ||
+                Object.values(originDeps).length) && depth < globalDepth - 1 )
                 ? unfold
                   ? "-"
                   : "+"
@@ -222,7 +224,7 @@ function Tree({ width = window.innerWidth }, svg) {
                 }}
               >
                 <g>
-                  {(Object.values(originDeps).length || Object.values(dependenciesList).length) && depth && (
+                  {(Object.values(originDeps).length || Object.values(dependenciesList).length)  && depth < globalDepth - 1 && (
                     <g
                       fill={
                         d.data.highlight
@@ -240,7 +242,6 @@ function Tree({ width = window.innerWidth }, svg) {
                           root,
                           collapseFlag == "+",
                         );
-                        console.log("我执行了", collapseFlag == "+");
 
                         if (selectedNode !== currentNode) {
                           setSelectNode(currentNode);
@@ -416,8 +417,11 @@ function filterData(data, collapse) {
       const [name, dependency] = entries[i];
       const child = traverse(dependency);
       // collapse命中展开所有, unfold命中展开当前
-      if (depth <= 2 || !collapse || newData.unfold)
+      if (depth <= 2 || !collapse || newData.unfold) {
         newData.dependencies[name] = child;
+        newData.unfold = true;
+      }
+        
       newData.originDeps[name] = child;
     }
     depth--;
