@@ -134,14 +134,23 @@ export function createHttp(app: Express, graph: Graph) {
     }
   });
   // 获取沿路的所有节点
-  app.get<{ name: string; path: string }>("/getNodeByPath", (req, res) => {
+  app.get<{ pathList: string }>("/getNodeByPath", (req, res) => {
     try {
-      const path = JSON.parse(req.query.path as string) as string[];
-      const name = req.query.name as string;
+      const pathList = JSON.parse(req.query.pathList as string) as {
+        start: string;
+        path: string[];
+      }[];
+      const results = new Set<Node>();
 
-      const results = graph.getNodeByPath(name, path);
+      // 获取所有路径节点
+      pathList.forEach(({ start, path }) => {
+        const nodes = graph.getNodeByPath(start, path);
+        nodes.forEach((node) => {
+          results.add(node);
+        });
+      });
 
-      bufferHandler(res, nodesToBuffer(results));
+      bufferHandler(res, nodesToBuffer([...results]));
     } catch (error) {
       errorHandler(res, error);
     }
