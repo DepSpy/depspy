@@ -24,7 +24,6 @@ export async function getNodeByPaths(curRoot, paths: string[][]) {
   const { data } = res;
   data.forEach((item) => {
     const finalNode = findFinalNode(curRoot, item.path, true);
-    console.log(finalNode.finalNode);
 
     finalNode.finalNode.parent.dependencies[item.path[item.path.length - 1]] =
       item;

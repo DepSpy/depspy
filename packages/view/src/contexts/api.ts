@@ -3,13 +3,13 @@ import { Node } from "~/types";
 const baseUrl = "http://localhost:2023";
 
 function getChildKey(node: Node, key: string) {
-  return [...node.path, key].join("/");
+  return [...node.path, key].join("!");
 }
 // function getKey(node: Node) {
-//   return node.path.join("/");
+//   return node.path.join("!");
 // }
 function getParentkey(key: string) {
-  return key.split("/").slice(0, -1).join("/");
+  return key.split("!").slice(0, -1).join("!");
 }
 
 const genarateFnByRoot = (node: Node, treeMap: Map<string, Node>) => {
@@ -40,7 +40,6 @@ const genarateFnByUnion = (node: Node, treeMap: Map<string, Node>) => {
       roots.push(value);
     }
   }
-  console.log(roots);
 
   return roots;
 };
@@ -65,7 +64,7 @@ export const getNode = async (query: {
   // console.log(treeLeaves);
   const treeMap = new Map();
   treeLeaves.forEach((node) => {
-    treeMap.set(node.path.join("/"), node);
+    treeMap.set(node.path.join("!"), node);
   });
 
   const treeRoot = treeLeaves[0];
@@ -134,7 +133,7 @@ export const getNodeByPath = async (query: {
 
   const treeMap = new Map();
   treeLeaves.forEach((node) => {
-    treeMap.set(node.path.join("/"), node);
+    treeMap.set(node.path.join("!"), node);
   });
   console.log(treeMap, "treeMap");
 
