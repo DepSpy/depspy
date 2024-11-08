@@ -79,10 +79,11 @@ const FirstTreeMap = ({
   const [state, setState] = useState<number>(0); // control transition
   const [data, setData] = useState<Data>();
   const [treeMap, setTreeMap] = useState<d3.HierarchyRectangularNode<Data>>();
-  const { selectedNode, setSelectNode } = useStore((store) => {
+  const { selectedNode, setSelectNode, root } = useStore((store) => {
     return {
       selectedNode: store.selectedNode,
       setSelectNode: store.setSelectNode,
+      root: store.root,
     };
   });
   const [innerWidth, setInnerWidth] = useState(width);
@@ -91,7 +92,7 @@ const FirstTreeMap = ({
   // init
   useEffect(() => {
     setData(changeData(selectedNode));
-  }, [selectedNode]);
+  }, [selectedNode, root]);
 
   const updateTreeMap = useCallback(
     (data: Data) => {
