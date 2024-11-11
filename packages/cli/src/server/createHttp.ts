@@ -77,15 +77,15 @@ export function createHttp(app: Express, graph: Graph) {
         return;
       }
 
-      const buffer = await graph.getNode(id, depth, path);
+      const nodes = await graph.getNode(id, depth, path);
 
       //没有该节点
-      if (!buffer) {
+      if (!nodes) {
         errorHandler(res, "there is no such node");
         return;
       }
 
-      bufferHandler(res, nodesToBuffer(buffer));
+      bufferHandler(res, nodesToBuffer(nodes));
     } catch (error) {
       errorHandler(res, error.toString());
     }

@@ -8,6 +8,7 @@ import { Config, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
 import pool, { TASK_TYPE } from "../pool";
+import { debug } from "node:util";
 
 const inBrowser = typeof window !== "undefined";
 
@@ -372,7 +373,7 @@ export class Graph {
       }
       // 有path时查询
       if (!resultNode && path) {
-        [resultNode] = this.getNodeByPath(path[path.length - 1], path);
+        [resultNode] = this.getNodeByPath(path[path.length - 1], path, id);
       }
     }
     // 没查找到结果
@@ -404,7 +405,7 @@ export class Graph {
   }
 
   // 通过path来获取节点
-  public getNodeByPath(name: string, path: string[]) {
+  public getNodeByPath(name: string, path: string[], id?: string) {
     let ifTarget = !name;
     const results: Node[] = ifTarget ? [this.graph] : [];
 
@@ -413,7 +414,10 @@ export class Graph {
       const nextNode = node.dependencies?.[pathName];
 
       //遇到起点
-      if (pathName === name) {
+      if (
+        pathName === name &&
+        (!id || name + nextNode.declarationVersion === id)
+      ) {
         ifTarget = true;
         results.push(nextNode);
       }

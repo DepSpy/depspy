@@ -12,6 +12,9 @@ export interface Node {
   dependencies: Record<string, Node>;
   size: number;
   selfSize: number;
+  realNamePath: string[];
+  resolvePath: string;
+  dependenciesList: Record<string, string>;
 }
 
 export interface generateGraphRes {

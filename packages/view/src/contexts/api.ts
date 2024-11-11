@@ -124,7 +124,7 @@ export const getNodeByPath = async (query: {
     name: string;
     path: string[];
   }[];
-}) => {
+}): Promise<{ data: Node[] }> => {
   const res = await fetch(
     `${baseUrl}/getNodeByPath?${stringifyObjToParams(query)}`,
   );
@@ -172,7 +172,11 @@ function parseNodeBuffer(buffer) {
 
     // 将数据转换为字符串并解析为对象
     const nodeJson = new TextDecoder().decode(nodeBuffer);
-    const node = JSON.parse(nodeJson);
+    const node = JSON.parse(nodeJson, (key, value) => {
+      if (key === "childrenNumber" && (value === "Infinity" || value === null))
+        return Infinity;
+      return value;
+    });
     nodes.push(node);
   }
 

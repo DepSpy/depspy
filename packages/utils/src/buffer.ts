@@ -7,7 +7,7 @@ export function jsonsToBuffer(jsons: string[]) {
       const sizeBuffer = Buffer.alloc(4);
       sizeBuffer.writeInt32LE(buffer.length, 0);
       // 写入长度信息，方便解析
-      return Buffer.concat([sizeBuffer, buffer]);
-    }),
+      return Buffer.concat([sizeBuffer, buffer] as unknown as Uint8Array[]);
+    }) as unknown as Uint8Array[],
   );
 }

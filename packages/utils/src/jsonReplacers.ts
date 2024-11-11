@@ -10,8 +10,8 @@ export function compose(
   options: jsonOptions = {},
 ) {
   return function (key: string, value: unknown) {
-    return jsonHandlers.reduce((_, handler) => {
-      return handler.call(this, key, value, options);
+    return jsonHandlers.reduce((previousValue, handler) => {
+      return handler.call(this, key, previousValue, options);
     }, value);
   };
 }
@@ -19,11 +19,7 @@ export function compose(
 export function toInfinity(key: string, value: unknown): unknown {
   //当为Infinity时需要特殊处理，否则会变成null
   if (key === "childrenNumber" && value === Infinity) {
-    if (value === Infinity) {
-      return "Infinity";
-    } else if (value === null) {
-      return Infinity;
-    }
+    return "Infinity";
   }
 
   return value;

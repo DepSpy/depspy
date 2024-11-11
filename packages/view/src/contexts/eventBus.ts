@@ -87,7 +87,9 @@ export const EventBus = {
             root.name + root.declarationVersion
         ) {
           const res = await getNode({
-            id: newNode.name + newNode.declarationVersion,
+            id:
+              newNode.path[newNode.path.length - 1] +
+              newNode.declarationVersion,
             depth: 3,
             path: newNode.path ? newNode.path : "",
           });

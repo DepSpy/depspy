@@ -31,8 +31,8 @@ export default function Collapse() {
           .filter((dep) => Object.values(dep.dependenciesList).length)
           .map(async (dep) => {
             const res = await getNode({
-              id: dep.name + dep.declarationVersion,
-              depth: 3,
+              id: dep.path[dep.path.length - 1] + dep.declarationVersion,
+              depth: 10,
               path: dep.path ? dep.path : "",
             });
             dep.dependencies = res.data.dependencies;
