@@ -8,7 +8,6 @@ import { Config, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
 import pool, { TASK_TYPE } from "../pool";
-import { debug } from "node:util";
 
 const inBrowser = typeof window !== "undefined";
 
