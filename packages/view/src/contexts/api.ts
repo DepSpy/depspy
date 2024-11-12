@@ -79,7 +79,9 @@ export const searchNode = async (query: { key?: string }) => {
   const res = await fetch(
     `${baseUrl}/searchNode?${stringifyObjToParams(query)}`,
   );
-  return res.json();
+  const reader = await res.arrayBuffer();
+  const treeLeaves = parseNodeBuffer(reader);
+  return treeLeaves;
 };
 
 export const updateDepth = async (query: { depth: number }) => {
@@ -141,12 +143,12 @@ export const getNodeByPath = async (query: {
   console.log(treeRoot, "asfasf");
 
   return {
-    data: treeRoot,
+    data: treeRoot as Node[],
   };
 };
 
 function genarateTree(
-  fn: (node: Node, treeMap: Map<string, Node>) => void,
+  fn: (node: Node, treeMap: Map<string, Node>) => Node[] | void,
   node: Node,
   treeMap: Map<string, Node>,
 ) {
