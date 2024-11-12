@@ -8,15 +8,8 @@ import {
   reduceKey,
 } from "@dep-spy/utils";
 
-export type RES<T> = {
-  code: number;
-  message: string;
-  data: T;
-};
-
 function successHandler(res: Response, data: unknown) {
   res.send({
-    code: 200,
     message: "success",
     data,
   });
@@ -30,7 +23,6 @@ function bufferHandler(res: Response, buffer: Buffer) {
 function errorHandler(res: Response, data: unknown) {
   console.error(data);
   res.send({
-    code: 0,
     message: "fail",
     data,
   });
@@ -56,42 +48,38 @@ function nodesToBuffer(nodes: Node[]) {
 
 export function createHttp(app: Express, graph: Graph) {
   //获取节点信息
-  app.get<
-    { id?: string; depth?: number; path: string },
-    RES<{
-      root: Node;
-      circularDependency?: Node[];
-      codependency?: Record<string, Node[]>;
-    }>
-  >("/getNode", async (req, res) => {
-    try {
-      const id = req.query.id as string;
-      const depth = Number(req.query.depth);
-      const path = req.query.path
-        ? (JSON.parse(req.query.path as string) as string[])
-        : undefined;
-      // root节点
-      if (!id && !path) {
-        const rootBuffer = await graph.getNode(id, depth);
-        bufferHandler(res, nodesToBuffer(rootBuffer));
-        return;
+  app.get<{ id?: string; depth?: number; path: string }>(
+    "/getNode",
+    async (req, res) => {
+      try {
+        const id = req.query.id as string;
+        const depth = Number(req.query.depth);
+        const path = req.query.path
+          ? (JSON.parse(req.query.path as string) as string[])
+          : undefined;
+        // root节点
+        if (!id && !path) {
+          const rootBuffer = await graph.getNode(id, depth);
+          bufferHandler(res, nodesToBuffer(rootBuffer));
+          return;
+        }
+
+        const nodes = await graph.getNode(id, depth, path);
+
+        //没有该节点
+        if (!nodes) {
+          errorHandler(res, "there is no such node");
+          return;
+        }
+
+        bufferHandler(res, nodesToBuffer(nodes));
+      } catch (error) {
+        errorHandler(res, error.toString());
       }
-
-      const nodes = await graph.getNode(id, depth, path);
-
-      //没有该节点
-      if (!nodes) {
-        errorHandler(res, "there is no such node");
-        return;
-      }
-
-      bufferHandler(res, nodesToBuffer(nodes));
-    } catch (error) {
-      errorHandler(res, error.toString());
-    }
-  });
+    },
+  );
   //搜索
-  app.get<{ key: string }, RES<Node[]>>("/searchNode", async (req, res) => {
+  app.get<{ key: string }>("/searchNode", async (req, res) => {
     try {
       const key = req.query.key as string;
       const results: Node[] = [];
@@ -124,7 +112,7 @@ export function createHttp(app: Express, graph: Graph) {
     }
   });
   //更新depth
-  app.get<{ depth: number }, RES<null>>("/updateDepth", async (req, res) => {
+  app.get<{ depth: number }>("/updateDepth", async (req, res) => {
     try {
       const newDepth = req.query.depth as unknown as number;
       await graph.update(Number(newDepth));
