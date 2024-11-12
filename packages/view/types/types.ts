@@ -15,6 +15,8 @@ export interface Node {
   realNamePath: string[];
   resolvePath: string;
   dependenciesList: Record<string, string>;
+  parent: Node | null;
+  unfold?: boolean;
 }
 
 export interface generateGraphRes {
