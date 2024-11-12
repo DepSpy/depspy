@@ -83,26 +83,19 @@ export function createHttp(app: Express, graph: Graph) {
     try {
       const key = req.query.key as string;
       const results: Node[] = [];
-      const codependency = await graph.getCodependency();
       const nodes = await graph.getCoMap();
-      // 先扫描相同依赖
-      for (const [id, nodes] of Object.entries(codependency) as [
-        id: string,
-        nodes: Node[],
-      ][]) {
-        if (id.includes(key)) {
-          results.push(
-            ...nodes.map((node: Node) => ({ ...node, dependencies: {} })),
-          );
-        }
-      }
+
       // 扫描其他依赖
       for (const [id, node] of Object.entries(nodes) as [
         id: string,
         node: Node,
       ][]) {
-        if (id.includes(key) && !codependency[id]) {
+        if (id.includes(key)) {
           results.push({ ...node, dependencies: {} });
+          if (results.length >= 10) {
+            bufferHandler(res, nodesToBuffer(results));
+            return;
+          }
         }
       }
 
