@@ -181,7 +181,6 @@ function Tree({ width = window.innerWidth }, svg) {
                 name,
                 declarationVersion,
                 version,
-                dependencies,
                 originDeps,
                 dependenciesList,
                 unfold,
@@ -197,10 +196,10 @@ function Tree({ width = window.innerWidth }, svg) {
             const text = textOverflow(declarationId, 130);
             const textLength = getActualWidthOfChars(text);
 
-            
             const collapseFlag =
-              ((Object.values(dependenciesList).length ||
-                Object.values(originDeps).length) && depth < globalDepth - 1 )
+              (Object.values(dependenciesList).length ||
+                Object.values(originDeps).length) &&
+              depth < globalDepth - 1
                 ? unfold
                   ? "-"
                   : "+"
@@ -211,7 +210,8 @@ function Tree({ width = window.innerWidth }, svg) {
             if (highlight) {
               d3.select(svg.current).attr(
                 "viewBox",
-                `${y + width / 2 - innerWidth / 2}, ${x - innerHeight / 2
+                `${y + width / 2 - innerWidth / 2}, ${
+                  x - innerHeight / 2
                 }, ${innerWidth}, ${innerHeight}`,
               );
             }
@@ -224,46 +224,48 @@ function Tree({ width = window.innerWidth }, svg) {
                 }}
               >
                 <g>
-                  {(Object.values(originDeps).length || Object.values(dependenciesList).length)  && depth < globalDepth - 1 && (
-                    <g
-                      fill={
-                        d.data.highlight
-                          ? "rgb(91, 46, 238)"
-                          : "rgb(167,167,167)"
-                      }
-                      pointerEvents={"auto"}
-                      transform={`translate(${width / 2 + 2},${-32})`}
-                      onClick={(e) => {
-                        // 阻止触发父级
-                        e.stopPropagation();
-
-                        const currentNode = findDepBypath(
-                          d.data.path,
-                          root,
-                          collapseFlag == "+",
-                        );
-
-                        if (selectedNode !== currentNode) {
-                          setSelectNode(currentNode);
+                  {(Object.values(originDeps).length ||
+                    Object.values(dependenciesList).length) &&
+                    depth < globalDepth - 1 && (
+                      <g
+                        fill={
+                          d.data.highlight
+                            ? "rgb(91, 46, 238)"
+                            : "rgb(167,167,167)"
                         }
-                        setRoot({ ...root });
-                      }}
-                    >
-                      {collapseFlag == "+" ? (
-                        <use
-                          href="#carbon-add-alt"
-                          width={25}
-                          height={25}
-                        ></use>
-                      ) : (
-                        <use
-                          href="#carbon-subtract-alt"
-                          width={25}
-                          height={25}
-                        ></use>
-                      )}
-                    </g>
-                  )}
+                        pointerEvents={"auto"}
+                        transform={`translate(${width / 2 + 2},${-32})`}
+                        onClick={(e) => {
+                          // 阻止触发父级
+                          e.stopPropagation();
+
+                          const currentNode = findDepBypath(
+                            d.data.path,
+                            root,
+                            collapseFlag == "+",
+                          );
+
+                          if (selectedNode !== currentNode) {
+                            setSelectNode(currentNode);
+                          }
+                          setRoot({ ...root });
+                        }}
+                      >
+                        {collapseFlag == "+" ? (
+                          <use
+                            href="#carbon-add-alt"
+                            width={25}
+                            height={25}
+                          ></use>
+                        ) : (
+                          <use
+                            href="#carbon-subtract-alt"
+                            width={25}
+                            height={25}
+                          ></use>
+                        )}
+                      </g>
+                    )}
                 </g>
                 <g className="tip">
                   <rect
@@ -421,7 +423,7 @@ function filterData(data, collapse) {
         newData.dependencies[name] = child;
         newData.unfold = true;
       }
-        
+
       newData.originDeps[name] = child;
     }
     depth--;

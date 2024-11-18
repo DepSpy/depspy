@@ -4,10 +4,7 @@ import { subscribeWithSelector } from "zustand/middleware";
 import type { Node, StaticStore, Store } from "~/types";
 import { linkContext } from "./linkContext";
 import { searchNode } from "./searchNode";
-import { generateGraph, StaticNode } from "@dep-spy/core";
-import { EventBus } from "@/contexts/eventBus.ts";
-
-let graph = null;
+import { StaticNode } from "@dep-spy/core";
 
 export const useStore = createWithEqualityFn<Store>()(
   subscribeWithSelector((set) => ({
@@ -53,21 +50,6 @@ export const useStore = createWithEqualityFn<Store>()(
       localStorage.setItem("language", language);
       set({ language });
     },
-    setGraphRes: async (info, depth) => {
-      if (!graph) {
-        graph = generateGraph(info, { depth });
-        await graph.ensureGraph();
-        EventBus["init"]({
-          ...(await generateBusParams()),
-          depth: depth,
-        });
-      } else {
-        await graph.update(depth);
-        EventBus["depth"]({
-          ...(await generateBusParams()),
-        });
-      }
-    },
     setSelectNodeHistory: (node) => {
       const { selectedNodeHistory } = useStore.getState();
       // 当前节点不在历史记录的最后一个，且历史记录长度大于10时，删除最早的一条记录
@@ -111,12 +93,4 @@ export const useStaticStore = createWithEqualityFn<StaticStore>()(
 );
 if (import.meta.env.VITE_BUILD_MODE != "online") {
   linkContext(useStore);
-}
-
-export async function generateBusParams() {
-  return {
-    root: { ...(await graph.getGraph()) },
-    circularDependency: await graph.getCircularDependency(),
-    codependency: await graph.getCodependency(),
-  };
 }

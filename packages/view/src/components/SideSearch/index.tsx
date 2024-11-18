@@ -5,8 +5,7 @@ import { ReducerType } from "~/searchSide";
 import styles from "./index.module.scss";
 import useLanguage from "@/i18n/hooks/useLanguage";
 import { useNavigate } from "react-router-dom";
-import { searchNode } from "@/contexts/api";
-import { getNodeByPaths } from "@/contexts/eventBus";
+import { getNodeByPaths, searchNodes } from "@/contexts/eventBus";
 
 const reducer: ReducerType = (state, action) => {
   const newState = { ...state };
@@ -30,7 +29,7 @@ export default function SideSearch() {
   const navigation = useNavigate();
   const searchHandler = async (node: Node) => {
     if (node !== null) {
-      await getNodeByPaths(root, [node.path])
+      await getNodeByPaths(root, [node.path]);
       setSelectNode(node);
     }
     dispatch([
@@ -57,7 +56,7 @@ export default function SideSearch() {
     [state.nodes],
   );
   async function getSearchNode(key: string) {
-    const nodes = await searchNode({key})
+    const nodes = await searchNodes(key);
     dispatch({ type: "nodes", value: nodes });
   }
   useEffect(() => {

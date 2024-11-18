@@ -33,7 +33,7 @@ export default function Collapse() {
             const res = await getNode({
               id: dep.path[dep.path.length - 1] + dep.declarationVersion,
               depth: 10,
-              path: dep.path ? dep.path : "",
+              path: dep.path ? dep.path : undefined,
             });
             dep.dependencies = res.data.dependencies;
 
@@ -50,7 +50,6 @@ export default function Collapse() {
       return;
     }
     setRoot({ ...root });
-    setCollapse(!collapse);
   }
   return (
     <section
@@ -62,10 +61,13 @@ export default function Collapse() {
       <div
         onClick={async () => {
           if (collapse) {
-            await dfs([root]);
-          } else {
+            if (import.meta.env.VITE_BUILD_MODE === "offline") {
+              await dfs([root]);
+            }
             setCollapse(!collapse);
+            return;
           }
+          setCollapse(!collapse);
         }}
         className={`
           ${

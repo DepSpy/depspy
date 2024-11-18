@@ -34,18 +34,12 @@ export default function CoDepList() {
             return paths;
           });
           await getNodeByPaths(root, paths);
-          // for (const coNode of Object.values(
-          //   codependency[node.name + node.declarationVersion],
-          // )) {
-          //   const paths = coNode.path;
-          //   await getNodeByPaths(root, paths);
-          // }
 
           setSelectCodependency(
             codependency[node.name + node.declarationVersion],
           );
+
           setRoot({ ...root });
-          console.log(root, "asfasfasf");
         }}
       />
     </div>

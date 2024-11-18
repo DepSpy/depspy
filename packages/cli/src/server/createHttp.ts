@@ -82,23 +82,7 @@ export function createHttp(app: Express, graph: Graph) {
   app.get<{ key: string }>("/searchNode", async (req, res) => {
     try {
       const key = req.query.key as string;
-      const results: Node[] = [];
-      const nodes = await graph.getCoMap();
-
-      // 扫描其他依赖
-      for (const [id, node] of Object.entries(nodes) as [
-        id: string,
-        node: Node,
-      ][]) {
-        if (id.includes(key)) {
-          results.push({ ...node, dependencies: {} });
-          if (results.length >= 10) {
-            bufferHandler(res, nodesToBuffer(results));
-            return;
-          }
-        }
-      }
-
+      const results = graph.searchNodes(key);
       bufferHandler(res, nodesToBuffer(results));
     } catch (error) {
       errorHandler(res, error);

@@ -7,7 +7,8 @@ import {
 import { Config, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
-import pool, { TASK_TYPE } from "../pool";
+import pool, { TASK_TYPE } from "../threadsPool";
+import { onlineModuleInfoPool } from "./onlineModuleInfoPool";
 
 const inBrowser = typeof window !== "undefined";
 
@@ -77,90 +78,6 @@ export class Graph {
     await this.insertChildren(curNode, dependenciesList);
     return curNode;
   }
-  //相同依赖复制新的节点
-  private cloneCache(cache: MODULE_INFO_TYPE, path: string[]) {
-    return {
-      ...cache,
-      path,
-    };
-  }
-  //获取root
-  public async getGraph() {
-    await this.ensureGraph();
-    return this.graph;
-  }
-  //获取相同依赖
-  public async getCodependency() {
-    await this.ensureGraph();
-    return Object.fromEntries(this.codependency);
-  }
-  //获取循环依赖
-  public async getCircularDependency() {
-    await this.ensureGraph();
-    return Array.from(this.circularDependency);
-  }
-  //获取coMap
-  public async getCoMap() {
-    await this.ensureGraph();
-    return Object.fromEntries(this.coMap);
-  }
-  //输出到文件
-  async outputToFile() {
-    await this.ensureGraph();
-    const { graph, circularDependency, codependency } = this.config.output;
-    if (graph) {
-      this.writeJson(
-        JSON.stringify(await this.getGraph(), compose([toInfinity])),
-        graph,
-      );
-    }
-    if (circularDependency) {
-      this.writeJson(
-        JSON.stringify(
-          await this.getCircularDependency(),
-          compose([toInfinity, reduceKey], {
-            internalKeys: ["name", "version", "path", "circlePath"],
-          }),
-        ),
-        circularDependency,
-      );
-    }
-    if (codependency) {
-      this.writeJson(
-        JSON.stringify(
-          await this.getCodependency(),
-          compose([toInfinity, reduceKey], {
-            internalKeys: ["name", "version", "path"],
-          }),
-        ),
-        codependency,
-      );
-    }
-  }
-  //确保树已经被生成(开启root的构造)
-  public async ensureGraph() {
-    if (!this.graph) {
-      const [rootModule, error] = await pool.addTask({
-        type: TASK_TYPE.MODULE_INFO,
-        params: { info: this.info, baseDir: inBrowser ? null : process.cwd() },
-      }); //解析首个节点
-      if (error) {
-        throw error;
-      }
-      rootModule.size = 0;
-      this.graph = await this.generateNode({
-        moduleInfo: rootModule,
-        paths: [rootModule.name],
-        realNamePath: [],
-      });
-    }
-  }
-  //序列化
-  private writeJson(result: string, outDir: string) {
-    fs.writeFileSync(path.join(process.cwd(), outDir), result, {
-      flag: "w",
-    });
-  }
   //根据新的深度来更新树（调用dfs）
   public async update(newDepth: number): Promise<void> {
     //确保已经有图
@@ -207,17 +124,25 @@ export class Graph {
     if (this.config.depth > newDepth) {
       this.config.depth = newDepth;
       //执行截断逻辑
-      await this.dfs(this.graph, this.decreaseHandler.bind(this), afterHandler);
+      await Graph.dfs(
+        this.graph,
+        this.decreaseHandler.bind(this),
+        afterHandler,
+      );
       return;
     }
     if (this.config.depth < newDepth) {
       this.config.depth = newDepth;
       //执行加深递归逻辑
-      await this.dfs(this.graph, this.increaseHandler.bind(this), afterHandler);
+      await Graph.dfs(
+        this.graph,
+        this.increaseHandler.bind(this),
+        afterHandler,
+      );
     }
   }
   //遍历
-  private async dfs(
+  public static async dfs(
     node: Node,
     beforeHandler: (node: Node) => Promise<void> | true,
     afterHandler: (node: Node) => Promise<void>,
@@ -245,6 +170,26 @@ export class Graph {
     //等到promises结束才能归
     await Promise.all(promises);
     await afterHandler(node);
+  }
+  // 搜索节点
+  public searchNodes(key: string) {
+    const results: Node[] = [];
+
+    if (!key) {
+      return results;
+    }
+
+    for (const [id, node] of this.coMap) {
+      if (id.includes(key)) {
+        results.push({ ...node, dependencies: {} });
+      }
+      // 已满
+      if (results.length >= 10) {
+        return results;
+      }
+    }
+
+    return results;
   }
   //加深树的深度处理函数
   private increaseHandler(node: Node): Promise<void> | true {
@@ -303,10 +248,14 @@ export class Graph {
           realNamePath: realNamePath,
         });
       } else {
-        const moduleInfoPromise = pool.addTask({
-          type: TASK_TYPE.MODULE_INFO,
-          params: { info: childName, baseDir: resolvePath },
-        });
+        const params = { info: childName, baseDir: resolvePath };
+
+        const moduleInfoPromise = inBrowser
+          ? onlineModuleInfoPool.addTask(params)
+          : pool.addTask({
+              type: TASK_TYPE.MODULE_INFO,
+              params,
+            });
         //存入缓存
         this.cache.set(id, moduleInfoPromise);
         generatePromise = moduleInfoPromise.then(
@@ -382,7 +331,7 @@ export class Graph {
     // 平铺展开内部结构
     const results: Node[] = [];
 
-    await this.dfs(
+    await Graph.dfs(
       resultNode,
       (node) => {
         // depth不存在时
@@ -447,6 +396,91 @@ export class Graph {
     }
 
     return childVersion;
+  }
+  //获取root
+  public async getGraph() {
+    await this.ensureGraph();
+    return this.graph;
+  }
+  //获取相同依赖
+  public async getCodependency() {
+    await this.ensureGraph();
+    return Object.fromEntries(this.codependency);
+  }
+  //获取循环依赖
+  public async getCircularDependency() {
+    await this.ensureGraph();
+    return Array.from(this.circularDependency);
+  }
+  //获取coMap
+  public async getCoMap() {
+    await this.ensureGraph();
+    return Object.fromEntries(this.coMap);
+  }
+  //输出到文件
+  async outputToFile() {
+    await this.ensureGraph();
+    const { graph, circularDependency, codependency } = this.config.output;
+    if (graph) {
+      this.writeJson(
+        JSON.stringify(await this.getGraph(), compose([toInfinity])),
+        graph,
+      );
+    }
+    if (circularDependency) {
+      this.writeJson(
+        JSON.stringify(
+          await this.getCircularDependency(),
+          compose([toInfinity, reduceKey], {
+            internalKeys: ["name", "version", "path", "circlePath"],
+          }),
+        ),
+        circularDependency,
+      );
+    }
+    if (codependency) {
+      this.writeJson(
+        JSON.stringify(
+          await this.getCodependency(),
+          compose([toInfinity, reduceKey], {
+            internalKeys: ["name", "version", "path"],
+          }),
+        ),
+        codependency,
+      );
+    }
+  }
+  //确保树已经被生成(开启root的构造)
+  public async ensureGraph() {
+    if (!this.graph) {
+      const params = {
+        info: this.info,
+        baseDir: inBrowser ? null : process.cwd(),
+      };
+
+      const [rootModule, error] = inBrowser
+        ? await onlineModuleInfoPool.addTask(params)
+        : await pool.addTask({
+            type: TASK_TYPE.MODULE_INFO,
+            params,
+          }); //解析首个节点
+      if (error) {
+        throw error;
+      }
+
+      rootModule.size = 0;
+      this.graph = await this.generateNode({
+        moduleInfo: rootModule,
+        paths: [rootModule.name],
+        realNamePath: [],
+      });
+    }
+  }
+  //序列化
+  private writeJson(result: string, outDir: string) {
+    fs.writeFileSync(path.join(process.cwd(), outDir), result, {
+      flag: "w",
+    });
   }
 }
 

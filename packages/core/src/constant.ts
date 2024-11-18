@@ -9,7 +9,6 @@ export const defaultConfig = {
   },
 };
 export const NPM_DOMAINS = [
-  "https://mirrors.cloud.tencent.com/npm",
   "https://registry.npmjs.org",
   "https://registry.npmmirror.com",
   " https://registry.yarnpkg.com",

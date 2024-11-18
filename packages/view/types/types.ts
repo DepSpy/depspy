@@ -53,7 +53,6 @@ export interface Store {
   setCollapse: (flag: boolean) => void;
   setTheme: (theme: string) => void;
   setLanguage: (language: string) => void;
-  setGraphRes: (name: string, depth: number) => Promise<void>;
   setSelectNodeHistory: (node: Node) => void;
   setPreSelectNode: () => void;
 }

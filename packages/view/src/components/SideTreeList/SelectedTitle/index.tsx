@@ -9,8 +9,8 @@ export default function SelectedTitle() {
     <div className="treelist-selected-title">
       <div>{t("aside.list.selected")}:</div>
       <div>
-        {selectedNode.name}@
-        {selectedNode.declarationVersion || selectedNode.version}
+        {selectedNode?.name}@
+        {selectedNode?.declarationVersion || selectedNode?.version}
       </div>
     </div>
   );
