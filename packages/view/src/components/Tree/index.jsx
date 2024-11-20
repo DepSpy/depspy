@@ -124,6 +124,12 @@ function Tree({ width = window.innerWidth }, svg) {
       preHighlight.current = selectedNodes;
 
       setSelectNode(selectedNodes[0]);
+      setRoot({ ...root });
+    } else {
+      preHighlight.current.forEach((node) => {
+        node.highlight = false;
+      });
+      setRoot({ ...root });
     }
   }, [selectedCodependency]);
   //➡️
@@ -248,6 +254,7 @@ function Tree({ width = window.innerWidth }, svg) {
                           if (selectedNode !== currentNode) {
                             setSelectNode(currentNode);
                           }
+
                           setRoot({ ...root });
                         }}
                       >
@@ -372,9 +379,10 @@ function generateTree(data) {
 }
 //找到路径下的node
 function findDepBypath(paths, data, finnalUnFold) {
-  console.log("findDepByPath");
-
-  if (paths.length == 1) return data;
+  if (paths.length == 1) {
+    if (finnalUnFold != undefined) data.unfold = finnalUnFold; // 当前选择节点是否展开
+    return data;
+  }
   let parent = data;
   let dep = data;
 

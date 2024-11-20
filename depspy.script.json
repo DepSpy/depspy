@@ -1,6 +1,6 @@
 {
   "utils": ["pnpm run build"],
   "core": ["pnpm run build"],
-  "view": ["pnpm run build:online", "pnpm run build:tsup"],
+  "view": ["pnpm run build:vite", "pnpm run build:tsup"],
   "cli": ["pnpm run build"]
 }

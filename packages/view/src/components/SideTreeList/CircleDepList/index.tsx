@@ -17,8 +17,11 @@ export default function CircleDepList() {
         dependencies={circularDependency}
         selectedNode={selectedCircularDependency}
         setFn={async (node) => {
-          console.log(node, node.circlePath);
-
+          if (!node) {
+            setSelectCircularDependency(null);
+            setRoot({ ...root });
+            return;
+          }
           const paths = [node.circlePath];
           await getNodeByPaths(root, paths);
           setSelectCircularDependency(node);

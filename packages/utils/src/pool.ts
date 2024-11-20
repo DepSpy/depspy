@@ -33,11 +33,21 @@ abstract class Pool {
         //无空闲线程,推入到任务队列
         this.taskQueue.push({ task, resolve });
       }
-    }).then(({ data, worker, error }) => {
-      // 执行结束
-      this.runNext(worker);
-      return [data, error];
-    });
+    }).then(
+      ({
+        data,
+        worker,
+        error,
+      }: {
+        data: unknown;
+        worker: Worker;
+        error: Error;
+      }) => {
+        // 执行结束
+        this.runNext(worker);
+        return [data, error];
+      },
+    );
   }
 
   runNext(worker: Worker) {

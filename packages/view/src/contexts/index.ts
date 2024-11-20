@@ -28,7 +28,9 @@ export const useStore = createWithEqualityFn<Store>()(
       },
     ) => set({ root }),
     setDepth: (depth: number) => set({ depth }),
-    setInfo: (info: string) => set({ info }),
+    setInfo: (info: string) => {
+      set({ info, root: null, rootLoading: true });
+    },
     setSizeTree: (sizeTree: boolean) => set({ sizeTree }),
     setRootLoading: (rootLoading: boolean) => set({ rootLoading }),
     setSelectNode: (selectedNode: Node) => {

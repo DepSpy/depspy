@@ -13,9 +13,13 @@ const getNodePool = new FunctionPool(maxPoolSize, () => {
     depth?: number;
     path?: string[] | string;
   }) {
-    return await fetch(
-      `${baseUrl}/getNode?${stringifyObjToParams({ ...query })}`,
-    );
+    return await fetch(`${baseUrl}/getNode`, {
+      method: "POST",
+      body: JSON.stringify(query),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   }
   return new FunctionWorker(getNode);
 });
@@ -91,9 +95,13 @@ export const getNodeByPath = async (query: {
     path: string[];
   }[];
 }): Promise<{ data: Node[] }> => {
-  const res = await fetch(
-    `${baseUrl}/getNodeByPath?${stringifyObjToParams(query)}`,
-  );
+  const res = await fetch(`${baseUrl}/getNodeByPath`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(query),
+  });
   const reader = await res.arrayBuffer();
   const treeLeaves = parseNodeBuffer(reader);
 

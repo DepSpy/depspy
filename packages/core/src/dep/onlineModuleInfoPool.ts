@@ -3,7 +3,7 @@ import { FunctionPool, getModuleInfo, FunctionWorker } from "@dep-spy/utils";
 
 export const onlineModuleInfoPool = new FunctionPool(
   NPM_DOMAINS.length * HOST_MAX_FETCH_NUMBER,
-  (index) => {
+  (index: number) => {
     const url = NPM_DOMAINS[Math.floor(index % NPM_DOMAINS.length)];
     function getModuleInfoByDomains({
       info,

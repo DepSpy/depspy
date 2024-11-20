@@ -1,6 +1,5 @@
-import { StaticNode, Graph, generateGraph } from "@dep-spy/core";
+import { StaticNode, generateGraph, Graph } from "@dep-spy/core";
 import { useStaticStore, useStore } from "./index";
-import { searchNodePath } from "./searchNode";
 import {
   getDependency,
   getNode,
@@ -83,13 +82,14 @@ function findFinalNode(root, paths: string[], byPath: boolean = false) {
 
 async function getNodesInfo() {
   const treeRoot = await graph.getGraph();
+
   // 插入双向指针
-  await Graph.dfs(
+  await graph.dfs(
     treeRoot,
     () => true,
     async (node) => {
       Object.entries(node.dependencies).forEach(([, child]) => {
-        (node as unknown as Node).parent = child as Node;
+        (child as Node).parent = node as unknown as Node;
       });
     },
   );
@@ -227,18 +227,5 @@ export const EventBus = {
   },
   initStatic: (staticRoot: StaticNode) => {
     useStaticStore.setState({ staticRoot, staticRootLoading: false });
-  },
-  depth: ({ root, circularDependency, codependency }) => {
-    useStore.setState({ rootLoading: false });
-    // 更新 depth 回调
-    // 找到新 tree 中的 selectedNode
-    const { selectedNode } = useStore.getState();
-    const tempNode = searchNodePath(root, selectedNode.path);
-    useStore.setState({
-      root,
-      circularDependency,
-      codependency,
-      selectedNode: tempNode,
-    });
   },
 };

@@ -1,4 +1,4 @@
-import { Express, Response } from "express";
+import express, { Express, Response } from "express";
 import { Graph, Node } from "@dep-spy/core";
 import {
   compose,
@@ -47,16 +47,16 @@ function nodesToBuffer(nodes: Node[]) {
 }
 
 export function createHttp(app: Express, graph: Graph) {
+  app.use(express.json());
+
   //获取节点信息
-  app.get<{ id?: string; depth?: number; path: string }>(
+  app.post<{ id?: string; depth?: number; path: string }>(
     "/getNode",
     async (req, res) => {
       try {
-        const id = req.query.id as string;
-        const depth = Number(req.query.depth);
-        const path = req.query.path
-          ? (JSON.parse(req.query.path as string) as string[])
-          : undefined;
+        const id = req.body.id as string;
+        const depth = Number(req.body.depth);
+        const path = req.body.path;
         // root节点
         if (!id && !path) {
           const rootBuffer = await graph.getNode(id, depth);
@@ -99,12 +99,14 @@ export function createHttp(app: Express, graph: Graph) {
     }
   });
   // 获取沿路的所有节点
-  app.get<{ pathList: string }>("/getNodeByPath", (req, res) => {
+  app.post<{
+    pathList: {
+      start: string;
+      path: string[];
+    }[];
+  }>("/getNodeByPath", (req, res) => {
     try {
-      const pathList = JSON.parse(req.query.pathList as string) as {
-        start: string;
-        path: string[];
-      }[];
+      const pathList = req.body.pathList;
       const results = new Set<Node>();
 
       // 获取所有路径节点

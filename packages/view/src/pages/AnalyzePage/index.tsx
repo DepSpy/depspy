@@ -25,7 +25,10 @@ export default function AnalyzePage() {
   useEffect(() => {
     if (import.meta.env.VITE_BUILD_MODE == "online") {
       if (!root) {
-        EventBus.init({ depth, info: searchParams.get("q") || info });
+        EventBus.init({
+          depth: parseInt(searchParams.get("depth")),
+          info: searchParams.get("q") || info,
+        });
         return;
       }
       EventBus.update({ depth });

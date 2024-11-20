@@ -19,6 +19,11 @@ export class Graph {
   private coMap = new Map<string, Node>(); //记录所有节点的id,用于判断相同依赖(key 是声明的name和version)
   private codependency: Map<string, Node[]> = new Map(); //记录相同的节点
   private circularDependency: Set<Node> = new Set(); //记录存在循环引用的节点
+  private updating: Promise<void> = Promise.resolve(); // 是否正在更新树结构
+  private depthQueue: {
+    depth: number;
+    resolve: () => void;
+  }[] = [];
   constructor(
     private readonly info: string,
     private readonly config: Config = {},
@@ -79,70 +84,100 @@ export class Graph {
     return curNode;
   }
   //根据新的深度来更新树（调用dfs）
-  public async update(newDepth: number): Promise<void> {
-    //确保已经有图
-    await this.ensureGraph();
-    //重置全局变量
-    if (this.config.depth != newDepth) {
-      this.coMap = new Map();
-      this.codependency = new Map();
-      this.circularDependency = new Set();
-    }
-
-    const afterHandler = async (node: Node) => {
-      const { dependenciesList, dependencies } = node;
-
-      // 参数修正
-      node.childrenNumber = node.childrenNumber === Infinity ? Infinity : 0;
-      node.size = node.selfSize;
-
-      //无子节点，跳过
-      if (!Object.keys(dependencies).length) {
-        return;
-      }
-
-      // 参数修正
-      Object.entries(dependenciesList).forEach(([name, version]) => {
-        const id = name + version;
-
-        const child = node.dependencies[name];
-
-        //收集相同依赖
-        this.addCodependency(child, id);
-
-        if (child.circlePath?.length > 0) {
-          this.circularDependency.add(child);
-        }
-        //修成所有子节点数总和
-        node.childrenNumber +=
-          (child.childrenNumber === Infinity ? 0 : child.childrenNumber) + 1; //child 子依赖数量 + 自身
-        //修正size
-        node.size += child.size;
+  public async update(depthTask: number): Promise<void> {
+    return new Promise((resolve) => {
+      // 同步代码将任务推入队列
+      this.depthQueue.push({
+        depth: depthTask,
+        resolve: resolve as () => void,
       });
-    };
+      // 下一次回调统一处理更新，若有正在执行的更新任务， 将被阻塞
+      this.updating.then(async () => {
+        // 若任务队列中无任务， 说明任务已被启动， 任务队列已重新置空
+        if (!this.depthQueue.length) {
+          return;
+        }
+        // 取出最终需要更新的depth
+        const newDepth = this.depthQueue[this.depthQueue.length - 1].depth;
+        // 取出被覆盖任务的resolve
+        const resolves = this.depthQueue.map((v) => v.resolve);
+        // 队列设置为空
+        this.depthQueue = [];
+        // 更新任务启动
+        this.updating = Promise.resolve().then(async () => {
+          //确保已经有图
+          await this.ensureGraph();
 
-    if (this.config.depth > newDepth) {
-      this.config.depth = newDepth;
-      //执行截断逻辑
-      await Graph.dfs(
-        this.graph,
-        this.decreaseHandler.bind(this),
-        afterHandler,
-      );
-      return;
-    }
-    if (this.config.depth < newDepth) {
-      this.config.depth = newDepth;
-      //执行加深递归逻辑
-      await Graph.dfs(
-        this.graph,
-        this.increaseHandler.bind(this),
-        afterHandler,
-      );
-    }
+          //重置全局变量
+          if (this.config.depth != newDepth) {
+            this.coMap = new Map();
+            this.codependency = new Map();
+            this.circularDependency = new Set();
+          }
+
+          const afterHandler = async (node: Node) => {
+            const { dependenciesList, dependencies } = node;
+
+            // 参数修正
+            node.childrenNumber =
+              node.childrenNumber === Infinity ? Infinity : 0;
+            node.size = node.selfSize;
+
+            //无子节点，跳过
+            if (!Object.keys(dependencies).length) {
+              return;
+            }
+
+            // 参数修正
+            Object.entries(dependenciesList).forEach(([name, version]) => {
+              const id = name + version;
+
+              const child = node.dependencies[name];
+
+              //收集相同依赖
+              this.addCodependency(child, id);
+
+              if (child.circlePath?.length > 0) {
+                this.circularDependency.add(child);
+              }
+              //修成所有子节点数总和
+              node.childrenNumber +=
+                (child.childrenNumber === Infinity ? 0 : child.childrenNumber) +
+                1; //child 子依赖数量 + 自身
+              //修正size
+              node.size += child.size;
+            });
+          };
+
+          if (this.config.depth > newDepth) {
+            this.config.depth = newDepth;
+            //执行截断逻辑
+            await this.dfs(
+              this.graph,
+              this.decreaseHandler.bind(this),
+              afterHandler,
+            );
+            return;
+          }
+          if (this.config.depth < newDepth) {
+            this.config.depth = newDepth;
+            //执行加深递归逻辑
+            await this.dfs(
+              this.graph,
+              this.increaseHandler.bind(this),
+              afterHandler,
+            );
+          }
+        });
+        // 等待更新结束
+        await this.updating;
+        // 结束所有取出的任务
+        resolves.forEach((v) => v());
+      });
+    });
   }
   //遍历
-  public static async dfs(
+  public async dfs(
     node: Node,
     beforeHandler: (node: Node) => Promise<void> | true,
     afterHandler: (node: Node) => Promise<void>,
@@ -331,7 +366,7 @@ export class Graph {
     // 平铺展开内部结构
     const results: Node[] = [];
 
-    await Graph.dfs(
+    await this.dfs(
       resultNode,
       (node) => {
         // depth不存在时
@@ -518,7 +553,7 @@ class GraphNode implements Node {
     //拦截set，剔除无效属性
     return new Proxy(this, {
       set: function (target, property, value, receiver) {
-        if (value || value === 0)
+        if (value !== null && value !== undefined)
           return Reflect.set(target, property, value, receiver);
         return true;
       },
