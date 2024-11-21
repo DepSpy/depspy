@@ -11,6 +11,7 @@ export async function linkContext(useStore: StoreApi<Store>) {
     staticRootLoading: true,
   });
   const query = new URLSearchParams(window.location.search);
+
   await EventBus.init({
     depth: Number(query.get("depth")) || 3,
   });

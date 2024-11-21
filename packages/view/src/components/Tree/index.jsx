@@ -210,9 +210,7 @@ function Tree({ width = window.innerWidth }, svg) {
                   ? "-"
                   : "+"
                 : "";
-            // if(name === "sort-keys") {
-            //   console.log("write",Object.values(dependenciesList).length,collapseFlag, d)
-            // }
+
             if (highlight) {
               d3.select(svg.current).attr(
                 "viewBox",
@@ -232,7 +230,8 @@ function Tree({ width = window.innerWidth }, svg) {
                 <g>
                   {(Object.values(originDeps).length ||
                     Object.values(dependenciesList).length) &&
-                    depth < globalDepth - 1 && (
+                    depth < globalDepth - 1 &&
+                    depth > 0 && (
                       <g
                         fill={
                           d.data.highlight

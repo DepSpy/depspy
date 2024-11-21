@@ -27,7 +27,13 @@ export const useStore = createWithEqualityFn<Store>()(
         unfold?: boolean;
       },
     ) => set({ root }),
-    setDepth: (depth: number) => set({ depth }),
+    setDepth: (depth: number) => {
+      if (depth < 2) {
+        set({ depth: 2 });
+        return;
+      }
+      set({ depth });
+    },
     setInfo: (info: string) => {
       set({ info, root: null, rootLoading: true });
     },
