@@ -11,6 +11,7 @@ export const defaultConfig = {
 export const NPM_DOMAINS = [
   "https://registry.npmjs.org",
   "https://registry.npmmirror.com",
-  " https://registry.yarnpkg.com",
+  "https://registry.yarnpkg.com",
+  "http://mirrors.cloud.tencent.com/npm",
 ];
 export const HOST_MAX_FETCH_NUMBER = 6;
