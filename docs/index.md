@@ -32,7 +32,7 @@ features:
     details: 支持分析相同依赖和循环依赖，支持搜索子依赖、查看依赖信息和体积等
   - icon: 🌐
     title: 兼容的环境
-    details: 支持本地 CLI 和在线查询两种模式。
+    details: 支持本地 CLI 和在线查询两种模式
   - icon: 🌍
     title: 友好的体验
     details: 支持国际化和暗黑模式

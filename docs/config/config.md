@@ -4,7 +4,7 @@
 
 从命令行运行 `ds` 时，DepSpy会自动尝试解析项目根目录下名为 `dep-spy.config.mjs` 的配置文件。
 
-最基本的配置文件是这样的
+最基本的配置文件是这样的:
 
 ```javascript
 import { defineConfig } from "@dep-spy/cli";
