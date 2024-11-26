@@ -19,6 +19,6 @@ export const onlineModuleInfoPool = new FunctionPool(
       });
     }
 
-    return new FunctionWorker(getModuleInfoByDomains);
+    return new FunctionWorker({ fn: getModuleInfoByDomains, key: url });
   },
 );

@@ -25,7 +25,10 @@ export const EventBus = {
 // 本地线程池
 export default new ThreadsPool<typeof EventBus>(
   os?.cpus ? os.cpus().length : 0,
-  () => {
-    return new ThreadsWorker(path.join(__dirname, "./threadsPool/worker.js"));
+  (index: number) => {
+    return new ThreadsWorker({
+      fileUrl: path.join(__dirname, "./threadsPool/worker.js"),
+      key: String(index),
+    });
   },
 );

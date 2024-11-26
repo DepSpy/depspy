@@ -7,7 +7,7 @@ const baseUrl = "http://localhost:2023";
 
 const maxPoolSize = 12;
 // 限制全展开时的并发数量
-const getNodePool = new FunctionPool(maxPoolSize, () => {
+const getNodePool = new FunctionPool(maxPoolSize, (index: number) => {
   async function getNode(query: {
     id?: string;
     depth?: number;
@@ -21,7 +21,7 @@ const getNodePool = new FunctionPool(maxPoolSize, () => {
       },
     });
   }
-  return new FunctionWorker(getNode);
+  return new FunctionWorker({ fn: getNode, key: String(index) });
 });
 
 export const getNode = async (query: {

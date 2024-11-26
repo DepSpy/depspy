@@ -502,7 +502,6 @@ export class Graph {
       if (error) {
         throw error;
       }
-
       rootModule.size = 0;
       this.graph = await this.generateNode({
         moduleInfo: rootModule,
