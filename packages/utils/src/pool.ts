@@ -11,18 +11,18 @@ type Task<T> = {
 abstract class Pool {
   private freeWorkers: Worker[] = [];
   private taskQueue: Task<unknown>[] = []; //任务队列
-  public maxPoolSize: number;
-  private allWorkers: Worker[];
+  private allWorkers: Worker[] = [];
+  private errorTaskQueue: Task<unknown>[] = [];
 
   protected constructor(
     maxPoolSize: number,
     createWorker: (index: number) => Worker,
   ) {
-    this.maxPoolSize = maxPoolSize;
     EventEmitter.defaultMaxListeners = 300;
     for (let i = 0; i < maxPoolSize; i++) {
-      this.freeWorkers.push(createWorker(i));
-      this.allWorkers.push(createWorker(i));
+      const worker = createWorker(i);
+      this.freeWorkers.push(worker);
+      this.allWorkers.push(worker);
     }
   }
 
@@ -31,24 +31,7 @@ abstract class Pool {
       //尝试加入空闲线程中执行
       if (this.freeWorkers.length > 0) {
         const worker = this.freeWorkers.shift();
-        worker
-          .run({
-            task,
-          })
-          .then(({ data, worker, error }) => {
-            // worker 执行失败时，触发重执行逻辑
-            if (error) {
-              this.retryTask({
-                task,
-                resolve,
-                failWorkerKeySet: new Set([worker.key]),
-              });
-              return;
-            }
-            // 无错误时
-            resolve([data, error]);
-            this.runNext(worker);
-          });
+        this.runTask(worker, { task, resolve, failWorkerKeySet: new Set() });
         return;
       }
       //无空闲线程,推入到任务队列
@@ -57,11 +40,17 @@ abstract class Pool {
   }
 
   async runNext(worker: Worker) {
-    // 优先执行被分配的任务
-    const task = worker.getNextTask();
+    // 优先执行错误任务
+    const index = this.errorTaskQueue.findIndex(
+      (v) => !v.failWorkerKeySet.has(worker.key),
+    );
 
-    if (task) {
-      await this.runTask(worker, task);
+    if (index !== -1) {
+      // 存在可以执行的错误任务
+      const errorTask = this.errorTaskQueue[index];
+      this.errorTaskQueue.splice(index, 1);
+      this.runTask(worker, errorTask);
+      return;
     }
 
     //直接领取下一个任务
@@ -79,23 +68,10 @@ abstract class Pool {
       }
 
       // 将任务取出
-      const { task, resolve, failWorkerKeySet } = this.taskQueue[index];
+      const taskInfo = this.taskQueue[index];
       this.taskQueue.splice(index, 1);
 
-      const { data, error } = await worker.run({ task });
-      if (error) {
-        // 存在错误， 触发重执行
-        this.retryTask({
-          task,
-          resolve,
-          failWorkerKeySet: failWorkerKeySet.add(worker.key),
-        });
-        this.runNext(worker);
-        return;
-      }
-      // 无错误产生
-      resolve([data, error]);
-      this.runNext(worker);
+      this.runTask(worker, taskInfo);
       return;
     }
     //置为空闲线程
@@ -103,7 +79,7 @@ abstract class Pool {
   }
 
   async retryTask(errorTask: Task<unknown>) {
-    const { task, resolve, failWorkerKeySet } = errorTask;
+    const { resolve, failWorkerKeySet } = errorTask;
 
     const workerIndex = this.allWorkers.findIndex(
       (v) => !failWorkerKeySet.has(v.key),
@@ -114,58 +90,42 @@ abstract class Pool {
       return;
     }
 
-    // 若存在线程未尝试
-    const worker = this.allWorkers[workerIndex];
+    // 从空闲线程池找
+    const workerIndexFree = this.freeWorkers.findIndex(
+      (v) => !failWorkerKeySet.has(v.key),
+    );
 
-    const workerIndexFree = this.freeWorkers.findIndex((v) => v === worker);
-
-    if (workerIndexFree !== -1) {
-      // 当线程不是一个空闲线程
-      worker.addNextTask(errorTask);
+    if (workerIndexFree === -1) {
+      // 空闲线程池中无法找到， 先进入队列
+      this.errorTaskQueue.push(errorTask);
       return;
     }
     // 取出
+    const worker = this.freeWorkers[workerIndexFree];
     this.freeWorkers.splice(workerIndexFree, 1);
-    const { data, error } = await worker.run({ task });
-
-    if (error) {
-      this.freeWorkers.push(worker);
-      this.retryTask({
-        ...errorTask,
-        failWorkerKeySet: failWorkerKeySet.add(worker.key),
-      });
-      return;
-    }
-    resolve([data, error]);
-    this.freeWorkers.push(worker);
+    this.runTask(worker, errorTask);
   }
 
   async runTask(worker: Worker, taskInfo: Task<unknown>) {
     const { task, resolve, failWorkerKeySet } = taskInfo;
     const { data, error } = await worker.run({ task });
-
     if (error) {
       // 执行失败
       this.retryTask({
         ...taskInfo,
         failWorkerKeySet: failWorkerKeySet.add(worker.key),
       });
-      this.freeWorkers.push(worker);
+      this.runNext(worker);
       return;
     }
     resolve([data, error]);
-    this.freeWorkers.push(worker);
-  }
-
-  getWorker() {
-    return this.freeWorkers.shift();
+    this.runNext(worker);
   }
 }
 
 abstract class Worker {
-  public readonly key: string; // 失败重试时转交任务避免转交给相同类型worker
+  public key: string; // 失败重试时转交任务避免转交给相同类型worker
   private resolve: Resolve<unknown>; //提交任务结果， 结束promise
-  private queue: Task<unknown>[]; //待办任务，优先执行
 
   run({
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -187,12 +147,6 @@ abstract class Worker {
     this.resolve && this.resolve({ data: null, worker: this, error: error });
     this.resolve = null;
   }
-  addNextTask(task: Task<unknown>) {
-    this.queue.push(task);
-  }
-  getNextTask() {
-    return this.queue.shift();
-  }
 }
 
 export class ThreadsPool<
@@ -212,9 +166,6 @@ export class ThreadsPool<
     return super.addTask(task) as Promise<
       [Awaited<ReturnType<EVENT_BUS[T]>>, Error]
     >;
-  }
-  async runNext(worker: ThreadsWorker) {
-    super.runNext(worker);
   }
 }
 
@@ -250,10 +201,6 @@ export class FunctionPool<
 
   addTask(task: Parameters<T>[0]): Promise<[Awaited<ReturnType<T>>, Error]> {
     return super.addTask(task) as Promise<[Awaited<ReturnType<T>>, Error]>;
-  }
-
-  async runNext(worker: FunctionWorker<T>) {
-    super.runNext(worker);
   }
 }
 
