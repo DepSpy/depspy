@@ -9,9 +9,10 @@ export const defaultConfig = {
   },
 };
 export const NPM_DOMAINS = [
-  "https://mirrors.cloud.tencent.com/npm",
-  "https://registry.npmjs.org",
-  "https://registry.npmmirror.com",
-  " https://registry.yarnpkg.com",
+  "https://registry.npmjs.org", // 官方
+  "https://registry.npmmirror.com", // 淘宝
+  "https://registry.yarnpkg.com", // yarn
+  "http://mirrors.cloud.tencent.com/npm", // 腾讯
+  "https://mirrors.huaweicloud.com/repository/npm", // 华为
 ];
 export const HOST_MAX_FETCH_NUMBER = 6;

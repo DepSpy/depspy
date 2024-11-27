@@ -5,6 +5,7 @@ import { ReducerType } from "~/searchSide";
 import styles from "./index.module.scss";
 import useLanguage from "@/i18n/hooks/useLanguage";
 import { useNavigate } from "react-router-dom";
+import { getNodeByPaths, searchNodes } from "@/contexts/eventBus";
 
 const reducer: ReducerType = (state, action) => {
   const newState = { ...state };
@@ -18,7 +19,7 @@ const reducer: ReducerType = (state, action) => {
 
 export default function SideSearch() {
   const { t } = useLanguage();
-  const { root, setSelectNode, searchNode } = useStore();
+  const { root, setSelectNode } = useStore();
   const [state, dispatch] = useReducer<ReducerType>(reducer, {
     keywords: "",
     loading: true,
@@ -26,8 +27,11 @@ export default function SideSearch() {
     searchHistory: JSON.parse(localStorage.getItem("suggestionHistory")) ?? [],
   });
   const navigation = useNavigate();
-  const searchHandler = (node: Node) => {
-    if (node !== null) setSelectNode(node);
+  const searchHandler = async (node: Node) => {
+    if (node !== null) {
+      await getNodeByPaths(root, [node.path]);
+      setSelectNode(node);
+    }
     dispatch([
       { type: "keywords", value: "" },
       { type: "nodes", value: [] },
@@ -51,10 +55,13 @@ export default function SideSearch() {
     ),
     [state.nodes],
   );
+  async function getSearchNode(key: string) {
+    const nodes = await searchNodes(key);
+    dispatch({ type: "nodes", value: nodes });
+  }
   useEffect(() => {
     if (state.keywords) {
-      const suggestions = searchNode(root, state.keywords);
-      dispatch({ type: "nodes", value: suggestions });
+      getSearchNode(state.keywords);
     } else if (!state.keywords) {
       dispatch({ type: "nodes", value: [] });
     } else dispatch({ type: "nodes", value: false });

@@ -34,7 +34,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const sendQuery = (val: string) => {
     ctx.onHistoryUpdate(val);
     generateGraphWrapper(val);
-    navigate(`/analyze?q=${val}`);
+    navigate(`/analyze?q=${val}&depth=3`);
     setInfo(val);
   };
 

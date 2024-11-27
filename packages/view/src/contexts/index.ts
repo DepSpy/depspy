@@ -4,10 +4,7 @@ import { subscribeWithSelector } from "zustand/middleware";
 import type { Node, StaticStore, Store } from "~/types";
 import { linkContext } from "./linkContext";
 import { searchNode } from "./searchNode";
-import { generateGraph, StaticNode } from "@dep-spy/core";
-import { EventBus } from "@/contexts/eventBus.ts";
-
-let graph = null;
+import { StaticNode } from "@dep-spy/core";
 
 export const useStore = createWithEqualityFn<Store>()(
   subscribeWithSelector((set) => ({
@@ -25,9 +22,21 @@ export const useStore = createWithEqualityFn<Store>()(
     selectedCodependency: [],
     selectedCircularDependency: null,
     selectedNodeHistory: [],
-    setRoot: (root: Node) => set({ root }),
-    setDepth: (depth: number) => set({ depth }),
-    setInfo: (info: string) => set({ info }),
+    setRoot: (
+      root: Node & {
+        unfold?: boolean;
+      },
+    ) => set({ root }),
+    setDepth: (depth: number) => {
+      if (depth < 2) {
+        set({ depth: 2 });
+        return;
+      }
+      set({ depth });
+    },
+    setInfo: (info: string) => {
+      set({ info, root: null, rootLoading: true });
+    },
     setSizeTree: (sizeTree: boolean) => set({ sizeTree }),
     setRootLoading: (rootLoading: boolean) => set({ rootLoading }),
     setSelectNode: (selectedNode: Node) => {
@@ -48,21 +57,6 @@ export const useStore = createWithEqualityFn<Store>()(
     setLanguage: (language: string) => {
       localStorage.setItem("language", language);
       set({ language });
-    },
-    setGraphRes: async (info, depth) => {
-      if (!graph) {
-        graph = generateGraph(info, { depth });
-        await graph.ensureGraph();
-        EventBus["init"]({
-          ...(await generateBusParams()),
-          depth: depth,
-        });
-      } else {
-        await graph.update(depth);
-        EventBus["depth"]({
-          ...(await generateBusParams()),
-        });
-      }
     },
     setSelectNodeHistory: (node) => {
       const { selectedNodeHistory } = useStore.getState();
@@ -107,12 +101,4 @@ export const useStaticStore = createWithEqualityFn<StaticStore>()(
 );
 if (import.meta.env.VITE_BUILD_MODE != "online") {
   linkContext(useStore);
-}
-
-export async function generateBusParams() {
-  return {
-    root: { ...(await graph.getGraph()) },
-    circularDependency: await graph.getCircularDependency(),
-    codependency: await graph.getCodependency(),
-  };
 }
