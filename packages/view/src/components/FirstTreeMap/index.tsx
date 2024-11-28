@@ -22,7 +22,7 @@ function changeData(data: Node): Data | undefined {
   }
   const dep = data.dependencies;
   const newdata: Data = { name: "", children: [] };
-  const depvalues = Object.values(dep);
+  const depvalues = Object.values(dep || {});
   // console.log("depvalues", depvalues);
 
   if (depvalues.length !== 0) {
@@ -79,10 +79,11 @@ const FirstTreeMap = ({
   const [state, setState] = useState<number>(0); // control transition
   const [data, setData] = useState<Data>();
   const [treeMap, setTreeMap] = useState<d3.HierarchyRectangularNode<Data>>();
-  const { selectedNode, setSelectNode } = useStore((store) => {
+  const { selectedNode, setSelectNode, root } = useStore((store) => {
     return {
       selectedNode: store.selectedNode,
       setSelectNode: store.setSelectNode,
+      root: store.root,
     };
   });
   const [innerWidth, setInnerWidth] = useState(width);
@@ -91,11 +92,12 @@ const FirstTreeMap = ({
   // init
   useEffect(() => {
     setData(changeData(selectedNode));
-  }, [selectedNode]);
+  }, [selectedNode, root]);
 
   const updateTreeMap = useCallback(
     (data: Data) => {
       if (!data) return;
+
       const dataTree = {
         name: data.name,
         _size: data.size,

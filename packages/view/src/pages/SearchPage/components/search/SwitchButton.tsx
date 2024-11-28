@@ -32,7 +32,7 @@ const SwitchButton: React.FC<SwitchProps> = ({
       setInfo(trimmedInputValue);
       ctx.onHistoryUpdate(trimmedInputValue);
       generateGraphWrapper(trimmedInputValue);
-      navigate(`/analyze?q=${trimmedInputValue}`);
+      navigate(`/analyze?q=${trimmedInputValue}&depth=3`);
     } else {
       console.log("Non-exist dependency, please search another one.");
       return;

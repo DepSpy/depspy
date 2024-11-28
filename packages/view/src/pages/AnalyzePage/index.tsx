@@ -12,27 +12,26 @@ import Skeleton from "@/components/Skeleton";
 import FirstTreeMap from "@/components/FirstTreeMap";
 import SizeTree from "@/components/SizeTree";
 import GridBackground from "@/components/GridBack";
+import { EventBus } from "@/contexts/eventBus.ts";
 
 export default function AnalyzePage() {
   const [searchParams] = useSearchParams();
-  const {
-    root,
-    info,
-    depth,
-    sizeTree,
-    setRoot,
-    setGraphRes,
-    rootLoading,
-    setRootLoading,
-  } = useStore((state) => state, shallow);
+  const { root, info, depth, sizeTree, setRoot, rootLoading } = useStore(
+    (state) => state,
+    shallow,
+  );
   const svg = useRef(null);
 
   useEffect(() => {
     if (import.meta.env.VITE_BUILD_MODE == "online") {
-      setRootLoading(true);
-      setGraphRes(searchParams.get("q") || info, depth).then(() => {
-        setRootLoading(false);
-      });
+      if (!root) {
+        EventBus.init({
+          depth: parseInt(searchParams.get("depth")),
+          info: searchParams.get("q") || info,
+        });
+        return;
+      }
+      EventBus.update({ depth });
     }
   }, [depth, info]);
 
