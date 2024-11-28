@@ -35,7 +35,7 @@ function DrawRect({ treeMap, isHierarchy }: DrawRectProps) {
           x1={treeMap.x1}
           y1={treeMap.y1}
           data={treeMap.data}
-          key={treeMap.value || 0}
+          key={Math.random()}
           color={colorScale(forTree.length)}
         ></DrawChildrenRect>
       )}
