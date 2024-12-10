@@ -4,8 +4,11 @@ import path from "path";
 import express from "express";
 import { blueBright, green } from "chalk";
 import { createHttp } from "./createHttp";
+import { MODE } from "../constants";
 
-const root = path.join(staticPath, "vite");
+const mode: MODE = MODE.OFFLINE;
+
+const root = path.join(staticPath, mode);
 
 export function createServer(graph: Graph, option: Config) {
   // createWs(graph, option);
@@ -19,7 +22,15 @@ export function createServer(graph: Graph, option: Config) {
   //携带初始化的depth信息
   const depth = option.depth ?? 3;
   const port = 2023;
-  const url = `http://localhost:${2023}/analyze?depth=${depth}`;
+  let url;
+
+  if (mode === MODE.OFFLINE) {
+    url = `http://localhost:${port}/analyze?depth=${depth}`;
+  }
+
+  if (mode === MODE.ONLINE) {
+    url = `http://localhost:${port}/search`;
+  }
 
   app.listen(port, () => {
     console.log(green("服务器启动成功:"), blueBright(url));

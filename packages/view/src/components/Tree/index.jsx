@@ -35,7 +35,6 @@ function Tree({ width = window.innerWidth }, svg) {
   const [data, setData] = useState(() => [filterData(root, collapse)]);
   const [offsetY, setOffsetY] = useState({});
   const [links, setLinks] = useState([]);
-  const preHighlight = useRef([]);
   useEffect(() => {
     setData([filterData(root, collapse)]);
   }, [root, collapse]);
@@ -100,6 +99,7 @@ function Tree({ width = window.innerWidth }, svg) {
     setData([...data]);
     return nextHighLight;
   }, {});
+
   //高亮选中节点
   useEffect(() => {
     const nextPath = selectedNode.path;
@@ -110,25 +110,11 @@ function Tree({ width = window.innerWidth }, svg) {
     if (selectedCodependency?.length) {
       const selectedNodes = selectedCodependency.map((node) => {
         const dep = findDepBypath(node.path, root, true);
-        dep.highlight = true;
         return dep;
       });
-      useStore.subscribe(
-        (state) => state.selectedCodependency,
-        () => {
-          preHighlight.current.forEach((node) => {
-            node.highlight = false;
-          });
-        },
-      );
-      preHighlight.current = selectedNodes;
-
       setSelectNode(selectedNodes[0]);
       setRoot({ ...root });
     } else {
-      preHighlight.current.forEach((node) => {
-        node.highlight = false;
-      });
       setRoot({ ...root });
     }
   }, [selectedCodependency]);
