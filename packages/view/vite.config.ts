@@ -16,6 +16,7 @@ export default defineConfig(({ mode }) => {
           },
         },
       },
+      sourcemap: true,
     },
     envDir: "./env",
 

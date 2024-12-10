@@ -1,10 +1,16 @@
 import { useMemo } from "react";
 import { useStore } from "../../../contexts";
 import DrawerBox from "../DrawerBox";
+import { getNodeByPaths } from "@/contexts/eventBus";
 
 export default function CoDepList() {
-  const { codependency, selectedCodependency, setSelectCodependency } =
-    useStore((state) => state);
+  const {
+    root,
+    codependency,
+    selectedCodependency,
+    setSelectCodependency,
+    setRoot,
+  } = useStore((state) => state);
   const dependencies = useMemo(() => {
     return Object.values(codependency).map((nodes) => {
       return nodes[0];
@@ -16,12 +22,24 @@ export default function CoDepList() {
         title={"Duplicated Dependency"}
         dependencies={dependencies}
         selectedNode={selectedCodependency[0]}
-        setFn={(node) => {
+        setFn={async (node) => {
           if (node === null) {
             setSelectCodependency([]);
             return;
           }
-          setSelectCodependency(codependency[node.name + node.version]);
+          const paths = Object.values(
+            codependency[node.name + node.declarationVersion],
+          ).map((coNode) => {
+            const paths = coNode.path;
+            return paths;
+          });
+          await getNodeByPaths(root, paths);
+
+          setSelectCodependency(
+            codependency[node.name + node.declarationVersion],
+          );
+
+          setRoot({ ...root });
         }}
       />
     </div>

@@ -46,3 +46,9 @@ export interface TS_CONFIG {
 }
 
 export type ALIAS_CONFIG = Record<string, string | string[]>;
+
+export type jsonOptions = {
+  depth?: number;
+  internalKeys?: string[];
+  externalKeys?: string[];
+};
