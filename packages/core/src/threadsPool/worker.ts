@@ -1,5 +1,5 @@
 import threads from "worker_threads";
-import { EventBus } from "./index";
+import { EventBus } from "./eventBus";
 const parentPort = threads.parentPort;
 
 parentPort.on("message", async ({ type, params }) => {

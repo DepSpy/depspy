@@ -1,7 +1,7 @@
 import EventEmitter from "events";
 import threads from "worker_threads";
 
-type Resolve<T> = (res: { data: T; worker: Worker; error: Error }) => void;
+type Resolve<T> = (res: { data: T; error: Error }) => void;
 type Task<T> = {
   task: T;
   resolve: ([data, error]: [unknown, Error]) => void;
@@ -56,21 +56,7 @@ abstract class Pool {
     //直接领取下一个任务
     if (this.taskQueue.length > 0) {
       // 找到合适任务执行， 若曾经失败， 则不在该worker执行此任务
-      const index = this.taskQueue.findIndex(
-        (v) => !v.failWorkerKeySet.has(worker.key),
-      );
-
-      if (index === -1) {
-        // 若此线程未找到任务
-        //置为空闲线程
-        this.freeWorkers.push(worker);
-        return;
-      }
-
-      // 将任务取出
-      const taskInfo = this.taskQueue[index];
-      this.taskQueue.splice(index, 1);
-
+      const taskInfo = this.taskQueue.shift();
       this.runTask(worker, taskInfo);
       return;
     }
@@ -139,12 +125,12 @@ abstract class Worker {
   }
   message(data: unknown) {
     //任务已完成
-    this.resolve({ data, worker: this, error: null });
+    this.resolve({ data, error: null });
     //清空当前任务
     this.resolve = null;
   }
   error(error: Error) {
-    this.resolve && this.resolve({ data: null, worker: this, error: error });
+    this.resolve && this.resolve({ data: null, error: error });
     this.resolve = null;
   }
 }
