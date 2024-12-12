@@ -3,8 +3,8 @@ import {
   RouterProvider,
   createBrowserRouter,
 } from "react-router-dom";
-import SearchPage from "./pages/SearchPage";
 import AnalyzePage from "./pages/AnalyzePage";
+import SearchPage from "./pages/SearchPage";
 import { useStore } from "@/contexts";
 import useLanguage from "./i18n/hooks/useLanguage";
 import { useEffect } from "react";
@@ -19,7 +19,9 @@ const routeElement = [
     element: (
       <Navigate
         to={
-          import.meta.env.VITE_BUILD_MODE == "online" ? "/search" : "/analyze"
+          import.meta.env.VITE_BUILD_MODE == "online"
+            ? "/search"
+            : "/analyze?depth=3"
         }
       />
     ),

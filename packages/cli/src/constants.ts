@@ -11,3 +11,8 @@ export const defaultConfig = {
     codependency: "ds.co.json",
   },
 };
+
+export const enum MODE {
+  ONLINE = "online",
+  OFFLINE = "vite",
+}
