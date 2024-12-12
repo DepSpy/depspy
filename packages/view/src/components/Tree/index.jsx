@@ -36,8 +36,12 @@ function Tree({ width = window.innerWidth }, svg) {
   const [offsetY, setOffsetY] = useState({});
   const [links, setLinks] = useState([]);
   useEffect(() => {
+    setData([filterData(root, undefined)]);
+  }, [root]);
+
+  useEffect(() => {
     setData([filterData(root, collapse)]);
-  }, [root, collapse]);
+  }, [collapse]);
   //用来记录不影响重渲染的值
   let { current } = useRef({
     rootLength: 0,
@@ -235,7 +239,6 @@ function Tree({ width = window.innerWidth }, svg) {
                             root,
                             collapseFlag == "+",
                           );
-
                           if (selectedNode !== currentNode) {
                             setSelectNode(currentNode);
                           }
@@ -398,6 +401,11 @@ function filterData(data, collapse) {
     if (!data) {
       return {};
     }
+
+    if (typeof collapse === "boolean") {
+      data.unfold = !collapse;
+    }
+
     const newData = {
       ...data,
       originDeps: { ...data.dependencies },
@@ -405,6 +413,7 @@ function filterData(data, collapse) {
     };
 
     if (depth > 1) newData.dependencies = {};
+
     if (data.unfold) newData.unfold = true;
     const entries = Object.entries(newData.originDeps);
     depth++;
@@ -412,9 +421,13 @@ function filterData(data, collapse) {
       const [name, dependency] = entries[i];
       const child = traverse(dependency);
       // collapse命中展开所有, unfold命中展开当前
-      if (depth <= 2 || !collapse || newData.unfold) {
-        newData.dependencies[name] = child;
+      if (
+        depth <= 2 ||
+        (typeof collapse === "boolean" && !collapse) ||
+        newData.unfold
+      ) {
         newData.unfold = true;
+        newData.dependencies[name] = child;
       }
 
       newData.originDeps[name] = child;
