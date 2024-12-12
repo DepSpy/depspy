@@ -31,4 +31,16 @@
     border: var(--color-border) solid 0.5px;
     border-radius: 0.25rem;
   }
+  .dep-item-more::after {
+    position: absolute;
+    content: attr(data-more);
+    z-index: 99;
+    top: 0;
+    left: 0;
+    padding: 0.25rem;
+    color: var(--text);
+    background-color: var(--color-bg-container);
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+  }
 }
