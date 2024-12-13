@@ -3,43 +3,16 @@ import type { StoreApi } from "zustand";
 import { EventBus } from "./eventBus";
 import { useStaticStore } from "./index";
 
-const wsPath = "ws://localhost:1822";
-
-export function linkContext(useStore: StoreApi<Store>) {
-  const ws = new WebSocket(wsPath);
-  ws.addEventListener("open", () => {
-    useStore.setState({
-      rootLoading: true,
-    });
-    useStaticStore.setState({
-      staticRootLoading: true,
-    });
-    ws.addEventListener("message", (result) => {
-      const { type, data } = parseMes(result.data);
-      EventBus[type](
-        typeof data === "string" ? JSON.parse(data, nullToInfinity) : data,
-        ws,
-      );
-    });
+export async function linkContext(useStore: StoreApi<Store>) {
+  useStore.setState({
+    rootLoading: true,
   });
-  ws.addEventListener("error", () => {
-    console.error("连接异常");
+  useStaticStore.setState({
+    staticRootLoading: true,
   });
-  ws.addEventListener("close", () => {
-    console.error("连接断开");
+  const query = new URLSearchParams(window.location.search);
+
+  await EventBus.init({
+    depth: Number(query.get("depth")) || 3,
   });
-
-  window.addEventListener("beforeunload", () => ws.close());
-}
-
-function parseMes(mes: string) {
-  return JSON.parse(mes, nullToInfinity);
-}
-
-function nullToInfinity(key: string, value: unknown) {
-  // Infinity 经过序列化会变成null
-  if (key === "childrenNumber" && value === null) {
-    return Infinity;
-  }
-  return value;
 }

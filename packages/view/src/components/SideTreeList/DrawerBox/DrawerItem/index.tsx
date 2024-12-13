@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { objSame } from "../../../../utils/objSame";
-import "./index.scss";
 
 export default function DrawerItem({ dep, selectedNode, clickHandler }) {
   const [showMore, setShowMore] = useState(false);
@@ -13,7 +12,8 @@ export default function DrawerItem({ dep, selectedNode, clickHandler }) {
       }}
     >
       <div
-        className="dep-item"
+        className={showMore ? "dep-item dep-item-more" : "dep-item"}
+        data-more={`${dep.name}@${dep.version}`}
         style={
           objSame(dep, selectedNode ? selectedNode : {})
             ? {
@@ -35,11 +35,6 @@ export default function DrawerItem({ dep, selectedNode, clickHandler }) {
       >
         {dep.name}@{dep.version}
       </div>
-      {showMore ? (
-        <div className="dep-item-more">
-          {dep.name}@{dep.version}
-        </div>
-      ) : null}
     </div>
   );
 }

@@ -3,6 +3,7 @@ export interface Node {
   version: string;
   declarationVersion: string;
   path: string[];
+  realNamePath: string[];
   childrenNumber: number;
   resolvePath: string;
   description?: string;
@@ -31,8 +32,3 @@ export interface Config {
     codependency?: string;
   };
 }
-
-export type MODULE_INFO_TASK = {
-  type: "moduleInfo";
-  params: [string, string];
-};

@@ -18,7 +18,7 @@ const HistoryPage: React.FC<HistoryPageProps> = ({ onDisplayHistory }) => {
   const loadHistoryHandler = (item: string) => {
     generateGraphWrapper(item);
     setInfo(item);
-    navigate(`/analyze?q=${item}`);
+    navigate(`/analyze?q=${item}&depth=3`);
   };
 
   return (

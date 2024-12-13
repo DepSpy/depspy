@@ -12,11 +12,11 @@
     "test": "vitest --no-threads",
     "dev": "node ./scripts/index.mjs",
     "build": "lerna run build",
-    "debug": "node scripts/debug.js",
     "pm": "node scripts/performance/index.mjs",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:preview": "vitepress preview docs",
+    "lint": "eslint ./packages --fix"
   },
   "keywords": [],
   "author": "",

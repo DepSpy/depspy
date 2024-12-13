@@ -12,6 +12,11 @@ export interface Node {
   dependencies: Record<string, Node>;
   size: number;
   selfSize: number;
+  realNamePath: string[];
+  resolvePath: string;
+  dependenciesList: Record<string, string>;
+  parent: Node | null;
+  unfold?: boolean;
 }
 
 export interface generateGraphRes {
@@ -48,7 +53,6 @@ export interface Store {
   setCollapse: (flag: boolean) => void;
   setTheme: (theme: string) => void;
   setLanguage: (language: string) => void;
-  setGraphRes: (name: string, depth: number) => Promise<void>;
   setSelectNodeHistory: (node: Node) => void;
   setPreSelectNode: () => void;
 }
