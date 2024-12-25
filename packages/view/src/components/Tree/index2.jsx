@@ -1,8 +1,8 @@
 import * as d3 from "d3";
 import { useEffect, useState, useRef, useReducer, forwardRef } from "react";
 import { shallow } from "zustand/shallow";
-import { getActualWidthOfChars, textOverflow } from "../../utils/textOverflow";
 import { useStore } from "../../contexts";
+import { getActualWidthOfChars, textOverflow } from "../../utils/textOverflow";
 import SvgComponents from "./SvgComponents";
 import "./index.scss";
 function Tree({ width = window.innerWidth }, svg) {
@@ -103,7 +103,6 @@ function Tree({ width = window.innerWidth }, svg) {
     setData([...data]);
     return nextHighLight;
   }, {});
-
   //高亮选中节点
   useEffect(() => {
     const nextPath = selectedNode.path;
@@ -111,6 +110,8 @@ function Tree({ width = window.innerWidth }, svg) {
   }, [selectedNode, root]);
   //高亮相同依赖
   useEffect(() => {
+    console.warn("改变后的code", selectedCodependency);
+
     if (selectedCodependency?.length) {
       const selectedNodes = selectedCodependency.map((node) => {
         const dep = findDepBypath(node.path, root, true);
@@ -167,6 +168,7 @@ function Tree({ width = window.innerWidth }, svg) {
         </g>
         <g fill="none" id="resizing" strokeLinejoin="round" strokeWidth={3}>
           {Object.values(offsetY).map((d) => {
+            console.log("offsetY", offsetY);
             const {
               width,
               x,
@@ -214,6 +216,7 @@ function Tree({ width = window.innerWidth }, svg) {
                 cursor={"pointer"}
                 transform={`translate(${y + width / 2},${x})`}
                 onClick={() => {
+                  console.log("d.data.path", d.data.path);
                   setSelectNode(findDepBypath(d.data.path, root));
                 }}
               >
@@ -326,6 +329,7 @@ function generateTree(data) {
   const tree = d3.tree().nodeSize([50, 200]);
   tree(root);
   //动态计算偏移量
+  console.log("root", root);
   root.eachBefore((d) => {
     const nodeWidth = 150;
     if (d.depth == 0 || d.depth == 1) {
@@ -341,6 +345,9 @@ function generateTree(data) {
   const offsetY = {};
   const links = [];
   const rootLinks = root.links();
+  console.log("root", root, "links", rootLinks);
+  console.log("root", root, "root.data.path.json", root.data.path.join());
+
   if (!rootLinks.length) {
     offsetY[root.data.path.join()] = root;
   }
