@@ -1,17 +1,20 @@
 import * as G6 from "@antv/g6";
-import { useEffect, useState, useRef, forwardRef } from "react";
+import {
+  useEffect,
+  useState,
+  useRef,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import { shallow } from "zustand/shallow";
 import { getActualWidthOfChars, textOverflow } from "../../utils/textOverflow";
 import { useStore } from "../../contexts";
 import "./index.scss";
-function Tree() {
-  // function Tree({ width = window.innerWidth }, svg) {
-  const containerRef = useRef(null);
-  const graph = useRef(null);
+function Tree(props, exposeRef) {
   //➡️全局数据
   const {
     globalDepth,
-    // theme,
+    theme,
     root,
     setSelectNode,
     collapse,
@@ -33,67 +36,43 @@ function Tree() {
     }),
     shallow,
   );
+  const graphRef = useRef(null);
+  const svg = useRef(null);
   const [data, setData] = useState(() => [filterData(root, collapse)]);
+  const themeMemo = useRef(theme);
   const rootMemo = useRef(root);
   const selectedNodeMemo = useRef(selectedNode);
   const selectedCodependencyMemo = useRef(selectedCodependency);
   const selectedCircularDependencyMemo = useRef(selectedCircularDependency);
-  //
+  // 把canvas和graph暴露出去，graph给Export组件用来下载图片
+  useImperativeHandle(exposeRef, () => {
+    return {
+      svg: svg.current,
+      graph: graphRef.current,
+    };
+  });
   //将循环的路径上的节点展开并高亮循环节点
   useEffect(() => {
-    console.warn("selectedCircularDependency改变", selectedCircularDependency);
+    // console.warn("selectedCircularDependency改变", selectedCircularDependency);
     if (selectedCircularDependency) {
       setSelectNode({
         ...findDepBypath(selectedCircularDependency.path, root, true),
       });
     }
   }, [selectedCircularDependency]);
-  // 更改节点的颜色
-  //   function updateCodependencyNode(codependency) {
-  //     if (!graph.current) return;
-  //     // 1.获取所有节点
-  //     const nodes = graph.current.getNodes();
-  //     // const edges = graph.current.getEdges();
-  //     // 2.将node全点亮
-  //     console.log("进入寻找");
-  //     codependency.forEach((sameDependency) => {
-  //       const { name } = sameDependency;
-  //       nodes.forEach((node) => {
-  //         // 就是对应选择的依赖名称
-  //         // console.log("开始寻找", node, name, "  ", node._cfg.model.name);
-  //         if (node._cfg.model.name === name) {
-  //           //   console.warn("找到了对应的node", node);
-  //           //   const {
-  //           //     _cfg: { group },
-  //           //   } = node;
-  //           //   const rect = group.find((e) => e.get("name") === "tree-rect-shape");
-  //           //   console.log("find", rect);
-  //           //   rect.attr({
-  //           //     stroke: "red",
-  //           //   });
-  //           //   node.refresh();
-  //           //   // graph.current.updateItem(node, {
-  //           //   //   styles: {
-  //           //   //     fill: "red",
-  //           //   //     stroke: "blue",
-  //           //   //   },
-  //           //   // });
-  //         }
-  //       });
-  //     });
-  //   }
-  // 数据同步
   useEffect(() => {
-    // console.warn("selectedNodeMemo改变");
-    setSelectNode(selectedNodeMemo.current);
-  }, [selectedNodeMemo]);
-  useEffect(() => {
-    // console.warn("selectedNode改变");
+    // console.warn("选择节点改变", selectedNode);
     selectedNodeMemo.current = selectedNode;
   }, [selectedNode]);
+  useEffect(() => {
+    themeMemo.current = theme;
+    // 利用这个setState来让视图渲染，从而触发node更新，
+    // 改变字体颜色
+    setRoot({ ...root });
+  }, [theme]);
   // 重复依赖改变，要展开
   useEffect(() => {
-    console.warn("重复依赖改变", selectedCodependency);
+    // console.warn("重复依赖改变", selectedCodependency);
     selectedCodependencyMemo.current = selectedCodependency;
     // 展开
     if (selectedCodependency?.length) {
@@ -132,20 +111,20 @@ function Tree() {
           const text = group.addShape("text", {
             attrs: {
               text: content,
-              fill: "white",
+              fill: "#fff",
               cursor: "pointer",
             },
             name: "tree-text-shape",
           });
           const tbox = text.getBBox();
           const rbox = rect.getBBox();
-          //   const hasChildren = cfg.children && cfg.children.length > 0;
           // dependenciesList需要在convert的时候跟globalDep比较一下判断是否加入
           const hasChildren = cfg.children && !isEmpty(cfg.dependenciesList);
           text.attr({
             x: (rbox.width - tbox.width) / 2,
             y: (rbox.height + tbox.height) / 2,
           });
+          // 有子节点，显示+-号
           if (hasChildren && cfg.name !== "dep-spy") {
             group.addShape("marker", {
               attrs: {
@@ -165,95 +144,23 @@ function Tree() {
         },
         update: (cfg, item) => {
           const group = item.getContainer();
-          const model = group.cfg.item._cfg.model;
+          //   const model = group.cfg.item._cfg.model;
+          const textColor = themeMemo.current === "light" ? "dark" : "white";
           const icon = group.find((e) => {
             return e.get("name") === "collapse-icon";
           });
-          // 从重复依赖中查找它
-          const dep = selectedCodependencyMemo.current.find((codep) => {
-            return codep.path.join("-") === model.path.join("-");
-          });
-          // 这里是改变重复依赖的样式
-          if (dep) {
-            const rect = group.find((e) => {
-              return e.get("name") === "tree-rect-shape";
-            });
-            rect.attr({
-              stroke: "red",
-            });
-          }
-          // 这里改变循环依赖样式，渲染的时候判断自己是否处在这条路径上，
-          if (selectedCircularDependencyMemo.current) {
-            const { circlePath, name } = selectedCircularDependencyMemo.current;
-            // 1.获取路径上所有循环的节点的路径
-            // 保存所有循环路径的数组
-            const circlePathArr = [];
-            for (let i = 0; i < circlePath.length; ++i) {
-              if (circlePath[i] === name) {
-                circlePathArr.push(circlePath.slice(0, i + 1).join("-"));
-              }
-            }
-            // 2.根据路径获取所有节点
-            // 存放所有节点，最后一个必是箭头出发点
-            const allCircleDepNodesArr = [];
-            const nodes = graph.current.getNodes();
-            nodes?.forEach((node) => {
-              const {
-                _cfg: {
-                  model: { path },
-                },
-              } = node;
-              const nodePath = path.join("-");
-              // 将在路径上的重复节点加入数组，循环画箭头，并且
-              // 在这里设置节点样式
-              if (circlePathArr.indexOf(nodePath) !== -1) {
-                // 设置样式
-                const rect = node._cfg.group.find((e) => {
-                  return e.get("name") === "tree-rect-shape";
-                });
-                rect.attr({
-                  stroke: "red",
-                });
-                //
-                allCircleDepNodesArr.push(node);
-              }
-            });
-            // 3.开始画箭头
-            if (allCircleDepNodesArr.length >= 2) {
-              // 箭头起点节点
-              const sourceNode =
-                allCircleDepNodesArr[allCircleDepNodesArr.length - 1];
-              const sourceNodeModel = sourceNode.getModel();
-              const sourceNodeCenter = [sourceNodeModel.x, sourceNodeModel.y];
-              // 给每个节点画上箭头
-              for (let i = 0; i < allCircleDepNodesArr.length - 1; ++i) {
-                const targetNode = allCircleDepNodesArr[i];
-                const targetNodeModel = targetNode.getModel();
-                // 获取节点中心坐标
-                const targetNodeCenter = [targetNodeModel.x, targetNodeModel.y];
-                // 画箭头
-                // 这个路径是以所添加的节点本身左上角为(0,0)
-                const arrowPath = createArrowPath(
-                  sourceNodeCenter[0] - targetNodeCenter[0] + 50,
-                  sourceNodeCenter[1] - targetNodeCenter[1] + 10,
-                  50,
-                  10,
-                );
-                targetNode._cfg.group.addShape("path", {
-                  attrs: {
-                    path: arrowPath,
-                    stroke: "#89484A",
-                    lineWidth: 2,
-                  },
-                  name: "custom-arrow-path",
-                });
-              }
-            }
-          }
           icon?.attr(
             "symbol",
             cfg.collapsed ? G6.Marker.expand : G6.Marker.collapse,
           );
+          // 改变字体颜色
+          const text = group.find((e) => e.get("name") === "tree-text-shape");
+          text?.attr({
+            fill: textColor,
+          });
+          updateCodependecyStyle(group);
+          // 这里改变循环依赖样式，渲染的时候判断自己是否处在这条路径上，
+          linkCircleDependency();
         },
         getAnchorPoints: () => {
           return [
@@ -284,8 +191,114 @@ function Tree() {
         });
         return shape;
       },
+      update() {
+        // 1.获取当前选择节点
+        if (selectedNodeMemo.current) {
+          const nowSelectedNode = findNodeByPath(
+            selectedNodeMemo.current.path.join(),
+          );
+          // 2.获取当前节点邻近的edge，将他们全部变色
+          const neighborEdges = nowSelectedNode?.getEdges();
+          neighborEdges?.forEach((edge) => {
+            const findEdge = edge._cfg.group.find(
+              (e) => e.get("name") === "custom-polyline-path",
+            );
+            findEdge?.attr({
+              stroke: "#5B2EEE",
+            });
+          });
+        }
+      },
     });
   }, []);
+  // 更新重复依赖样式
+  function updateCodependecyStyle(group) {
+    // 从重复依赖中查找它
+    const model = group.cfg.item._cfg.model;
+    const dep = selectedCodependencyMemo.current.find((codep) => {
+      return codep.path.join("-") === model.path.join("-");
+    });
+    // 这里是改变重复依赖的样式
+    if (dep) {
+      const rect = group.find((e) => {
+        return e.get("name") === "tree-rect-shape";
+      });
+      rect.attr({
+        stroke: "#5B2EEE",
+        fill: "#5B2EEE",
+      });
+    }
+  }
+  // 连接循环依赖
+  function linkCircleDependency() {
+    if (selectedCircularDependencyMemo.current) {
+      const { circlePath, name } = selectedCircularDependencyMemo.current;
+      // 1.获取路径上所有循环的节点的路径
+      // 保存所有循环路径的数组
+      const circlePathArr = [];
+      for (let i = 0; i < circlePath.length; ++i) {
+        if (circlePath[i] === name) {
+          circlePathArr.push(circlePath.slice(0, i + 1).join("-"));
+        }
+      }
+      // 2.根据路径获取所有节点
+      // 存放所有节点，最后一个必是箭头出发点
+      const allCircleDepNodesArr = [];
+      const nodes = graphRef.current.getNodes();
+      nodes?.forEach((node) => {
+        const {
+          _cfg: {
+            model: { path },
+          },
+        } = node;
+        const nodePath = path.join("-");
+        // 将在路径上的重复节点加入数组，循环画箭头，并且
+        // 在这里设置节点样式
+        if (circlePathArr.indexOf(nodePath) !== -1) {
+          // 设置样式
+          const rect = node._cfg.group.find((e) => {
+            return e.get("name") === "tree-rect-shape";
+          });
+          rect?.attr({
+            stroke: "#5B2EEE",
+          });
+          allCircleDepNodesArr.push(node);
+        }
+      });
+      // 3.开始画箭头
+      if (allCircleDepNodesArr.length >= 2) {
+        // 箭头起点节点
+        const sourceNode =
+          allCircleDepNodesArr[allCircleDepNodesArr.length - 1];
+        const sourceNodeModel = sourceNode.getModel();
+        const sourceNodeCenter = [sourceNodeModel.x, sourceNodeModel.y];
+        // 给每个节点画上箭头
+        for (let i = 0; i < allCircleDepNodesArr.length - 1; ++i) {
+          const targetNode = allCircleDepNodesArr[i];
+          const targetNodeModel = targetNode.getModel();
+          // 获取节点中心坐标
+          const targetNodeCenter = [targetNodeModel.x, targetNodeModel.y];
+          // 画箭头
+          // 这个路径是以所添加的节点本身左上角为(0,0)
+          const arrowPath = createArrowPath(
+            sourceNodeCenter[0] - targetNodeCenter[0] + 50,
+            sourceNodeCenter[1] - targetNodeCenter[1] + 10,
+            50,
+            10,
+          );
+          targetNode._cfg.group.addShape("path", {
+            attrs: {
+              path: arrowPath,
+              stroke: "#89484A",
+              lineWidth: 2,
+            },
+            name: "custom-arrow-path",
+          });
+        }
+      }
+    }
+  }
+  // 产生链接循环依赖的path
   function createArrowPath(x1, y1, x2, y2, arrowSize = 10) {
     const dx = x2 - x1;
     const dy = y2 - y1;
@@ -295,25 +308,42 @@ function Tree() {
     }
     const unitDx = dx / length;
     const unitDy = dy / length;
-
     // 计算箭头的底边中点坐标
     const arrowBaseMidX = x2 - arrowSize * 0.5 * unitDx;
     const arrowBaseMidY = y2 - arrowSize * 0.5 * unitDy;
-
     // 计算箭头的两个顶点坐标
     const arrowX2 = arrowBaseMidX - arrowSize * 0.5 * unitDy;
     const arrowY2 = arrowBaseMidY + arrowSize * 0.5 * unitDx;
     const arrowX3 = arrowBaseMidX + arrowSize * 0.5 * unitDy;
     const arrowY3 = arrowBaseMidY - arrowSize * 0.5 * unitDx;
-
     return `M${x1},${y1} L${x2},${y2} M${x2},${y2} L${arrowX2},${arrowY2} L${arrowX3},${arrowY3} Z`;
   }
+  // 传递path，找到对应的node
+  function findNodeByPath(findPath) {
+    let returnNode;
+    if (graphRef.current) {
+      const nodes = graphRef.current.getNodes();
+      nodes?.forEach((node) => {
+        if (returnNode) return;
+        const {
+          _cfg: {
+            model: { path },
+          },
+        } = node;
+        if (findPath === path.join()) {
+          returnNode = node;
+          return;
+        }
+      });
+    }
+    return returnNode;
+  }
   useEffect(() => {
-    console.warn("data改变", data[0]);
+    // console.warn("data改变", data[0]);
     generateTree(data[0]);
   }, [data]);
   useEffect(() => {
-    console.warn("root改变", root);
+    // console.warn("root改变", root);
     rootMemo.current = root;
     setData([filterData(root, undefined)]);
   }, [root]);
@@ -322,8 +352,15 @@ function Tree() {
     setData([filterData(root, collapse)]);
   }, [collapse]);
   useEffect(() => {
-    setData([filterData(root, undefined)]);
-  }, [globalDepth]);
+    window.onresize = throttle(() => {
+      if (graphRef.current) {
+        graphRef.current.fitView();
+      }
+    }, 500);
+    return () => {
+      window.onresize = null;
+    };
+  }, []);
   //为第二层以下的节点添加originDeps字段
   /**
    *
@@ -375,7 +412,7 @@ function Tree() {
     // console.log("进入的data", data);
     const width = window.innerWidth;
     const height = window.innerHeight || 800;
-    if (!graph.current) {
+    if (!graphRef.current) {
       // 增加hover提示框
       const tooltip = new G6.Tooltip({
         offsetY: -20,
@@ -388,19 +425,15 @@ function Tree() {
               _cfg: { model },
             },
           } = e;
-          //   console.log("getContent  graphZoom", graph.current.getZoom());
-          const zoom = graph.current.getZoom();
+          const zoom = graphRef.current.getZoom();
           const width = getActualWidthOfChars(model.name) / 4;
-          //   const content = textOverflow(model.name, 100);
           const dom = document.createElement("div");
-          dom.style.color = "#7D5EE3";
-          //   dom.style.width = 100 * zoom + "px";
+          dom.style.color = "#8463F1";
           dom.style.whiteSpace = "nowrap";
-          //   dom.style.overflow = "hidden";
-          //   dom.style.textOverflow = "ellipsis";
-          dom.style.fontSize = 14 * zoom + "px";
+          dom.style.fontSize = 16 * zoom + "px";
           dom.style.webkitTextStrokeWidth = "1px";
-          dom.style.webkitTextStrokeColor = "#574592";
+          dom.style.webkitTextStrokeColor =
+            themeMemo.current === "light" ? "none" : "#574592";
           dom.style.fontWeight = 700;
           // 保证文本居中，设置偏移，文本短的直接居中，长的就偏移即可
           if (width > 30) {
@@ -413,8 +446,8 @@ function Tree() {
           return dom;
         },
       });
-      graph.current = new G6.TreeGraph({
-        container: containerRef.current,
+      graphRef.current = new G6.TreeGraph({
+        container: svg.current,
         width,
         height,
         animate: false,
@@ -476,34 +509,47 @@ function Tree() {
           },
         },
       });
-      graph.current.on("node:click", (e) => {
-        // 只有点击+ - 号才展开
-        if (e.target && e.target.cfg.name !== "collapse-icon") return;
-        // console.log("e", e, "e.item", e.item);
-        graph.current.focusItem(e.item);
+      graphRef.current.on("node:click", (e) => {
+        if (!e.target) return;
+        graphRef.current.focusItem(e.item);
         const cfg = e.item._cfg;
         const model = cfg.model;
         e.stopPropagation();
         e.preventDefault();
-        // 原本折叠就打开，原本打开就折叠
-        setSelectNode(
-          findDepBypath(model.path, rootMemo.current, !model.unfold),
-        );
-        // model.unfold = !model.unfold;
-        setRoot({ ...rooMemo.current });
+        // 只有点击+ - 号才展开
+        if (e.target.cfg.name === "collapse-icon") {
+          // console.log("e", e, "e.item", e.item);
+          // 原本折叠就打开，原本打开就折叠
+          setSelectNode(
+            findDepBypath(model.path, rootMemo.current, !model.unfold),
+          );
+          //   model.unfold = !model.unfold;
+          // 点击矩形部分就只改变邻居edges的颜色
+        } else if (
+          e.target.cfg.name === "tree-rect-shape" ||
+          e.target.cfg.name === "tree-text-shape"
+        ) {
+          setSelectNode(
+            findDepBypath(model.path, rootMemo.current, model.unfold),
+          );
+        }
+        setRoot({ ...rootMemo.current });
       });
-      graph.current.data(Data);
-      graph.current.render();
+      graphRef.current.data(Data);
+      graphRef.current.render();
+      graphRef.current.fitView();
     }
     // 记录上一次的位置
-    const lastPoint = graph.current.getCanvasByPoint(0, 0);
-    graph.current.changeData(Data);
+    const lastPoint = graphRef.current.getCanvasByPoint(0, 0);
+    graphRef.current.changeData(Data);
     // 渲染更新后记录新的位置，并且移动画布
-    const newPoint = graph.current.getCanvasByPoint(0, 0);
-    graph.current.translate(lastPoint.x - newPoint.x, lastPoint.y - newPoint.y);
+    const newPoint = graphRef.current.getCanvasByPoint(0, 0);
+    graphRef.current.translate(
+      lastPoint.x - newPoint.x,
+      lastPoint.y - newPoint.y,
+    );
     // console.log("Data:", Data);
   }
-
   // 递归变为树需要的数据类型
   function converToTreeData(data) {
     // 从0开始
@@ -530,10 +576,8 @@ function Tree() {
     parentNode.children = children;
     return parentNode;
   }
-  return <div ref={containerRef} />;
+  return <div ref={svg} id="graph" />;
 }
-
-// 递归将data变成g6需要的数据结构
 
 // 判断对象是否为空
 function isEmpty(obj) {
@@ -564,15 +608,15 @@ function findDepBypath(paths, data, finnalUnFold) {
 }
 
 //节流
-// const throttle = (func, delay = 500) => {
-//   let timer = null;
-//   return (...args) => {
-//     if (timer) return;
-//     timer = setTimeout(() => {
-//       func(...args);
-//       timer = null;
-//     }, delay);
-//   };
-// };
+const throttle = (func, delay = 500) => {
+  let timer = null;
+  return (...args) => {
+    if (timer) return;
+    timer = setTimeout(() => {
+      func(...args);
+      timer = null;
+    }, delay);
+  };
+};
 
 export default forwardRef(Tree);

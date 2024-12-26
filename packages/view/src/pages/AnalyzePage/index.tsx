@@ -3,7 +3,7 @@ import { useStore } from "@/contexts";
 import Sidebar from "./Sidebar";
 import Depth from "@/components/Depth";
 import Collapse from "@/components/Collapse";
-import { Export } from "@/components/Export";
+import { Export } from "@/components/Export/index";
 import { useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { shallow } from "zustand/shallow";
@@ -21,7 +21,7 @@ export default function AnalyzePage() {
     shallow,
   );
   const svg = useRef(null);
-
+  const treeRef = useRef(null);
   useEffect(() => {
     if (import.meta.env.VITE_BUILD_MODE == "online") {
       if (!root) {
@@ -49,7 +49,7 @@ export default function AnalyzePage() {
         {sizeTree ? (
           <FirstTreeMap fullScreen={true}></FirstTreeMap>
         ) : (
-          <Tree ref={svg}></Tree>
+          <Tree ref={treeRef}></Tree>
         )}
       </div>
       <div className="fixed -z-50 bg-bg-container">
@@ -68,6 +68,7 @@ export default function AnalyzePage() {
         <Depth></Depth>
         <Export
           svgRef={svg}
+          treeRef={treeRef}
           width={innerWidth}
           height={innerHeight}
           json={root}
