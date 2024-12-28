@@ -7,7 +7,7 @@ import {
   useImperativeHandle,
 } from "react";
 import { shallow } from "zustand/shallow";
-import { getActualWidthOfChars, textOverflow } from "../../utils/textOverflow";
+import { textOverflow } from "../../utils/textOverflow";
 import { useStore } from "../../contexts";
 import "./index.scss";
 function Tree(props, exposeRef) {
@@ -47,7 +47,7 @@ function Tree(props, exposeRef) {
   // 把canvas和graph暴露出去，graph给Export组件用来下载图片
   useImperativeHandle(exposeRef, () => {
     return {
-      svg: svg.current,
+      canvasOuterDiv: svg.current,
       graph: graphRef.current,
     };
   });
@@ -99,6 +99,7 @@ function Tree(props, exposeRef) {
             attrs: {
               x: 0,
               y: 0,
+              fill: themeMemo.current === "light" ? "white" : "#252529",
               width: 100,
               height: 20,
               stroke: "rgb(167,167,167)",
@@ -145,19 +146,29 @@ function Tree(props, exposeRef) {
         update: (cfg, item) => {
           const group = item.getContainer();
           //   const model = group.cfg.item._cfg.model;
-          const textColor = themeMemo.current === "light" ? "dark" : "white";
+          const textColor = themeMemo.current === "light" ? "black" : "white";
           const icon = group.find((e) => {
             return e.get("name") === "collapse-icon";
           });
           icon?.attr(
             "symbol",
-            cfg.collapsed ? G6.Marker.expand : G6.Marker.collapse,
+            cfg.unfold ? G6.Marker.collapse : G6.Marker.expand,
           );
           // 改变字体颜色
           const text = group.find((e) => e.get("name") === "tree-text-shape");
           text?.attr({
             fill: textColor,
           });
+          // 改变rect的fill，以便于hover触发
+          const rect = group.find((e) => e.get("name") === "tree-rect-shape");
+          rect?.attr({
+            fill: themeMemo.current === "light" ? "white" : "#252529",
+            stroke:
+              selectedNodeMemo.current.path.join("-") === group.cfg.id
+                ? "#5B2EEE"
+                : "rgb(167,167,167)",
+          });
+          console.log(selectedNodeMemo.current, group);
           updateCodependecyStyle(group);
           // 这里改变循环依赖样式，渲染的时候判断自己是否处在这条路径上，
           linkCircleDependency();
@@ -289,7 +300,7 @@ function Tree(props, exposeRef) {
           targetNode._cfg.group.addShape("path", {
             attrs: {
               path: arrowPath,
-              stroke: "#89484A",
+              stroke: "#E3696A",
               lineWidth: 2,
             },
             name: "custom-arrow-path",
@@ -354,6 +365,7 @@ function Tree(props, exposeRef) {
   useEffect(() => {
     window.onresize = throttle(() => {
       if (graphRef.current) {
+        graphRef.current.changeSize(window.innerWidth, window.innerHeight);
         graphRef.current.fitView();
       }
     }, 500);
@@ -415,8 +427,8 @@ function Tree(props, exposeRef) {
     if (!graphRef.current) {
       // 增加hover提示框
       const tooltip = new G6.Tooltip({
-        offsetY: -20,
-        fixToNode: [0, 0],
+        // offsetY: -30,
+        // fixToNode: [0, 0],
         className: "tooltip",
         itemTypes: ["node"],
         getContent(e) {
@@ -426,23 +438,19 @@ function Tree(props, exposeRef) {
             },
           } = e;
           const zoom = graphRef.current.getZoom();
-          const width = getActualWidthOfChars(model.name) / 4;
+          const content =
+            model.name + "@" + model.version + "(" + model.version + ")";
           const dom = document.createElement("div");
           dom.style.color = "#8463F1";
           dom.style.whiteSpace = "nowrap";
+          // 动态字体大小
           dom.style.fontSize = 16 * zoom + "px";
           dom.style.webkitTextStrokeWidth = "1px";
           dom.style.webkitTextStrokeColor =
-            themeMemo.current === "light" ? "none" : "#574592";
+            themeMemo.current === "light" ? "none" : "#252529";
           dom.style.fontWeight = 700;
-          // 保证文本居中，设置偏移，文本短的直接居中，长的就偏移即可
-          if (width > 30) {
-            dom.style.transform = `translate(${-width}px,0)`;
-          } else {
-            dom.style.width = 100 * zoom + "px";
-            dom.style.textAlign = "center";
-          }
-          dom.textContent = model.name;
+          dom.style.transform = `translate(0,${-30 * zoom}px)`;
+          dom.textContent = content;
           return dom;
         },
       });
@@ -458,12 +466,7 @@ function Tree(props, exposeRef) {
             {
               type: "collapse-expand",
               onChange(item, collapsed) {
-                console.log("该节点collapsed", collapsed);
                 const data = item.getModel();
-                // graph.current.updateItem(item, {
-                //   collapsed,
-                // });
-                // item.refresh();
                 data.collapsed = collapsed;
                 return true;
               },
@@ -562,6 +565,9 @@ function Tree(props, exposeRef) {
       dependenciesList: depth < globalDepth ? data.dependenciesList : [],
       id: data.path.join("-"),
       unfold: data.unfold,
+      version: data.version,
+      declarationVersion: data.declarationVersion,
+      description: data.description,
       children: [],
     };
     //   const parentNode = { ...data, children: [] };
@@ -582,7 +588,7 @@ function Tree(props, exposeRef) {
 // 判断对象是否为空
 function isEmpty(obj) {
   if (!obj) return true;
-  return [...Object.keys(obj)].length === 0;
+  return Object.keys(obj).length === 0;
 }
 
 function findDepBypath(paths, data, finnalUnFold) {

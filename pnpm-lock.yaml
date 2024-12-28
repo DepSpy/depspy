@@ -203,6 +203,9 @@ importers:
       d3:
         specifier: ^7.8.5
         version: 7.8.5
+      dom-to-image:
+        specifier: ^2.6.0
+        version: 2.6.0
       i18next:
         specifier: ^23.4.4
         version: 23.4.4
@@ -2587,6 +2590,9 @@ packages:
 
   dom-helpers@5.2.1:
     resolution: {integrity: sha512-nRCa7CK3VTrM2NmGkIy4cbK7IZlgBE/PYMn55rrXefr5xXDP0LdtfPnblFDoVdcAfslJ7or6iqAUnx0CCGIWQA==}
+
+  dom-to-image@2.6.0:
+    resolution: {integrity: sha512-Dt0QdaHmLpjURjU7Tnu3AgYSF2LuOmksSGsUcE6ItvJoCWTBEmiMXcqBdNSAm9+QbbwD7JMoVsuuKX6ZVQv1qA==}
 
   dot-prop@5.3.0:
     resolution: {integrity: sha512-QM8q3zDe58hqUqjraQOmzZ1LIH9SWQJTlEKCH4kJ2oQvLZk7RbQXvtDM2XEq3fwkV9CCvvH4LA0AV+ogFsBM2Q==}
@@ -8330,6 +8336,8 @@ snapshots:
     dependencies:
       '@babel/runtime': 7.22.10
       csstype: 3.1.2
+
+  dom-to-image@2.6.0: {}
 
   dot-prop@5.3.0:
     dependencies:
