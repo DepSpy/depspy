@@ -36,24 +36,27 @@ function Tree(props, exposeRef) {
     }),
     shallow,
   );
+  // false时不重绘，true时才可以重绘
   const graphRef = useRef(null);
-  const svg = useRef(null);
+  const canvasOuterDiv = useRef(null);
   const [data, setData] = useState(() => [filterData(root, collapse)]);
   const themeMemo = useRef(theme);
   const rootMemo = useRef(root);
+  const cache = useRef({
+    selectedNodeMemoPath: "",
+  });
   const selectedNodeMemo = useRef(selectedNode);
   const selectedCodependencyMemo = useRef(selectedCodependency);
   const selectedCircularDependencyMemo = useRef(selectedCircularDependency);
   // 把canvas和graph暴露出去，graph给Export组件用来下载图片
   useImperativeHandle(exposeRef, () => {
     return {
-      canvasOuterDiv: svg.current,
+      canvasOuterDiv: canvasOuterDiv.current,
       graph: graphRef.current,
     };
   });
   //将循环的路径上的节点展开并高亮循环节点
   useEffect(() => {
-    // console.warn("selectedCircularDependency改变", selectedCircularDependency);
     if (selectedCircularDependency) {
       setSelectNode({
         ...findDepBypath(selectedCircularDependency.path, root, true),
@@ -61,8 +64,8 @@ function Tree(props, exposeRef) {
     }
   }, [selectedCircularDependency]);
   useEffect(() => {
-    // console.warn("选择节点改变", selectedNode);
     selectedNodeMemo.current = selectedNode;
+    cache.current.selectedNodeMemoPath = selectedNodeMemo.current.path.join();
   }, [selectedNode]);
   useEffect(() => {
     themeMemo.current = theme;
@@ -72,7 +75,6 @@ function Tree(props, exposeRef) {
   }, [theme]);
   // 重复依赖改变，要展开
   useEffect(() => {
-    // console.warn("重复依赖改变", selectedCodependency);
     selectedCodependencyMemo.current = selectedCodependency;
     // 展开
     if (selectedCodependency?.length) {
@@ -81,10 +83,8 @@ function Tree(props, exposeRef) {
         return dep;
       });
       setSelectNode(selectedNodes[0]);
-      setRoot({ ...root });
-    } else {
-      setRoot({ ...root });
     }
+    setRoot({ ...root });
   }, [selectedCodependency]);
   useEffect(() => {
     selectedCircularDependencyMemo.current = selectedCircularDependency;
@@ -95,6 +95,7 @@ function Tree(props, exposeRef) {
       "tree-node",
       {
         drawShape: (cfg, group) => {
+          //   console.log("渲染");
           const rect = group.addShape("rect", {
             attrs: {
               x: 0,
@@ -144,8 +145,8 @@ function Tree(props, exposeRef) {
           return rect;
         },
         update: (cfg, item) => {
+          //   console.log("更新");
           const group = item.getContainer();
-          //   const model = group.cfg.item._cfg.model;
           const textColor = themeMemo.current === "light" ? "black" : "white";
           const icon = group.find((e) => {
             return e.get("name") === "collapse-icon";
@@ -164,20 +165,13 @@ function Tree(props, exposeRef) {
           rect?.attr({
             fill: themeMemo.current === "light" ? "white" : "#252529",
             stroke:
-              selectedNodeMemo.current.path.join("-") === group.cfg.id
+              cache.current.selectedNodeMemoPath === group.cfg.id
                 ? "#5B2EEE"
                 : "rgb(167,167,167)",
           });
-          console.log(selectedNodeMemo.current, group);
           updateCodependecyStyle(group);
           // 这里改变循环依赖样式，渲染的时候判断自己是否处在这条路径上，
           linkCircleDependency();
-        },
-        getAnchorPoints: () => {
-          return [
-            [0, 0.5],
-            [1, 0.5],
-          ];
         },
       },
       "single-node",
@@ -203,10 +197,10 @@ function Tree(props, exposeRef) {
         return shape;
       },
       update() {
-        // 1.获取当前选择节点
+        // 1.只对选中的节点进行改变
         if (selectedNodeMemo.current) {
           const nowSelectedNode = findNodeByPath(
-            selectedNodeMemo.current.path.join(),
+            cache.current.selectedNodeMemoPath,
           );
           // 2.获取当前节点邻近的edge，将他们全部变色
           const neighborEdges = nowSelectedNode?.getEdges();
@@ -224,10 +218,12 @@ function Tree(props, exposeRef) {
   }, []);
   // 更新重复依赖样式
   function updateCodependecyStyle(group) {
+    // 优化，没有选择重复依赖就不走逻辑
+    if (selectedCodependencyMemo.current.length === 0) return;
     // 从重复依赖中查找它
     const model = group.cfg.item._cfg.model;
     const dep = selectedCodependencyMemo.current.find((codep) => {
-      return codep.path.join("-") === model.path.join("-");
+      return codep.path.join() === model.path.join();
     });
     // 这里是改变重复依赖的样式
     if (dep) {
@@ -243,13 +239,15 @@ function Tree(props, exposeRef) {
   // 连接循环依赖
   function linkCircleDependency() {
     if (selectedCircularDependencyMemo.current) {
+      // 如果循环依赖没有选择，就不触发
+      if (!selectedCircularDependencyMemo.current) return;
       const { circlePath, name } = selectedCircularDependencyMemo.current;
       // 1.获取路径上所有循环的节点的路径
       // 保存所有循环路径的数组
       const circlePathArr = [];
       for (let i = 0; i < circlePath.length; ++i) {
         if (circlePath[i] === name) {
-          circlePathArr.push(circlePath.slice(0, i + 1).join("-"));
+          circlePathArr.push(circlePath.slice(0, i + 1).join());
         }
       }
       // 2.根据路径获取所有节点
@@ -262,7 +260,7 @@ function Tree(props, exposeRef) {
             model: { path },
           },
         } = node;
-        const nodePath = path.join("-");
+        const nodePath = path.join();
         // 将在路径上的重复节点加入数组，循环画箭头，并且
         // 在这里设置节点样式
         if (circlePathArr.indexOf(nodePath) !== -1) {
@@ -331,6 +329,7 @@ function Tree(props, exposeRef) {
   }
   // 传递path，找到对应的node
   function findNodeByPath(findPath) {
+    // 优化，减少循环次数
     let returnNode;
     if (graphRef.current) {
       const nodes = graphRef.current.getNodes();
@@ -350,16 +349,13 @@ function Tree(props, exposeRef) {
     return returnNode;
   }
   useEffect(() => {
-    // console.warn("data改变", data[0]);
     generateTree(data[0]);
   }, [data]);
   useEffect(() => {
-    // console.warn("root改变", root);
     rootMemo.current = root;
     setData([filterData(root, undefined)]);
   }, [root]);
   useEffect(() => {
-    // console.warn("collapse改变");
     setData([filterData(root, collapse)]);
   }, [collapse]);
   useEffect(() => {
@@ -368,7 +364,7 @@ function Tree(props, exposeRef) {
         graphRef.current.changeSize(window.innerWidth, window.innerHeight);
         graphRef.current.fitView();
       }
-    }, 500);
+    }, 1000);
     return () => {
       window.onresize = null;
     };
@@ -421,7 +417,6 @@ function Tree(props, exposeRef) {
 
   function generateTree(data) {
     const Data = converToTreeData(data);
-    // console.log("进入的data", data);
     const width = window.innerWidth;
     const height = window.innerHeight || 800;
     if (!graphRef.current) {
@@ -437,49 +432,51 @@ function Tree(props, exposeRef) {
               _cfg: { model },
             },
           } = e;
-          const zoom = graphRef.current.getZoom();
           const content =
             model.name + "@" + model.version + "(" + model.version + ")";
           const dom = document.createElement("div");
           dom.style.color = "#8463F1";
           dom.style.whiteSpace = "nowrap";
-          // 动态字体大小
-          dom.style.fontSize = 16 * zoom + "px";
           dom.style.webkitTextStrokeWidth = "1px";
           dom.style.webkitTextStrokeColor =
             themeMemo.current === "light" ? "none" : "#252529";
           dom.style.fontWeight = 700;
-          dom.style.transform = `translate(0,${-30 * zoom}px)`;
+          dom.style.transform = `translate(0,-20px)`;
           dom.textContent = content;
           return dom;
         },
       });
       graphRef.current = new G6.TreeGraph({
-        container: svg.current,
+        container: canvasOuterDiv.current,
         width,
         height,
         animate: false,
         fitView: false,
         plugins: [tooltip],
+        autoPaint: false,
         modes: {
           default: [
             {
               type: "collapse-expand",
+              enableOptimize: true,
               onChange(item, collapsed) {
                 const data = item.getModel();
                 data.collapsed = collapsed;
                 return true;
               },
               shouldBegin(e) {
-                // console.log("判断shouldbegin", e);
                 // 若当前操作的节点 id 为 'node1'，则不发生 collapse-expand
                 if (e.target && e.target.cfg.name === "collapse-icon")
                   return true;
                 return false;
               },
             },
-            "drag-canvas",
-            "zoom-canvas",
+            {
+              type: "drag-canvas",
+            },
+            {
+              type: "zoom-canvas",
+            },
           ],
         },
         defaultNode: {
@@ -521,12 +518,10 @@ function Tree(props, exposeRef) {
         e.preventDefault();
         // 只有点击+ - 号才展开
         if (e.target.cfg.name === "collapse-icon") {
-          // console.log("e", e, "e.item", e.item);
           // 原本折叠就打开，原本打开就折叠
           setSelectNode(
             findDepBypath(model.path, rootMemo.current, !model.unfold),
           );
-          //   model.unfold = !model.unfold;
           // 点击矩形部分就只改变邻居edges的颜色
         } else if (
           e.target.cfg.name === "tree-rect-shape" ||
@@ -538,8 +533,20 @@ function Tree(props, exposeRef) {
         }
         setRoot({ ...rootMemo.current });
       });
+      // 动态tooltip字体大小
+      graphRef.current.on("wheelzoom", () => {
+        const tooltips = document.querySelectorAll(".tooltip");
+        tooltips.forEach((tip) => {
+          if (tip && tip.style) {
+            tip.style.transform = `scale(${graphRef.current.getZoom()})`;
+          }
+        });
+      });
       graphRef.current.data(Data);
       graphRef.current.render();
+      // 尝试触发GPU加速
+      canvasOuterDiv.current.children[0].style.willChange = "transform";
+      canvasOuterDiv.current.children[0].style.transform = "translateZ(0)";
       graphRef.current.fitView();
     }
     // 记录上一次的位置
@@ -551,7 +558,6 @@ function Tree(props, exposeRef) {
       lastPoint.x - newPoint.x,
       lastPoint.y - newPoint.y,
     );
-    // console.log("Data:", Data);
   }
   // 递归变为树需要的数据类型
   function converToTreeData(data) {
@@ -563,14 +569,13 @@ function Tree(props, exposeRef) {
       // 根据dependenciesList是否存在来判断是否有子依赖，因为不选中的话
       // children是[]，无法拿来判断
       dependenciesList: depth < globalDepth ? data.dependenciesList : [],
-      id: data.path.join("-"),
+      id: data.path.join(),
       unfold: data.unfold,
       version: data.version,
       declarationVersion: data.declarationVersion,
       description: data.description,
       children: [],
     };
-    //   const parentNode = { ...data, children: [] };
     // 没有孩子返回自己
     if (!data || !data?.dependencies || isEmpty(data?.dependencies))
       return parentNode;
@@ -582,7 +587,7 @@ function Tree(props, exposeRef) {
     parentNode.children = children;
     return parentNode;
   }
-  return <div ref={svg} id="graph" />;
+  return <div ref={canvasOuterDiv} id="graph" />;
 }
 
 // 判断对象是否为空
