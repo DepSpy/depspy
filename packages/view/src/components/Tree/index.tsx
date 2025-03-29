@@ -45,6 +45,11 @@ function Tree(props, exposeRef) {
   const cache = useRef({
     selectedNodeMemoPath: "",
   });
+  const scaleState = useRef({
+    scale: 1,
+    minScale: 0.4,
+    maxScale: 6,
+  });
   const selectedNodeMemo = useRef(selectedNode);
   const selectedCodependencyMemo = useRef(selectedCodependency);
   const selectedCircularDependencyMemo = useRef(selectedCircularDependency);
@@ -303,6 +308,10 @@ function Tree(props, exposeRef) {
             },
             name: "custom-arrow-path",
           });
+          const arrow = targetNode._cfg.group.find(
+            (e) => e.get("name") === "custom-arrow-path",
+          );
+          arrow.toFront();
         }
       }
     }
@@ -348,6 +357,31 @@ function Tree(props, exposeRef) {
     }
     return returnNode;
   }
+  //   function onWheel(e) {
+  //     e.preventDefault();
+  //     const delta = -e.deltaY;
+  //     const scaleFactor = 0.001;
+
+  //     scaleState.current.scale = Math.max(
+  //       scaleState.current.minScale,
+  //       Math.min(
+  //         scaleState.current.maxScale,
+  //         scaleState.current.scale + delta * scaleFactor,
+  //       ),
+  //     );
+
+  //     if (canvasOuterDiv.current) {
+  //       canvasOuterDiv.current.style.transform = `scale(${scaleState.current.scale}) translate(${dragState.current.translateX}px, ${dragState.current.translateY}px)`;
+
+  //       // 更新tooltip大小
+  //       const tooltips = document.querySelectorAll(".tooltip");
+  //       tooltips.forEach((tip) => {
+  //         if (tip && tip.style) {
+  //           tip.style.transform = `scale(${scaleState.current.scale})`;
+  //         }
+  //       });
+  //     }
+  //   }
   useEffect(() => {
     generateTree(data[0]);
   }, [data]);
@@ -361,8 +395,8 @@ function Tree(props, exposeRef) {
   useEffect(() => {
     window.onresize = throttle(() => {
       if (graphRef.current) {
-        graphRef.current.changeSize(window.innerWidth, window.innerHeight);
-        graphRef.current.fitView();
+        // graphRef.current.changeSize(window.innerWidth, window.innerHeight);
+        graphRef.current.fitCenter();
       }
     }, 1000);
     return () => {
@@ -417,8 +451,8 @@ function Tree(props, exposeRef) {
 
   function generateTree(data) {
     const Data = converToTreeData(data);
-    const width = window.innerWidth;
-    const height = window.innerHeight || 800;
+    // const width = window.innerWidth;
+    // const height = window.innerHeight || 800;
     if (!graphRef.current) {
       // 增加hover提示框
       const tooltip = new G6.Tooltip({
@@ -448,12 +482,11 @@ function Tree(props, exposeRef) {
       });
       graphRef.current = new G6.TreeGraph({
         container: canvasOuterDiv.current,
-        width,
-        height,
+        width: 8000,
+        height: 8000,
         animate: false,
         fitView: false,
         plugins: [tooltip],
-        autoPaint: false,
         modes: {
           default: [
             {
@@ -471,11 +504,14 @@ function Tree(props, exposeRef) {
                 return false;
               },
             },
-            {
-              type: "drag-canvas",
-            },
+            // {
+            //   type: "drag-canvas",
+            // },
             {
               type: "zoom-canvas",
+              sensitivity: 1.5,
+              minZoom: 0.1,
+              maxZoom: 6,
             },
           ],
         },
@@ -544,14 +580,17 @@ function Tree(props, exposeRef) {
       });
       graphRef.current.data(Data);
       graphRef.current.render();
-      // 尝试触发GPU加速
-      canvasOuterDiv.current.children[0].style.willChange = "transform";
-      canvasOuterDiv.current.children[0].style.transform = "translateZ(0)";
-      graphRef.current.fitView();
+      // 添加这行代码，直接跳转到中心位置
+      //   graphRef.current.translate(1500 - width / 2, 1500 - height / 2);
+      graphRef.current.fitCenter();
+      //   graphRef.current.translate(width / 2, 4500);
+      //   graphRef.current.fitView();
+      //   graphRef.current.get("canvas").set("localRefresh", true);
     }
     // 记录上一次的位置
     const lastPoint = graphRef.current.getCanvasByPoint(0, 0);
     graphRef.current.changeData(Data);
+    // graphRef.current.fitView();
     // 渲染更新后记录新的位置，并且移动画布
     const newPoint = graphRef.current.getCanvasByPoint(0, 0);
     graphRef.current.translate(
@@ -587,9 +626,93 @@ function Tree(props, exposeRef) {
     parentNode.children = children;
     return parentNode;
   }
-  return <div ref={canvasOuterDiv} id="graph" />;
-}
+  // 在组件顶部添加拖拽状态ref
+  const dragState = useRef({
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+    translateX: 0,
+    translateY: 0,
+  });
 
+  // 实现onMouseDown函数
+  // 在组件顶部添加mouseMoveHandler ref
+  const mouseMoveHandler = useRef(null);
+
+  // 修改onMouseDown函数
+  function onMouseDown(e) {
+    if (!canvasOuterDiv.current) return;
+
+    dragState.current = {
+      isDragging: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      translateX: parseInt(
+        canvasOuterDiv.current.style.transform?.match(
+          /translateX\(([^)]+)/,
+        )?.[1] || 0,
+      ),
+      translateY: parseInt(
+        canvasOuterDiv.current.style.transform?.match(
+          /translateY\(([^)]+)/,
+        )?.[1] || 0,
+      ),
+    };
+
+    // 添加mousemove事件监听
+    mouseMoveHandler.current = (e) => {
+      if (!dragState.current.isDragging) return;
+
+      const dx = e.clientX - dragState.current.startX;
+      const dy = e.clientY - dragState.current.startY;
+
+      canvasOuterDiv.current.style.transform = `
+        translateX(${dragState.current.translateX + dx}px)
+        translateY(${dragState.current.translateY + dy}px)
+        scale(${scaleState.current.scale})
+      `;
+    };
+
+    document.addEventListener("mousemove", mouseMoveHandler.current);
+    document.addEventListener("mouseup", onMouseUp);
+  }
+
+  // 修改onMouseUp函数
+  function onMouseUp(e) {
+    if (!canvasOuterDiv.current || !dragState.current.isDragging) return;
+
+    // 更新最终位置
+    const dx = e.clientX - dragState.current.startX;
+    const dy = e.clientY - dragState.current.startY;
+
+    dragState.current = {
+      ...dragState.current,
+      isDragging: false,
+      translateX: dragState.current.translateX + dx,
+      translateY: dragState.current.translateY + dy,
+    };
+
+    // 移除事件监听
+    document.removeEventListener("mousemove", mouseMoveHandler.current);
+    document.removeEventListener("mouseup", onMouseUp);
+    mouseMoveHandler.current = null;
+  }
+
+  // 修改返回的div样式
+  return (
+    <div
+      ref={canvasOuterDiv}
+      id="graph"
+      style={{
+        transform: "translateX(-3600px) translateY(-3600px) scale(1)",
+        willChange: "transform",
+      }}
+      onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
+      //   onWheel={onWheel}
+    />
+  );
+}
 // 判断对象是否为空
 function isEmpty(obj) {
   if (!obj) return true;
