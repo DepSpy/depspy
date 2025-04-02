@@ -36,12 +36,14 @@ function Tree(props, exposeRef) {
     }),
     shallow,
   );
+  const nodeCache = useRef(new Map());
   // false时不重绘，true时才可以重绘
   const graphRef = useRef(null);
   const canvasOuterDiv = useRef(null);
   const [data, setData] = useState(() => [filterData(root, collapse)]);
   const themeMemo = useRef(theme);
   const rootMemo = useRef(root);
+  const depthMemo = useRef(globalDepth);
   const cache = useRef({
     selectedNodeMemoPath: "",
   });
@@ -73,11 +75,20 @@ function Tree(props, exposeRef) {
     cache.current.selectedNodeMemoPath = selectedNodeMemo.current.path.join();
   }, [selectedNode]);
   useEffect(() => {
+    nodeCache.current.clear();
+  }, [collapse]);
+  useEffect(() => {
     themeMemo.current = theme;
     // 利用这个setState来让视图渲染，从而触发node更新，
     // 改变字体颜色
     setRoot({ ...root });
   }, [theme]);
+  useEffect(() => {
+    if (depthMemo.current !== globalDepth) {
+      depthMemo.current = globalDepth;
+      nodeCache.current.clear();
+    }
+  }, [globalDepth]);
   // 重复依赖改变，要展开
   useEffect(() => {
     selectedCodependencyMemo.current = selectedCodependency;
@@ -451,6 +462,7 @@ function Tree(props, exposeRef) {
 
   function generateTree(data) {
     const Data = converToTreeData(data);
+    // if (!Data) return;
     // const width = window.innerWidth;
     // const height = window.innerHeight || 800;
     if (!graphRef.current) {
@@ -553,11 +565,22 @@ function Tree(props, exposeRef) {
         e.stopPropagation();
         e.preventDefault();
         // 只有点击+ - 号才展开
+        // console.log("id", model);
         if (e.target.cfg.name === "collapse-icon") {
           // 原本折叠就打开，原本打开就折叠
           setSelectNode(
             findDepBypath(model.path, rootMemo.current, !model.unfold),
           );
+          //   console.log("删除前cache", nodeCache.current);
+          // 将这个节点路径上的缓存全部清除
+          let pathKey = "";
+          const { path } = model;
+          for (const s of path) {
+            pathKey += s;
+            // console.log("pathKey", pathKey);
+            nodeCache.current.delete(pathKey);
+          }
+          //   console.log("删除后cache", nodeCache.current);
           // 点击矩形部分就只改变邻居edges的颜色
         } else if (
           e.target.cfg.name === "tree-rect-shape" ||
@@ -600,6 +623,13 @@ function Tree(props, exposeRef) {
   }
   // 递归变为树需要的数据类型
   function converToTreeData(data) {
+    // 先读缓存
+    const cacheKey = data.path.join("");
+    // console.log("cacheKey", cacheKey);
+    if (nodeCache.current.has(cacheKey)) {
+      //   console.log("利用缓存的节点");
+      return nodeCache.current.get(cacheKey);
+    }
     // 从0开始
     const depth = data.path.length;
     const parentNode = {
@@ -615,6 +645,7 @@ function Tree(props, exposeRef) {
       description: data.description,
       children: [],
     };
+    // 缓存
     // 没有孩子返回自己
     if (!data || !data?.dependencies || isEmpty(data?.dependencies))
       return parentNode;
@@ -624,6 +655,7 @@ function Tree(props, exposeRef) {
       children.push(converToTreeData(dependencies[key]));
     }
     parentNode.children = children;
+    nodeCache.current.set(cacheKey, parentNode);
     return parentNode;
   }
   // 在组件顶部添加拖拽状态ref
