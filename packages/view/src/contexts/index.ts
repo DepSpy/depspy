@@ -1,10 +1,10 @@
 import { shallow } from "zustand/shallow";
 import { createWithEqualityFn } from "zustand/traditional";
 import { subscribeWithSelector } from "zustand/middleware";
-import type { Node, StaticStore, Store } from "~/types";
+import type { Node, StaticStore, Store, StaticTreeNode, StaticGraphNode } from "~/types";
 import { linkContext } from "./linkContext";
 import { searchNode } from "./searchNode";
-import { StaticNode } from "@dep-spy/core";
+// import { StaticNode } from "@dep-spy/core";
 
 export const useStore = createWithEqualityFn<Store>()(
   subscribeWithSelector((set) => ({
@@ -92,8 +92,25 @@ export const useStore = createWithEqualityFn<Store>()(
 export const useStaticStore = createWithEqualityFn<StaticStore>()(
   subscribeWithSelector((set) => ({
     staticRootLoading: true,
+    staticGraph: null,
     staticRoot: null,
-    setStaticRoot: (staticRoot: StaticNode) => set({ staticRoot }),
+    highlightedNodeIds: new Set(),
+    gitChangedNodes: new Set(),
+    importChangedNodes: new Set(),
+    showGitChangedNodes: false,
+    showImportChangedNodes: false,
+    setShowGitChangedNodes: (showGitChangedNodes: boolean) =>
+      set({ showGitChangedNodes }),
+    setShowImportChangedNodes: (showImportChangedNodes: boolean) =>
+      set({ showImportChangedNodes }),
+    setGitChangedNodes: (gitChangedNodes: Set<string>) =>
+      set({ gitChangedNodes }),
+    setImportChangedNodes: (importChangedNodes: Set<string>) =>
+      set({ importChangedNodes }),
+    setHighlightedNodeIds: (highlightedNodeIds: Set<string>) =>
+      set({ highlightedNodeIds }),
+    setStaticGraph: (staticGraph: Map<string, StaticGraphNode>) => set({ staticGraph }),
+    setStaticRoot: (staticRoot: StaticTreeNode) => set({ staticRoot }),
     setStaticRootLoading: (staticRootLoading: boolean) =>
       set({ staticRootLoading }),
   })),

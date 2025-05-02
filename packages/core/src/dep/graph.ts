@@ -7,7 +7,7 @@ import {
 import { Config, Node } from "../type";
 import * as fs from "fs";
 import * as path from "path";
-import pool, { TASK_TYPE } from "../threadsPool";
+import genPools, { TASK_TYPE } from "../threadsPool";
 import { onlineModuleInfoPool } from "./onlineModuleInfoPool";
 
 const inBrowser = typeof window !== "undefined";
@@ -24,10 +24,13 @@ export class Graph {
     depth: number;
     resolve: () => void;
   }[] = [];
+  private pool: ReturnType<typeof genPools>;
   constructor(
     private readonly info: string,
     private readonly config: Config = {},
-  ) {}
+  ) {
+    this.pool = genPools();
+  }
   //生成单个node节点（调用insertChildren去插入子节点）
   private async generateNode({
     moduleInfo,
@@ -287,7 +290,7 @@ export class Graph {
 
         const moduleInfoPromise = inBrowser
           ? onlineModuleInfoPool.addTask(params)
-          : pool.addTask({
+          : this.pool.addTask({
               type: TASK_TYPE.MODULE_INFO,
               params,
             });
@@ -495,7 +498,7 @@ export class Graph {
 
       const [rootModule, error] = inBrowser
         ? await onlineModuleInfoPool.addTask(params)
-        : await pool.addTask({
+        : await this.pool.addTask({
             type: TASK_TYPE.MODULE_INFO,
             params,
           }); //解析首个节点

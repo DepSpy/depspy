@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+      "outDir": "dist",
+      "target": "ESNext",
+      "module": "ESNext",
+      "rootDir": ".",
+      "moduleResolution": "bundler",
+      "esModuleInterop": true,
+      "allowImportingTsExtensions": true,
+      "noEmit": true,
+    }
+  }
+  

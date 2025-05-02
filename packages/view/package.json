@@ -1,9 +1,8 @@
 {
   "name": "@dep-spy/view",
-  "version": "3.0.1",
+  "version": "3.2.7",
   "description": "",
   "main": "./dist/tsup/index.js",
-  "type": "module",
   "private": false,
   "publishConfig": {
     "access": "public"
@@ -13,16 +12,17 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/tsup/index.js",
-      "require": "./dist/tsup/index.cjs"
+      "import": "./dist/tsup/index.mjs",
+      "require": "./dist/tsup/index.js"
     }
   },
   "scripts": {
     "dev": "vite",
-    "build": "npm run build:vite && npm run build:tsup",
+    "build": "npm run build:vite && npm run build:tsup && npm run build:inject",
     "build:vite": "vite build --mode offline",
     "build:tsup": "tsup",
     "build:online": "vite build --mode online",
+    "build:inject": "vite build --mode inject",
     "tsup-build": "tsup --watch",
     "vite-build": "vite build --watch",
     "vite-static": "cross-env VITE_STATIC=static vite build",
@@ -45,7 +45,8 @@
     "rollup-plugin-node-globals": "^1.4.0",
     "sass": "^1.65.1",
     "tsup": "^7.1.0",
-    "unocss": "^0.55.2"
+    "unocss": "^0.55.2",
+    "vite-plugin-singlefile": "^2.1.0"
   },
   "dependencies": {
     "@antv/g6": "^4.8.24",

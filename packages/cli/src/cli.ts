@@ -1,19 +1,24 @@
 import cac from "cac";
 import ora from "ora";
-import { blue, green, yellow } from "chalk";
-import { generateGraph } from "@dep-spy/core";
+import { blue, green, yellow, red } from "chalk";
+import { generateGraph, DEP_SPY_START,DEP_SPY_INJECT_MODE, DEP_SPY_COMMIT_HASH } from "@dep-spy/core";
 import { conformConfig } from "./conformConfig";
 import { createServer } from "./server/createServer";
+import {
+  createServer as createStaticServer,
+  outPutPath,
+  outPutUrl,
+} from "./static/createServer";
+import { exec } from "child_process";
+import { addLogFile } from "./utils";
 const cli = cac();
+// 包依赖
 cli
-  .command("[analysis,ana]", "解析本地项目依赖关系图")
+  .command("[analysis,ana]", "解析项目三方包依赖")
   .option("--graph <graph>", "输出依赖图的文件路径", {
     type: ["string"],
   })
   .option("--co,--codependency <codependency>", "输出相同依赖的文件路径", {
-    type: ["string"],
-  })
-  .option("--entry <entry>", "项目的入口路径", {
     type: ["string"],
   })
   .option(
@@ -62,13 +67,71 @@ cli
     if (options.isOutput) {
       await graph.outputToFile();
     }
-
     spinner.stop();
-
     console.log(green(`破解完成,耗时 ${yellow(Date.now() - startTime)} ms`));
 
     // 启动可视化界面
     createServer(graph, options);
+  });
+
+// 源码依赖
+cli
+  .command("static [command]", "解析项目源码依赖")
+  .option("--command <command>", "项目的构建命令", {
+    type: ["string"],
+  })
+  .option("--inject", "是否将数据注入html", {
+    type: ["boolean"],
+  })
+  .option("--commitHash <commitHash>", "与当前版本对比的commit hash", {
+    type: ["string"],
+  })
+  .action(async (command, options) => {
+    // 获取最终的配置文件
+    options = await conformConfig(options);
+    // 命令行参数优先级高于配置文件
+    if (command) {
+      options.command = command;
+    }
+    // 关键参数检测
+    if (!options.command) {
+      throw new Error(
+        red("缺少项目的构建命令,请通过命令行参数或者配置文件添加"),
+      );
+    }
+    const startTime = Date.now();
+    const spinner = ora(blue("🕵️ 正在潜入\n")).start();
+
+    // 设置环境变量，保证插件只能通过ds命令运行
+    process.env[DEP_SPY_START] = "true";
+    // 通过设置环境变量，传递用户配置
+    if (options.inject) {
+      process.env[DEP_SPY_INJECT_MODE] = "true";
+    }
+    if (options.commitHash) {
+      process.env[DEP_SPY_COMMIT_HASH] = options.commitHash;
+    }
+    // 启动服务器，准备接收插件数据
+    createStaticServer();
+    exec(options.command, { cwd: process.cwd() }, (error, std) => {
+      // 命令执行错误
+      if (error) {
+        console.log(red("构建命令执行错误"));
+        console.error(error);
+      }
+      // 写入命令执行的输出作为日志
+      spinner.stop();
+      console.log(green(`破解完成,耗时 ${yellow(Date.now() - startTime)} ms`));
+      // 注入模式不需要开发服务器，直接退出
+      if (options.inject) {
+        outPutPath()
+        process.exit(0);
+      }
+      // vite插件运行完毕，数据已经发送完毕，可以展示web页面
+      outPutUrl();
+      // 添加日志信息
+      addLogFile(std)
+    });
   });
 
 cli.help();

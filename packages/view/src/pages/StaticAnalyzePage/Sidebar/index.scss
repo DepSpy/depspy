@@ -1,0 +1,37 @@
+.static-sidebar-choose-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  position: absolute;
+  height: 20vh;
+  margin: 3px;
+  user-select: none;
+  background-color: var(--color-bg-layout);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 0.8rem 0 0 0.8rem;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+}
+
+.static-sidebar-choose-item:hover {
+  background-color: var(--color-bg-container);
+  transition: 0.5s;
+}
+
+.static-sidebar-choose-item-active {
+  /* stylelint-disable-next-line at-rule-no-unknown */
+  @extend .static-sidebar-choose-item;
+
+  background-color: var(--color-bg-container);
+}
+
+/* 隐藏滚动条 */
+.sidebar-containet::--webkit-scrollbar {
+  display: none;
+}
+.sidebar-container {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
