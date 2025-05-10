@@ -1,27 +1,39 @@
-import {  StaticGraphNode, PluginDepSpyConfig } from "../type";
+import { StaticGraphNode, PluginDepSpyConfig, GetModuleInfo } from "../type";
+import getAllExportEffect from "./getAllExportEffected";
 import {
   ExportEffectedNode,
   getGitRootPath,
   importIdToRelativeId,
+  SourceToImportId,
 } from "./utils";
-
-
 
 export class StaticGraph {
   // 邻接链表
   graph: Record<string, StaticGraphNode> = {};
   // 项目根目录（git的根目录）
   rootId = getGitRootPath();
+  // 所有模块的受影响详情
+  allExportEffected: Map<string, ExportEffectedNode> = new Map();
 
   constructor(
     // 用户配置
     public options: PluginDepSpyConfig,
     // 所有模块的受影响详情
-    public allExportEffected: Map<string, ExportEffectedNode>,
+    public sourceToImportIdMap: SourceToImportId,
+    // 获取模块信息
+    public getModuleInfo: GetModuleInfo,
   ) {}
 
   /** 生成邻接链表表示图 */
-  generateGraph(importId: string = this.options.entry) {
+  async generateGraph(importId: string = this.options.entry) {
+    this.allExportEffected = await getAllExportEffect(
+      this.options,
+      this.sourceToImportIdMap,
+      this.getModuleInfo,
+    );
+    return this.generateNode(importId);
+  }
+  private generateNode(importId: string) {
     // 相对路径
     const relativeId = importIdToRelativeId(importId);
     // 如果已经存在，直接返回, 避免无限递归
@@ -38,7 +50,7 @@ export class StaticGraph {
         exportEffected.dynamicallyImportedIds,
       );
       allImportIds.forEach((importId) => {
-        this.generateGraph(importId);
+        this.generateNode(importId);
       });
     }
     return this.graph;

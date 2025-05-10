@@ -74,7 +74,8 @@
           "changed": "变更的导出",
           "noRemove": "没有移除的导出...",
           "noRender": "没有加载的导出...",
-          "noChanged": "没有变更的导出..."
+          "noChanged": "没有变更的导出...",
+          "sideEffect": "<副作用>"
         },
         "import": {
           "changed": "变更的导入",

@@ -1,5 +1,5 @@
 import { workerData, parentPort } from "worker_threads";
-import { getTreeShakingDetail } from "../static/getTreeShakingDetail";
+import { getTreeShakingDetail } from "../static/getTreeShakingDetail/vite";
 
 try {
   getTreeShakingDetail(workerData).then((treeShakingDetail) => {

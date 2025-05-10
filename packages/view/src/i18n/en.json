@@ -74,7 +74,8 @@
           "changed": "Changed Exports",
           "noRemove": "No Removed Exports...",
           "noRender": "No Rendered Exports...",
-          "noChanged": "No Changed Exports..."
+          "noChanged": "No Changed Exports...",
+          "sideEffect": "<SideEffect>"
         },
         "import": {
           "changed": "Changed Imports",

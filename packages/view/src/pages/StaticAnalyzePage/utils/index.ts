@@ -31,47 +31,6 @@ export const traverseTree = (
     traverseTree(child, callback);
   }
 };
-// export const buildTree = (nodes: StaticNode[]) => {
-//   const nodeMap = new Map();
-//   let root = null;
-//   // 用于记录需要延迟挂载的子节点信息
-//   const pendingChildren = new Map();
-
-//   nodes.forEach((node) => {
-//     // 处理节点的 id
-//     node.pathId && (node.id = node.pathId + "-" + node.id);
-//     const newNode = { ...node, children: [] };
-//     nodeMap.set(node.id, newNode);
-
-//     const parentId = node.parentId;
-//     if (parentId) {
-//       const parent = nodeMap.get(parentId);
-//       if (parent) {
-//         // 父节点已存在，直接挂载到父节点
-//         parent.children.push(newNode);
-//       } else {
-//         // 父节点不存在，记录需要延迟挂载的子节点
-//         if (!pendingChildren.has(parentId)) {
-//           pendingChildren.set(parentId, []);
-//         }
-//         pendingChildren.get(parentId).push(newNode);
-//       }
-//     } else {
-//       // 无 parentId，直接为根节点
-//       root = newNode;
-//     }
-//   });
-
-//   // 处理延迟挂载的子节点
-//   pendingChildren.forEach((children, parentId) => {
-//     const parent = nodeMap.get(parentId);
-//     if (parent) {
-//       parent.children.push(...children);
-//     }
-//   });
-
-//   return root;
-// };
 
 // 指定图的节点构建树，reverse 为 true 时，构建反向树
 export function renderTreeByGraphId(
@@ -119,7 +78,7 @@ export function renderTreeByGraphId(
     // 记录当前path
     paths.add(entryId);
     // 需要渲染的子节点集合
-    let renderChildren: Map<
+    const renderChildren: Map<
       string,
       { entryId: string; selectExports: Set<string> }
     > = new Map();
@@ -135,7 +94,7 @@ export function renderTreeByGraphId(
               // 如果引入者的导出变更和当前文件的变更相关，则添加到子节点进行展示
               reasons.importEffectedNames[entryId]?.forEach((importName) => {
                 // 如果该文件选中的导出确实影响到了引入者的导出，则记录影响了引入者的哪些导出，并以此作为影响面向下传递
-                if (selectExports.has(importName) || importName === '*') {
+                if (selectExports.has(importName) || importName === "*") {
                   const children = renderChildren.get(childId);
                   // 已经添加，合并
                   if (children) {
@@ -246,7 +205,10 @@ export const handleGraphNodes = (graphNodes: StaticGraphNode[]) => {
         return;
       }
       // 没有则新建
-      idToImporters.set(childId, { importers: new Set([relativeId]),dynamicImporters: new Set() });
+      idToImporters.set(childId, {
+        importers: new Set([relativeId]),
+        dynamicImporters: new Set(),
+      });
     });
     // 2. 记录改节点为引用的dynamicImporters
     graphNode.dynamicallyImportedIds.forEach((childId) => {
@@ -255,7 +217,10 @@ export const handleGraphNodes = (graphNodes: StaticGraphNode[]) => {
         return;
       }
       // 没有则新建
-      idToImporters.set(childId, { dynamicImporters: new Set([relativeId]) ,importers: new Set()});
+      idToImporters.set(childId, {
+        dynamicImporters: new Set([relativeId]),
+        importers: new Set(),
+      });
     });
     // 3. 构建新的树节点
     const staticTreeNode = {

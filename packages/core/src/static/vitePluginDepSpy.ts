@@ -8,7 +8,6 @@ import {
 } from "../constant";
 import { OutputBundle } from "rollup";
 import { GetModuleInfo, PluginDepSpyConfig } from "../type";
-import getAllExportEffect from "./getAllExportEffected";
 import { StaticGraph } from "./staticGraph";
 
 export function vitePluginDepSpy(
@@ -103,16 +102,13 @@ export function vitePluginDepSpy(
           renderedExports,
         };
       };
-      // 生成全部模块的导出影响信息
-      const allExportEffected = await getAllExportEffect(
+      // 生成依赖图
+      const staticGraph = new StaticGraph(
         options,
         sourceToImportIdMap,
         getModuleInfo,
       );
-      // 生成依赖图
-      const staticGraph = new StaticGraph(options, allExportEffected);
-      const graph = staticGraph.generateGraph();
-      console.log("graph", graph); 
+      const graph = await staticGraph.generateGraph();
       // 分块发送数据给服务器
       await sendDataByChunk(Object.values(graph), "/collectBundle");
     },

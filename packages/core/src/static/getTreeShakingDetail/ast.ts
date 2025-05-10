@@ -316,7 +316,6 @@ export function extractDependencyRelation(node: ts.SourceFile) {
     innerDeclarationIdentifiers: string[] = [],
     deps: string[] = [],
   ) => {
-
     let curInnerDeclaration = innerDeclaration;
 
     /**
@@ -450,7 +449,7 @@ export function findLocalInfluence(
 
         // 处理字符串字面量
         if (ts.isStringLiteralLike(node)) {
-          let text = node.text;
+          const text = node.text;
           return ts.factory.createStringLiteral(text, true);
         }
 

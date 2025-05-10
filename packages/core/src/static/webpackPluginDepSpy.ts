@@ -1,15 +1,12 @@
 import path from "path";
 import { GetModuleInfo, ModuleInfo, PluginDepSpyConfig } from "../type";
-import { Bundle } from "./staticModule";
 import { sendDataByChunk, SourceToImportId } from "./utils";
-import { writeFileSync } from "fs";
 import { DEP_SPY_START, DEP_SPY_WEBPACK_BUILD } from "../constant";
+import { StaticGraph } from "./staticGraph";
 
 export class webpackPluginDepSpy {
-  constructor(
-    private options: PluginDepSpyConfig = {},
-    private sourceToImportIdMap = new SourceToImportId(),
-  ) {}
+  private sourceToImportIdMap = new SourceToImportId();
+  constructor(private options: PluginDepSpyConfig = {}) {}
   apply(compiler) {
     //只能通过ds命令运行;
     if (!process.env[DEP_SPY_START]) {
@@ -35,76 +32,67 @@ export class webpackPluginDepSpy {
         });
       }
     });
-    compiler.hooks.compilation.tap(
-      "Webpack4DependencyTreePlugin",
-      (compilation) => {
-        const pathMapping = new Map();
-        // Webpack4 没有 finishModules 钩子，改用 optimizeModules
-        compilation.hooks.optimizeModules.tap(
-          "Webpack4DependencyTreePlugin",
-          (modules) => {
-            const dependencyTree = new Map();
-            modules.forEach((module) => {
-              const filePath = module.resource;
-              if (!filePath) return;
-              // 收集路径映射
-              this.collectPathMapping(module, pathMapping);
-              // 收集静态导入
-              const importedIds = this.collectStaticImports(module);
-              // 收集动态导入
-              const dynamicallyImportedIds = this.collectDynamicImports(module);
-              // 处理导出信息
-              const { renderedExports, removedExports } =
-                this.analyzeExports(module);
-              dependencyTree.set(filePath, {
-                importedIds: [...new Set(importedIds)],
-                dynamicallyImportedIds: [...new Set(dynamicallyImportedIds)],
-                removedExports: removedExports,
-                renderedExports: renderedExports,
-              });
+    compiler.hooks.compilation.tap("DependencyTreePlugin", (compilation) => {
+      const pathMapping = new Map();
+      // Webpack4 没有 finishModules 钩子，改用 optimizeModules
+      compilation.hooks.optimizeModules.tap(
+        "DependencyTreePlugin",
+        (modules) => {
+          const dependencyTree = new Map();
+          modules.forEach((module) => {
+            const filePath = module.resource;
+            if (!filePath) return;
+            // 收集路径映射
+            this.collectPathMapping(module, pathMapping);
+            // 收集静态导入
+            const importedIds = this.collectStaticImports(module);
+            // 收集动态导入
+            const dynamicallyImportedIds = this.collectDynamicImports(module);
+            // 处理导出信息
+            const { renderedExports, removedExports } =
+              this.analyzeExports(module);
+            dependencyTree.set(filePath, {
+              importedIds: [...new Set(importedIds)],
+              dynamicallyImportedIds: [...new Set(dynamicallyImportedIds)],
+              removedExports: removedExports,
+              renderedExports: renderedExports,
             });
-            // 挂载到 compilation 实例
-            compilation.dependencyTree = dependencyTree;
-          },
-        );
-        // 输出处理
-        compiler.hooks.done.tap(
-          "Webpack4DependencyTreePlugin",
-          async (stats) => {
-            const importIdToModuleInfo = stats.compilation
-              .dependencyTree as Map<string, ModuleInfo>;
-            // 构造获取模块关键信息的函数
-            const getModuleInfo: GetModuleInfo = (importId) => {
-              const {
-                importedIds,
-                dynamicallyImportedIds,
-                removedExports,
-                renderedExports,
-              } = importIdToModuleInfo.get(importId) || {};
-              return {
-                importedIds: [...(importedIds || [])],
-                dynamicallyImportedIds: [...(dynamicallyImportedIds || [])],
-                removedExports,
-                renderedExports,
-              };
-            };
-            // 生成依赖树
-            console.log(this.options, this.sourceToImportIdMap);
-            const globalBundle = new Bundle(
-              this.options,
-              this.sourceToImportIdMap,
-              getModuleInfo,
-            );
-            const moduleGraph = await globalBundle.generateModuleGraph();
-            /** 生成铺平的树 */
-            const flatTree = moduleGraph.generateTiledTreeByRootId();
-            await sendDataByChunk(flatTree, "/collectBundle");
-            const jsonPath = path.join(process.cwd(), "moduleTree.json");
-            writeFileSync(jsonPath, moduleGraph.stringifyTreeByRootId());
-          },
-        );
-      },
-    );
+          });
+          // 挂载到 compilation 实例
+          compilation.dependencyTree = dependencyTree;
+        },
+      );
+    });
+    // 输出处理
+    compiler.hooks.done.tap("DependencyTreePlugin", async (stats) => {
+      const importIdToModuleInfo = stats.compilation.dependencyTree as Map<
+        string,
+        ModuleInfo
+      >;
+      // 构造获取模块关键信息的函数
+      const getModuleInfo: GetModuleInfo = (importId) => {
+        const {
+          importedIds,
+          dynamicallyImportedIds,
+          removedExports,
+          renderedExports,
+        } = importIdToModuleInfo.get(importId) || {};
+        return {
+          importedIds: [...(importedIds || [])],
+          dynamicallyImportedIds: [...(dynamicallyImportedIds || [])],
+          removedExports,
+          renderedExports,
+        };
+      };
+      // 生成依赖图
+      const staticGraph = new StaticGraph(
+        this.options,
+        this.sourceToImportIdMap,
+        getModuleInfo,
+      );
+      const graph = await staticGraph.generateGraph();
+      await sendDataByChunk(Object.values(graph), "/collectBundle");
+    });
   }
 
   // 收集静态导入
@@ -211,6 +199,7 @@ export class webpackPluginDepSpy {
     });
   }
 
+  // 兼容不同版本方式的入口路径获取
   processEntry(entry, context) {
     // Webpack 4的入口函数可能不需要参数
     if (typeof entry === "function") {

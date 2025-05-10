@@ -177,7 +177,7 @@ export const Selected = () => {
                       className="border-solid rounded-lg my-2 p-2"
                     >
                       <div className="text-[var(--color-text)] font-semibold">
-                        {Item}
+                        {Item || t("static.sidebar.select.export.sideEffect")}
                       </div>
                       <div>Reasons:</div>
                       {selectNodeInfo.exportEffectedNamesToReasons[Item]

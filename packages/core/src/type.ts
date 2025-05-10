@@ -61,10 +61,6 @@ export interface PluginDepSpyConfig {
   ignores?: (string | RegExp)[];
   // 对比版本的commit hash
   commitHash?: string;
-  // 忽略的插件名字
-  ignorePlugins?:string[]
-  // 是否启用AST模式
-  enableAst?: boolean;
 }
 
 interface _StaticGraphNode extends ExportEffectedNode {

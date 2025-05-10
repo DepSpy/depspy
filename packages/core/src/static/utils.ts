@@ -6,7 +6,7 @@ import { execSync } from "child_process";
 import { readFileSync } from "fs";
 import { jsonsToBuffer } from "@dep-spy/utils";
 import http from "http";
-import { ExportEffectedNodeSerializable, PluginDepSpyConfig } from "../type";
+import { PluginDepSpyConfig } from "../type";
 import { DEP_SPY_COMMIT_HASH, DEP_SPY_INJECT_MODE } from "../constant";
 
 // 源码路径和绝对路径的互相映射
@@ -158,6 +158,7 @@ export class ExportEffectedNode {
 export function normalizeIdToFilePath(id: string) {
   if (id) {
     const pathWithoutQuery = id.split("?")[0];
+    /* eslint-disable-next-line no-control-regex */
     return pathWithoutQuery.replace(/\x00/g, "");
   }
   return id;
@@ -270,9 +271,9 @@ export function isGitFileModified(
     let gitFilePath = path.relative(
       gitRootPath,
       normalizeIdToFilePath(filePath),
-    )
+    );
     // windows下的路径分隔符替换为/
-    if (os.type() == 'Windows_NT') {
+    if (os.type() == "Windows_NT") {
       gitFilePath = gitFilePath.replace(/\\/g, "/");
     }
     if (filesModified.has(gitFilePath)) {
@@ -300,7 +301,7 @@ export const getGitRootPath = cacheReturn(
 );
 
 // 分块逻辑
-export async function sendDataByChunk(data: any[], path: string) {
+export async function sendDataByChunk(data: unknown[], path: string) {
   const chunkLen = 80;
   // 分块发送数据给服务器
   const count = Math.ceil(data?.length / chunkLen);
@@ -320,7 +321,7 @@ export async function sendDataByChunk(data: any[], path: string) {
   }
 }
 // 发送数据逻辑
-export function postServerGraph(data: any[], path: string) {
+export function postServerGraph(data: unknown[], path: string) {
   const options = {
     hostname: "localhost",
     port: 2027,
@@ -356,7 +357,7 @@ export function postServerGraph(data: any[], path: string) {
 }
 
 // 缓存高消耗的函数结果
-export function cacheReturn<T extends (...args: any) => any>(
+export function cacheReturn<T extends (...args: unknown[]) => unknown>(
   callback: T,
   createKey: (...args: Parameters<T>) => string,
 ) {
@@ -449,5 +450,13 @@ export function mergeOptions(options: PluginDepSpyConfig): PluginDepSpyConfig {
 // 绝对路径转化为基于项目根目录的相对路径
 export function importIdToRelativeId(id: string) {
   const gitRootPath = getGitRootPath();
-  return id.replace(gitRootPath, "");
+  return normalizePath(id).replace(gitRootPath, "");
+}
+
+// 规范化windows的路径表示
+export function normalizePath(path: string) {
+  if (os.type() == "Windows_NT") {
+    return path.replace(/\\/g, "/");
+  }
+  return path;
 }

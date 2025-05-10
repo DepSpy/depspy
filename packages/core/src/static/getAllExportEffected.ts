@@ -12,10 +12,9 @@ import {
   ExportEffectedNode,
   importIdToRelativeId,
 } from "./utils";
-import { getTreeShakingDetail as _getTreeShakingDetail } from "./getTreeShakingDetail";
+import { getTreeShakingDetail as _getTreeShakingDetail } from "./getTreeShakingDetail/esbuild";
 import { ModuleInfo, PluginDepSpyConfig } from "../type";
-import { ALL_EXPORT_NAME, DEP_SPY_VITE_BUILD, SIDE_EFFECT_NAME } from "../constant";
-import { getTreeShakingDetailFromAst } from "./getTrerShakingFromAst";
+import { ALL_EXPORT_NAME, SIDE_EFFECT_NAME } from "../constant";
 
 // 只处理包含JS逻辑的文件类型
 const targetExt = new Set<string>([
@@ -49,17 +48,12 @@ export default async function getAllExportEffect(
   getModuleInfo: (importId: string) => ModuleInfo,
 ) {
   // 函数执行时才进行赋值，避免环境变量为空
-  getTreeShakingDetail = cacheReturn(
-    process.env[DEP_SPY_VITE_BUILD] && !options.enableAst
-      ? _getTreeShakingDetail
-      : getTreeShakingDetailFromAst,
-    (options) => {
-      // 以参数作为唯一key进行缓存
-      return getHashFromString(
-        Object.values(options).reduce((pre, cur) => pre + cur, ""),
-      );
-    },
-  );
+  getTreeShakingDetail = cacheReturn(_getTreeShakingDetail, (options) => {
+    // 以参数作为唯一key进行缓存
+    return getHashFromString(
+      Object.values(options).reduce((pre, cur) => pre + cur, ""),
+    );
+  });
   return await _getAllExportEffect(
     options,
     new Set([options.entry]),
@@ -79,12 +73,7 @@ async function _getAllExportEffect(
   // 获取moduleInfo的函数
   getModuleInfo: (importId: string) => ModuleInfo,
 ) {
-  const {
-    entry,
-    ignores = [],
-    ignorePlugins = [],
-    commitHash = "HEAD",
-  } = options;
+  const { entry, ignores = [], commitHash = "HEAD" } = options;
   // 进入节点记录路径;
   paths.add(entry);
   // 计算过该文件哪些导出受到了影响，直接返回
@@ -181,13 +170,11 @@ async function _getAllExportEffect(
           entry,
           code: curCode,
           exportName,
-          ignorePlugins,
         });
         const preTreeShakingCodePromise = getTreeShakingDetail({
           entry,
           code: preCode,
           exportName,
-          ignorePlugins,
         });
         const mergePromise = Promise.all([
           curTreeShakingCodePromise,
@@ -223,7 +210,9 @@ async function _getAllExportEffect(
                 if (
                   sourceExportEffect?.exportEffectedNamesToReasons[_import] ||
                   (_import === ALL_EXPORT_NAME &&
-                    Object.keys(sourceExportEffect?.exportEffectedNamesToReasons).length) ||
+                    Object.keys(
+                      sourceExportEffect?.exportEffectedNamesToReasons,
+                    ).length) ||
                   sourceExportEffect.isSideEffectChange
                 ) {
                   // 对应importId的相对路径
@@ -254,7 +243,10 @@ async function _getAllExportEffect(
               sourceToImportIdMap.getImportIdBySource(source, entry) || "";
             // 动态引入的文件是否有导出受到影响
             const hasExportEffected = Boolean(
-              Object.keys(importIdToExportEffected.get(importId)?.exportEffectedNamesToReasons || {}).length
+              Object.keys(
+                importIdToExportEffected.get(importId)
+                  ?.exportEffectedNamesToReasons || {},
+              ).length,
             );
             // 如果动态引入有变化，则该导出受到影响
             if (hasExportEffected) {

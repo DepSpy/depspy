@@ -42,8 +42,11 @@
   "dependencies": {
     "@dep-spy/utils": "workspace:^",
     "@vue/compiler-dom": "^3.5.13",
+    "acorn": "^8.14.1",
     "acorn-walk": "^8.3.4",
-    "typescript": "^5.7.3"
+    "esbuild": "^0.25.4",
+    "typescript": "^5.7.3",
+    "unplugin": "^2.3.2"
   },
   "gitHead": "50c073c23fc0eed9ed09baaa47244288326bc3d8"
 }

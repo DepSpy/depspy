@@ -1,6 +1,6 @@
 import { build } from "vite";
-import { DEP_SPY_SUB_START } from "../constant";
-import { findSourceToImportsFormAst, normalizeIdToFilePath } from "./utils";
+import { DEP_SPY_SUB_START } from "../../constant";
+import { findSourceToImportsFormAst, normalizeIdToFilePath } from "../utils";
 import path from "path";
 // 获取指定导出真正依赖的源码和真正依赖的引入（复用vite的treeshaking规范）
 export interface GetTreeShakingDetailOptions {
@@ -11,7 +11,7 @@ export interface GetTreeShakingDetailOptions {
   // 指定导出的名称，例如： default ｜ * ｜ getName
   exportName: string;
   // 忽略的插件
-  ignorePlugins?:string[],
+  ignorePlugins?: string[];
 }
 export interface GetTreeShakingDetailResult {
   // treeshaking后的代码
@@ -106,7 +106,9 @@ export async function getTreeShakingDetail(
                 },
               });
               // @ts-ignore 过滤指定的插件
-              config.plugins = config.plugins.filter((plugin)=>!ignorePlugins.has(plugin?.["name"]))
+              config.plugins = config.plugins.filter(
+                (plugin) => !ignorePlugins.has(plugin?.["name"]),
+              );
             },
             config(config) {
               // 兼容有分包的逻辑,删除分包
@@ -182,7 +184,7 @@ function constructImportStatement(importedId: string, importName: string) {
   if (importName === "*") {
     return `import * as all from '${importedId}';console.log(all);`;
   }
-  if(importName === ""){
+  if (importName === "") {
     return `import '${importedId}';`;
   }
   // 处理具名导入

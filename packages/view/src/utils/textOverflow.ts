@@ -3,7 +3,7 @@ export function getActualWidthOfChars(
   text,
   options?: { size: number; family: string },
 ) {
-  const { size = 16, family = "Playfair Display" } = options || {};
+  const { size = 16, family = "Playfair Display1" } = options || {};
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   ctx.font = `${size}px ${family}`;
