@@ -46,14 +46,17 @@ export async function getTreeShakingDetail(
       // 处理打包后的代码
       treeShakingCode = await getTreeShakingCode(entry, code, exportName);
       // 获取源码的引入路径和对应引入的变量，例如：{ "./a": ["a","b","default"] }
-      sourceToImports = findSourceToImportsFormAst(
+      const {
+        sourceToImports: _sourceToImports,
+        dynamicallySource: _dynamicallySource,
+      } = findSourceToImportsFormAst(
         parse(treeShakingCode, {
           ecmaVersion: "latest",
           sourceType: "module",
         }),
       );
-      // 收集动态导入
-      dynamicallySource = new Set();
+      sourceToImports = _sourceToImports;
+      dynamicallySource = _dynamicallySource;
     } catch (e) {
       /* 打包报错有以下原因：直接返回源码
               1. 代码中有语法错误

@@ -207,8 +207,10 @@ async function _getAllExportEffect(
                 // 1. 该引入有改动
                 // 2. 全量引入且该引入文件的受影响的导出不为空
                 // 3. 该引入文件有副作用变动
+                const importEffectedReason =
+                  sourceExportEffect?.exportEffectedNamesToReasons[_import];
                 if (
-                  sourceExportEffect?.exportEffectedNamesToReasons[_import] ||
+                  importEffectedReason ||
                   (_import === ALL_EXPORT_NAME &&
                     Object.keys(
                       sourceExportEffect?.exportEffectedNamesToReasons,
@@ -222,6 +224,15 @@ async function _getAllExportEffect(
                   // 副作用判断
                   if (exportName === SIDE_EFFECT_NAME) {
                     exportChanges.isSideEffectChange = true;
+                  }
+                  // 引入的副作用判断
+                  if (sourceExportEffect.isSideEffectChange) {
+                    exportChanges.isSideEffectChange = true;
+                    exportChanges.addExportEffectedNameToReason(exportName, {
+                      importEffectedNames: {
+                        [relativeId]: [SIDE_EFFECT_NAME],
+                      },
+                    });
                   }
                   // 记录该文件受到了哪些导入的影响
                   exportChanges.addImportEffectedName(relativeId, _import);
@@ -241,15 +252,14 @@ async function _getAllExportEffect(
             // 动态引入文件的绝对路径
             const importId =
               sourceToImportIdMap.getImportIdBySource(source, entry) || "";
+            // 引入文件的哪些导出受到了影响
+            const sourceExportEffect = importIdToExportEffected.get(importId);
             // 动态引入的文件是否有导出受到影响
-            const hasExportEffected = Boolean(
-              Object.keys(
-                importIdToExportEffected.get(importId)
-                  ?.exportEffectedNamesToReasons || {},
-              ).length,
-            );
+            const isImportChange = Object.keys(
+              sourceExportEffect?.exportEffectedNamesToReasons,
+            ).length;
             // 如果动态引入有变化，则该导出受到影响
-            if (hasExportEffected) {
+            if (isImportChange) {
               // 对应importId的相对路径
               const relativeId = importIdToRelativeId(importId);
               // 标记该节点有导入变动
@@ -257,6 +267,15 @@ async function _getAllExportEffect(
               // 副作用判断
               if (exportName === SIDE_EFFECT_NAME) {
                 exportChanges.isSideEffectChange = true;
+              }
+              // 引入副作用判断
+              if (sourceExportEffect.isSideEffectChange) {
+                exportChanges.isSideEffectChange = true;
+                exportChanges.addExportEffectedNameToReason(exportName, {
+                  importEffectedNames: {
+                    [relativeId]: [SIDE_EFFECT_NAME],
+                  },
+                });
               }
               // 记录该文件受到了哪些导入的影响,动态导入默认为全量引入，所以影响添加为*
               exportChanges.addImportEffectedName(relativeId, ALL_EXPORT_NAME);

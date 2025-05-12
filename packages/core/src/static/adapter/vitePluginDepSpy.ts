@@ -1,14 +1,14 @@
 import path from "path";
-import { mergeOptions, sendDataByChunk, SourceToImportId } from "./utils";
+import { mergeOptions, sendDataByChunk, SourceToImportId } from "../utils";
 import { normalizePath, type PluginOption } from "vite";
 import {
   DEP_SPY_START,
   DEP_SPY_SUB_START,
   DEP_SPY_VITE_BUILD,
-} from "../constant";
+} from "../../constant";
 import { OutputBundle } from "rollup";
-import { GetModuleInfo, PluginDepSpyConfig } from "../type";
-import { StaticGraph } from "./staticGraph";
+import { GetModuleInfo, PluginDepSpyConfig } from "../../type";
+import { StaticGraph } from "../staticGraph";
 
 export function vitePluginDepSpy(
   options: PluginDepSpyConfig = {},

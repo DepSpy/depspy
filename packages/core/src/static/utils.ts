@@ -173,42 +173,59 @@ export function getHashFromString(input: string) {
 export function findSourceToImportsFormAst(
   ast?: Parameters<typeof simple>["0"] | null,
 ) {
+  // 报存源码对应的导入（静态导入）
   const sourceToImports: Map<string, Set<string>> = new Map();
+  // 保存动态导入的集合
+  const dynamicallySource: Set<string> = new Set();
+
+  // 确保source对应的Set存在
+  function ensureSet(source: string, value: string) {
+    if (sourceToImports.get(source)) {
+      sourceToImports.get(source)?.add(value);
+    } else {
+      sourceToImports.set(source, new Set([value]));
+    }
+  }
   // 如果没有AST，直接返回
   if (!ast) {
-    return sourceToImports;
+    return {
+      sourceToImports,
+      dynamicallySource,
+    };
   }
   simple(ast, {
     ImportDeclaration(node) {
       const source = String(node.source.value);
       const specifiers = node.specifiers;
-      // 确保source对应的Set存在
-      function ensureSet(value: string) {
-        if (sourceToImports.get(source)) {
-          sourceToImports.get(source)?.add(value);
-        } else {
-          sourceToImports.set(source, new Set([value]));
-        }
-      }
       specifiers.forEach((specifier) => {
         if (specifier.type === "ImportDefaultSpecifier") {
           // 处理默认导入
-          ensureSet("default");
+          ensureSet(source, "default");
         } else if (specifier.type === "ImportNamespaceSpecifier") {
           // 处理命名空间导入
-          ensureSet("*");
+          ensureSet(source, "*");
         } else if (specifier.type === "ImportSpecifier") {
           // 处理具名导入
           if (specifier.imported.type === "Identifier") {
-            ensureSet(specifier.imported.name);
+            ensureSet(source, specifier.imported.name);
           } else {
-            ensureSet(String(specifier.imported.value));
+            ensureSet(source, String(specifier.imported.value));
           }
         }
       });
     },
+    ImportExpression(node) {
+      if (node.source.type === "Literal") {
+        const source = String(node.source.value);
+        // 动态导入无法确定具体导入的内容，使用'dynamic'表示这是一个动态导入
+        dynamicallySource.add(source);
+      }
+    },
   });
-  return sourceToImports;
+  return {
+    sourceToImports,
+    dynamicallySource,
+  };
 }
 
 // 获取指定版本的提交内容

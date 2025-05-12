@@ -1,11 +1,12 @@
 import path from "path";
-import { GetModuleInfo, ModuleInfo, PluginDepSpyConfig } from "../type";
-import { sendDataByChunk, SourceToImportId } from "./utils";
-import { DEP_SPY_START, DEP_SPY_WEBPACK_BUILD } from "../constant";
-import { StaticGraph } from "./staticGraph";
+import { GetModuleInfo, ModuleInfo, PluginDepSpyConfig } from "../../type";
+import { sendDataByChunk, SourceToImportId } from "../utils";
+import { DEP_SPY_START, DEP_SPY_WEBPACK_BUILD } from "../../constant";
+import { StaticGraph } from "../staticGraph";
 
 export class webpackPluginDepSpy {
   private sourceToImportIdMap = new SourceToImportId();
+  private importIdToModuleInfo = new Map<string, ModuleInfo>();
   constructor(private options: PluginDepSpyConfig = {}) {}
   apply(compiler) {
     //只能通过ds命令运行;
@@ -38,7 +39,6 @@ export class webpackPluginDepSpy {
       compilation.hooks.optimizeModules.tap(
         "DependencyTreePlugin",
         (modules) => {
-          const dependencyTree = new Map();
           modules.forEach((module) => {
             const filePath = module.resource;
             if (!filePath) return;
@@ -51,24 +51,18 @@ export class webpackPluginDepSpy {
             // 处理导出信息
             const { renderedExports, removedExports } =
               this.analyzeExports(module);
-            dependencyTree.set(filePath, {
+            this.importIdToModuleInfo.set(filePath, {
               importedIds: [...new Set(importedIds)],
               dynamicallyImportedIds: [...new Set(dynamicallyImportedIds)],
               removedExports: removedExports,
               renderedExports: renderedExports,
             });
           });
-          // 挂载到 compilation 实例
-          compilation.dependencyTree = dependencyTree;
         },
       );
     });
     // 输出处理
-    compiler.hooks.done.tap("DependencyTreePlugin", async (stats) => {
-      const importIdToModuleInfo = stats.compilation.dependencyTree as Map<
-        string,
-        ModuleInfo
-      >;
+    compiler.hooks.done.tap("DependencyTreePlugin", async () => {
       // 构造获取模块关键信息的函数
       const getModuleInfo: GetModuleInfo = (importId) => {
         const {
@@ -76,7 +70,7 @@ export class webpackPluginDepSpy {
           dynamicallyImportedIds,
           removedExports,
           renderedExports,
-        } = importIdToModuleInfo.get(importId) || {};
+        } = this.importIdToModuleInfo.get(importId) || {};
         return {
           importedIds: [...(importedIds || [])],
           dynamicallyImportedIds: [...(dynamicallyImportedIds || [])],

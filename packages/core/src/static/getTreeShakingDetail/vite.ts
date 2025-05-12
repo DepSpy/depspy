@@ -138,9 +138,9 @@ export async function getTreeShakingDetail(
                     treeShakingCode = module?.code;
                   }
                   // 获取源码的引入路径和对应引入的变量，例如：{ "./a": ["a","b","default"] }
-                  sourceToImports = findSourceToImportsFormAst(
-                    this.parse(module?.code || ""),
-                  );
+                  const { sourceToImports: _sourceToImports } =
+                    findSourceToImportsFormAst(this.parse(module?.code || ""));
+                  sourceToImports = _sourceToImports;
                   // 收集动态导入
                   dynamicallySource =
                     new Set(

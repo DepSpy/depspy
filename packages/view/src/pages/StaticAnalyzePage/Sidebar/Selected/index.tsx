@@ -199,7 +199,8 @@ export const Selected = () => {
                               key={index}
                               className="inline-flex rounded-lg border-[var(--color-primary-border)] border-solid p-2 m-2 cursor-default"
                             >
-                              {valus}
+                              {valus ||
+                                t("static.sidebar.select.export.sideEffect")}
                             </div>
                           ))}
                         </div>
