@@ -5,11 +5,8 @@ import StaticTree from "@/components/StaticTree";
 import { useStaticStore } from "@/contexts";
 import { useEffect } from "react";
 import { Sidebar } from "./Sidebar";
-import Tool from "./Tool";
-import {
-  handleGraphNodes,
-  renderTreeByGraphId,
-} from "./utils";
+
+import { handleGraphNodes, renderTreeByGraphId } from "./utils";
 import { getStaticGraph } from "@/contexts/api";
 
 export default function StaticAnalyzePage() {
@@ -30,14 +27,13 @@ export default function StaticAnalyzePage() {
     setGitChangedNodes(gitChangeSet);
     setImportChangedNodes(importChangeSet);
     // 默认渲染第一个节点,等待数据就绪再渲染
-    setTimeout(()=>{
-      renderTreeByGraphId(gitChangeSet.keys().next().value,undefined,true);
-    },0)
-   
+    setTimeout(() => {
+      renderTreeByGraphId(gitChangeSet.keys().next().value, undefined, true);
+    }, 0);
   }
 
   useEffect(() => {
-    initStaticGraph()
+    initStaticGraph();
   }, []);
 
   useEffect(() => {

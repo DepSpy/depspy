@@ -246,7 +246,6 @@ async function _getAllExportEffect(
               });
             }
           });
-
           // 该导出依赖的动态引入是否变动
           cur.dynamicallySource.forEach((source) => {
             // 动态引入文件的绝对路径
@@ -283,6 +282,28 @@ async function _getAllExportEffect(
               exportChanges.addExportEffectedNameToReason(exportName, {
                 importEffectedNames: {
                   [relativeId]: [ALL_EXPORT_NAME],
+                },
+              });
+            }
+          });
+          // getTreeShakingDetail会treeshaking的掉没使用的代码
+          // 比如 import "dayjs" 这种副作用的引入,需要检查
+          allImportIds.forEach((importId) => {
+            const relativeId = importIdToRelativeId(importId);
+            // 只对遗漏的引入做检查
+            if (
+              cur.dynamicallySource.has(relativeId) ||
+              cur.sourceToImports.has(relativeId)
+            ) {
+              return;
+            }
+            const exportEffected = importIdToExportEffected.get(importId);
+            // 如果该导入有副作用，则标记为副作用变动
+            if (exportEffected?.isSideEffectChange) {
+              exportChanges.isSideEffectChange = true;
+              exportChanges.addExportEffectedNameToReason(exportName, {
+                importEffectedNames: {
+                  [relativeId]: [SIDE_EFFECT_NAME],
                 },
               });
             }

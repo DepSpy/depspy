@@ -55,7 +55,7 @@ export const Selected = () => {
   }, [highlightedNodeIds, staticRoot]);
 
   const SelectNodeCardList = useMemo(() => {
-    if (!selectNodeInfo.name) return null;
+    if (!selectNodeInfo?.name) return null;
     return (
       <div className="w-full h-full p-4 rounded-lg shadow-md mb-4">
         <h2 className="text-[var(--color-primary-text)] text-xl font-bold mb-2">

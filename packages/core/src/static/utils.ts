@@ -236,11 +236,11 @@ export function getFileContentAtCommit(
   absolutePath = normalizeIdToFilePath(absolutePath);
   try {
     const gitRootPath = getGitRootPath();
+    // 转化符合git路径规范
+    const gitPath = normalizePath(path.relative(gitRootPath, absolutePath));
+
     // 构建 Git 命令
-    const command = `git show ${commitHash}:${path.relative(
-      gitRootPath,
-      absolutePath,
-    )}`;
+    const command = `git show ${commitHash}:${gitPath}`;
     // 同步执行 Git 命令
     const output = execSync(command);
     // 将输出转换为字符串并返回
@@ -406,54 +406,6 @@ export function isPathNeedFilter(
     }
     return true;
   });
-}
-
-// 将嵌套的Map或者Set转化为可序列化的对象或者数组
-export function deepClone<T>(target: T): T {
-  const map = new WeakMap();
-  const stack = new Set<unknown>();
-
-  function isObject(obj: unknown): obj is object {
-    return typeof obj === "object" && obj !== null;
-  }
-
-  function cloneData(data: unknown): unknown {
-    if (!isObject(data)) return data;
-
-    if (stack.has(data)) {
-      throw new Error("Cannot clone object with circular reference");
-    }
-    stack.add(data);
-    const exist = map.get(data);
-    if (exist) return exist;
-    if (data instanceof Map) {
-      const result = {};
-      map.set(data, result);
-      data.forEach((value, key) => {
-        result[key] = cloneData(value);
-      });
-      return result;
-    }
-    if (data instanceof Set) {
-      const result = [];
-      map.set(data, result);
-      data.forEach((value) => {
-        result.push(cloneData(value));
-      });
-      return result;
-    }
-    const keys = Reflect.ownKeys(data);
-    const allDesc = Object.getOwnPropertyDescriptors(data);
-    const result = Object.create(Object.getPrototypeOf(data), allDesc);
-    map.set(data, result);
-    keys.forEach((key: PropertyKey) => {
-      const value = data[key as keyof typeof data];
-      result[key] = isObject(value) ? cloneData(value) : value;
-    });
-    stack.delete(data);
-    return result;
-  }
-  return cloneData(target) as T;
 }
 
 // 合并环境配置和插件配置

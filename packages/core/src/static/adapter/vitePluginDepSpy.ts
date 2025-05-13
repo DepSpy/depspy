@@ -29,7 +29,7 @@ export function vitePluginDepSpy(
   options = mergeOptions(options);
 
   return {
-    name: "vite-plugin-dep-spy",
+    name: "vite-plugin-dep-spy1",
     enforce: "pre",
     configResolved(config) {
       if (process.env[DEP_SPY_SUB_START]) {
@@ -75,26 +75,38 @@ export function vitePluginDepSpy(
         // 当前文件的后缀
         const ext = path.extname(importId);
         // 导入信息
-        const { importedIds, dynamicallyImportedIds } =
-          this.getModuleInfo(importId) || {};
-        // vue文件的特殊处理，跳过过程中的ts文件，相当于vue直接引入的依赖
-        if (ext === ".vue") {
-          // 导入信息
-          const { importedIds: ids, dynamicallyImportedIds: dynamicIds } =
-            this.getModuleInfo(importedIds[0]) || {};
-          // 导出信息
-          const { removedExports = [], renderedExports = [] } =
-            importIdToExports.get(importedIds[0]) || {};
-          return {
-            importedIds: [...(ids || [])],
-            dynamicallyImportedIds: [...(dynamicIds || [])],
-            removedExports,
-            renderedExports,
-          };
-        }
+        const { importedIds, dynamicallyImportedIds, exportedBindings } =
+          this.getModuleInfo(importId);
         // 导出信息
         const { removedExports = [], renderedExports = [] } =
           importIdToExports.get(importId) || {};
+        // vue文件的特殊处理，跳过过程中的ts文件，相当于vue直接引入的依赖
+        if (ext === ".vue") {
+          return {
+            importedIds: [...(filterVueImportedIds([...importedIds]) || [])],
+            dynamicallyImportedIds: [...(dynamicallyImportedIds || [])],
+            removedExports: [],
+            renderedExports: ["default"],
+          };
+        }
+        // 完善重导出文件的removedExports，renderedExports字段
+        Object.keys(exportedBindings).forEach((sourcePath) => {
+          // 路径不为.则说明是重导出
+          if (sourcePath !== ".") {
+            // key为源码路径，需要转化为绝对路径
+            const absolutePath = sourceToImportIdMap.getImportIdBySource(
+              sourcePath,
+              importId,
+            );
+            // 获取重导出模块的导出信息
+            const {
+              removedExports: _removedExports = [],
+              renderedExports: _renderedExports = [],
+            } = importIdToExports.get(absolutePath) || {};
+            removedExports.push(..._removedExports);
+            renderedExports.push(..._renderedExports);
+          }
+        });
         return {
           importedIds: [...(importedIds || [])],
           dynamicallyImportedIds: [...(dynamicallyImportedIds || [])],
@@ -115,6 +127,7 @@ export function vitePluginDepSpy(
   };
 }
 
+// 收集模块的导出使用以及移除情况
 function getImportIdToExports(bundle: OutputBundle) {
   const importIdToExports = new Map<
     string,
@@ -133,4 +146,32 @@ function getImportIdToExports(bundle: OutputBundle) {
     }
   });
   return importIdToExports;
+}
+
+// 处理vite关于vue文件路径问题
+// vue—> js + css
+function filterVueImportedIds(importedIds: string[]) {
+  return importedIds.filter((id) => {
+    const pathInfo = parseVueRequestPath(id);
+    if (pathInfo.query["type"] === "style") {
+      return false;
+    }
+    return true;
+  });
+}
+function parseVueRequestPath(filePath: string) {
+  const [fullPath, queryString] = filePath.split("?");
+  const result = {
+    fullPath,
+    fileName: fullPath.split("/").pop(),
+    query: {},
+  };
+
+  if (queryString) {
+    const params = new URLSearchParams(queryString);
+    for (const [key, value] of params.entries()) {
+      result.query[key] = value === "" ? true : value;
+    }
+  }
+  return result;
 }

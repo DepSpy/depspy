@@ -2,6 +2,12 @@ import { build, Loader } from "esbuild";
 import { parse } from "acorn";
 import { findSourceToImportsFormAst, normalizeIdToFilePath } from "../utils";
 import path from "path";
+import {
+  parse as vueParse,
+  compileScript,
+  compileTemplate,
+} from "@vue/compiler-sfc";
+
 // 获取指定导出真正依赖的源码和真正依赖的引入（复用vite的treeshaking规范）
 export interface GetTreeShakingDetailOptions {
   // vite文件id，可能是绝对路径，也可能是虚拟路径
@@ -93,6 +99,7 @@ function constructImportStatement(importedId: string, importName: string) {
   return `import { ${importName} } from '${importedId}';console.log(${importName});`;
 }
 
+// 获取treeShaking后的代码，兼容js，jsx，tsx，ts，vue
 async function getTreeShakingCode(
   entry: string,
   code: string,
@@ -108,6 +115,7 @@ async function getTreeShakingCode(
       exportName,
     ),
   };
+  let bundleCode = "";
   const res = await build({
     entryPoints: [virtualImporterModuleId],
     treeShaking: true,
@@ -142,6 +150,17 @@ async function getTreeShakingCode(
               };
             }
             if (args.path === virtualSourceModuleId) {
+              // vue文件esbuild不兼容，需要单独处理
+              if (ext === ".vue") {
+                const { script, template } = compileVueFile(
+                  virtualModules[virtualSourceModuleId],
+                );
+                bundleCode += template;
+                return {
+                  contents: `${script}`,
+                  loader: "js",
+                };
+              }
               return {
                 contents: virtualModules[virtualSourceModuleId],
                 loader: ext.replace(".", "") as Loader,
@@ -152,9 +171,34 @@ async function getTreeShakingCode(
       },
     ],
   });
-  const bundleCode = res.outputFiles[0].text;
+  // bundleCode不一定符合语法，只用保持依赖字符串的完整性
+  bundleCode += res.outputFiles[0].text;
   if (extToTransformMap.has(ext)) {
     return extToTransformMap.get(ext)!(bundleCode || "");
   }
   return bundleCode;
+}
+
+// 编译Vue文件
+function compileVueFile(source: string) {
+  try {
+    // 解析Vue单文件组件
+    const { descriptor } = vueParse(source);
+    const script = compileScript(descriptor, { id: "" });
+    const template = compileTemplate({
+      source: descriptor.template?.content || "",
+      id: "",
+      filename: "",
+    });
+    return {
+      script: script.content,
+      template: template.code,
+    };
+  } catch (error) {
+    console.error(`编译错误: ${source}`, error);
+    return {
+      script: "",
+      template: "",
+    };
+  }
 }
