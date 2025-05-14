@@ -12,7 +12,7 @@ import {
   ExportEffectedNode,
   importIdToRelativeId,
 } from "./utils";
-import { getTreeShakingDetail as _getTreeShakingDetail } from "./getTreeShakingDetail/esbuild";
+import { getTreeShakingDetail as _getTreeShakingDetail } from "./getTreeShakingDetail/rolldown";
 import { ModuleInfo, PluginDepSpyConfig } from "../type";
 import { ALL_EXPORT_NAME, SIDE_EFFECT_NAME } from "../constant";
 
