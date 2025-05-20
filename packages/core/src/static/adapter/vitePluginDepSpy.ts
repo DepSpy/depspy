@@ -29,7 +29,7 @@ export function vitePluginDepSpy(
   options = mergeOptions(options);
 
   return {
-    name: "vite-plugin-dep-spy1",
+    name: "vite-plugin-dep-spy",
     enforce: "pre",
     configResolved(config) {
       if (process.env[DEP_SPY_SUB_START]) {

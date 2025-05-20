@@ -11,10 +11,12 @@ import {
   isPathNeedFilter,
   ExportEffectedNode,
   importIdToRelativeId,
+  getGitDiffByCommitHash,
 } from "./utils";
 import { getTreeShakingDetail as _getTreeShakingDetail } from "./getTreeShakingDetail/rolldown";
 import { ModuleInfo, PluginDepSpyConfig } from "../type";
 import { ALL_EXPORT_NAME, SIDE_EFFECT_NAME } from "../constant";
+import { getRiskAnalysis } from "../api";
 
 // 只处理包含JS逻辑的文件类型
 const targetExt = new Set<string>([
@@ -179,7 +181,7 @@ async function _getAllExportEffect(
         const mergePromise = Promise.all([
           curTreeShakingCodePromise,
           preTreeShakingCodePromise,
-        ]).then(([cur, pre]) => {
+        ]).then(async ([cur, pre]) => {
           // 如果git发生的变化，和上个版本比较，本身的代码是否变动
           if (isGitFileModified(entry, commitHash)) {
             const curHash = getHashFromString(cur.treeShakingCode);
@@ -193,6 +195,10 @@ async function _getAllExportEffect(
               if (exportName === SIDE_EFFECT_NAME) {
                 exportChanges.isSideEffectChange = true;
               }
+              // 大模型风险风险添加字段
+              exportChanges.riskAnalysis = await getRiskAnalysis(
+                getGitDiffByCommitHash(entry, commitHash),
+              );
             }
           }
           // 该导出依赖的静态引入是否变动
@@ -343,6 +349,7 @@ async function _getAllExportEffect(
           },
         });
       }
+      ` `;
     });
   }
   // 版本改文件是否受到影响 1. 本身代码改动 2. 有导入受到影响

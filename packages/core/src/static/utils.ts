@@ -82,6 +82,11 @@ export class ExportEffectedNode {
   isImportChange: boolean = false;
   // 是否有副作用变更
   isSideEffectChange: boolean = false;
+  // AI输出的风险评估
+  riskAnalysis?: {
+    level: string;
+    reason: string;
+  } | null = null;
   constructor(
     // 静态引入的文件列表
     public importedIds: string[] = [],
@@ -428,4 +433,10 @@ export function normalizePath(path: string) {
     return path.replace(/\\/g, "/");
   }
   return path;
+}
+
+// 获取指定版本，指定文件的gitdiff信息
+export function getGitDiffByCommitHash(filePath: string, commitHash: string) {
+  const diff = execSync(`git diff ${commitHash} -- ${filePath}`).toString();
+  return diff;
 }
