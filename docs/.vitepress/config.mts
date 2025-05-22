@@ -22,10 +22,10 @@ export default defineConfig({
         text: "概念",
         base: "/concepts/",
         items: [
+          { text: "源码分析", link: "static" },
           { text: "相同依赖和循环依赖", link: "dependence" },
           { text: "声明依赖版本和真实依赖版本", link: "version" },
           { text: "npm 类和 pnpm 类查找差异", link: "find" },
-          { text: "node 层与 view 层间的通信", link: "ws" },
           { text: "view 层的全局状态管理", link: "status" },
         ],
       },

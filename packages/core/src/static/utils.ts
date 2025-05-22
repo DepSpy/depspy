@@ -346,7 +346,7 @@ export async function sendDataByChunk(data: unknown[], path: string) {
 export function postServerGraph(data: unknown[], path: string) {
   const options = {
     hostname: "localhost",
-    port: 2027,
+    port: 2023,
     path,
     method: "POST",
     headers: {

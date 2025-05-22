@@ -6,7 +6,7 @@ import { createHttp } from "./createHttp";
 import { MODE } from "../constants";
 
 const root = path.join(staticPath, MODE.OFFLINE);
-const port = 2027;
+const port = 2023;
 const url = `http://localhost:${port}/static-analyze`;
 
 // 注入模式下，静态资源目录
