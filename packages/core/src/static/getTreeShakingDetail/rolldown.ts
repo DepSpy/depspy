@@ -115,7 +115,6 @@ export async function getTreeShakingDetail(
         1. 代码中有语法错误
         2. 代码中有导入不存在的模块
       */
-      console.log(e);
       return {
         treeShakingCode: code,
         sourceToImports,
