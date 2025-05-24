@@ -21,6 +21,12 @@
   --color-border: #00000026;
   --color-border-secondary: #0000000f;
   --color-skeleton-bg: #d9d9d9;
+  --diff-text-color: #000000e0;
+  --diff-background-color: #fffce0;
+  --diff-word-added-background-color: #acf2bd;
+  --diff-word-removed-background-color: #fdb8c0;
+  --diff-added-background-color: #e6ffed;
+  --diff-removed-background-color: #ffdce0;
 }
 
 .app[data-theme="dark"] {
@@ -46,4 +52,10 @@
   --color-border: #424242;
   --color-border-secondary: #303030;
   --color-skeleton-bg: #d9d9d9;
+  --diff-text-color: #ffffffd9;
+  --diff-background-color: #252529;
+  --diff-word-added-background-color: #04657b;
+  --diff-word-removed-background-color: #8c5974;
+  --diff-added-background-color: #667588;
+  --diff-removed-background-color: #614051;
 }

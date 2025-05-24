@@ -17,6 +17,5 @@ export const generateTree = (treeMap: Map<string, Node>) => {
       roots.push(node);
     }
   }
-
   return roots;
 };

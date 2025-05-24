@@ -4,6 +4,8 @@ import { shallow } from "zustand/shallow";
 import { useEffect, useState, useMemo } from "react";
 import useLanguage from "@/i18n/hooks/useLanguage";
 import { useStore } from "@/contexts";
+import ReactDiffViewer, { DiffMethod } from "react-diff-viewer";
+import "./index.scss";
 
 export const Selected = () => {
   const { staticRoot, highlightedNodeIds } = useStaticStore(
@@ -31,8 +33,63 @@ export const Selected = () => {
     isSideEffectChange: false,
     exportEffectedNamesToReasons: {},
     importEffectedNames: {},
+    preCode: "",
+    curCode: "",
   });
-
+  // 用于配置git diff的样式
+  const diffStyles = {
+    oldValue: selectNodeInfo.preCode,
+    newValue: selectNodeInfo.curCode,
+    splitView: true,
+    compareMethod: DiffMethod.LINES,
+    showDiffOnly: true,
+    hideLineNumbers: true,
+    leftTitle: t("static.preCode"),
+    rightTitle: t("static.curCode"),
+    linesOffset: 100,
+    styles: {
+      variables: {
+        light: {
+          diffViewerColor: "var(--diff-text-color)",
+          diffViewerBackground: "var(--diff-background-color)",
+          addedColor: "var(--diff-added-color)",
+          wordAddedBackground: "var(--diff-word-added-background-color)",
+          addedBackground: "var(--diff-added-background-color)",
+          removedColor: "var(--diff-removed-color)",
+          wordRemovedBackground: "var(--diff-word-removed-background-color)",
+          removedBackground: "var(--diff-removed-background-color)",
+          diffViewerTitleBackground: "var(--color-bg-layout)",
+          codeFoldBackground: "var(--diff-background-color)",
+          emptyLineBackground: "var(--diff-background-color)",
+        },
+        dark: {
+          diffViewerColor: "var(--diff-text-color)",
+          diffViewerBackground: "var(--diff-background-color)",
+          addedColor: "var(--diff-added-color)",
+          wordAddedBackground: "var(--diff-word-added-background-color)",
+          addedBackground: "var(--diff-added-background-color)",
+          removedColor: "var(--diff-removed-color)",
+          wordRemovedBackground: "var(--diff-word-removed-background-color)",
+          removedBackground: "var(--diff-removed-background-color)",
+          diffViewerTitleBackground: "var(--color-bg-layout)",
+          codeFoldBackground: "var(--diff-background-color)",
+          emptyLineBackground: "var(--diff-background-color)",
+        },
+      },
+      contentText: {
+        fontFamily: '"Fira Code", monospace',
+        fontSize: "14px",
+        lineHeight: "1.5",
+      },
+      diffContainer: {
+        border: "none",
+        boxShadow: "none",
+      },
+      line: {
+        padding: "4px 0",
+      },
+    },
+  };
   useEffect(() => {
     if (!staticRoot || !highlightedNodeIds.size) return;
     const selectId = Array.from(highlightedNodeIds)[0];
@@ -48,6 +105,8 @@ export const Selected = () => {
           isGitChange: node.isGitChange,
           isImportChange: node.isImportChange,
           isSideEffectChange: node.isSideEffectChange,
+          preCode: node.preCode,
+          curCode: node.curCode,
         };
       }
     });
@@ -215,6 +274,21 @@ export const Selected = () => {
             </div>
           )}
         </div>
+        {/* git diff */}
+        <div className="mb-2">
+          <p className="text-[var(--color-text)] font-semibold">
+            {t("static.gitChanged")}:
+          </p>
+          {Object.keys(selectNodeInfo.curCode).length ? (
+            <div className="border-solid rounded-lg my-2 p-2">
+              <ReactDiffViewer {...diffStyles} />
+            </div>
+          ) : (
+            <div className="w-full text-center text-lg text-[var(--color-primary-text)]">
+              {t("static.sidebar.global.noGit")}
+            </div>
+          )}
+        </div>
       </div>
     );
   }, [selectNodeInfo, language]);
@@ -244,4 +318,6 @@ interface SelectNodeInfo {
   importEffectedNames: {
     [key: string]: string[];
   };
+  preCode: string;
+  curCode: string;
 }

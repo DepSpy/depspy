@@ -89,6 +89,8 @@
       }
     },
     "gitChanged": "Git 变更",
-    "importChanged": "导入变更"
+    "importChanged": "导入变更",
+    "preCode":"原代码",
+    "curCode":"新代码"
   }
 }

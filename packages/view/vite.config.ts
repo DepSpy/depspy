@@ -7,7 +7,7 @@ import neutralization from "./plugins/neutralization";
 import { vitePluginDepSpy } from "@dep-spy/core/vite-plugin-dep-spy";
 import { modeOutDirMap } from "./constant";
 
-//@ts-ignore
+// @ts-expect-error
 export default defineConfig(({ mode }) => {
   const { VITE_BUILD_MODE } = loadEnv(mode, path.join(process.cwd(), "env"));
 
@@ -47,6 +47,15 @@ export default defineConfig(({ mode }) => {
       alias: {
         "@": path.resolve(__dirname, "src"),
         "~": path.resolve(__dirname, "types"),
+      },
+    },
+    server: {
+      proxy: {
+        "/api": {
+          target: "http://localhost:2023",
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, ""),
+        },
       },
     },
   };

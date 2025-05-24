@@ -90,7 +90,7 @@ export function vitePluginDepSpy(
           };
         }
         // 完善重导出文件的removedExports，renderedExports字段
-        Object.keys(exportedBindings).forEach((sourcePath) => {
+        Object.keys(exportedBindings || {}).forEach((sourcePath) => {
           // 路径不为.则说明是重导出
           if (sourcePath !== ".") {
             // key为源码路径，需要转化为绝对路径

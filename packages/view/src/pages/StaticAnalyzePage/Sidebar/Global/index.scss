@@ -1,0 +1,9 @@
+
+.treelist-selected {
+  width: 0;
+  height: 0;
+  border-right: 6px solid transparent;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 6px solid var(--color-text);
+}

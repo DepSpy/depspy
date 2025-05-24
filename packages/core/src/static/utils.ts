@@ -82,6 +82,10 @@ export class ExportEffectedNode {
   isImportChange: boolean = false;
   // 是否有副作用变更
   isSideEffectChange: boolean = false;
+  // 对比版本得源码(isGitChange为true时有意义)
+  preCode?: string = "";
+  // 当前版本的源码(isGitChange为true时有意义)
+  curCode?: string = "";
   // AI输出的风险评估
   riskAnalysis?: {
     level: string;

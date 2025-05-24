@@ -89,6 +89,8 @@
       }
     },
     "gitChanged": "Git Changed",
-    "importChanged": "Import Changed"
+    "importChanged": "Import Changed",
+    "preCode":"Primary  Code",
+    "curCode":"Current Code"
   }
 }

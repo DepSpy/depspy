@@ -69,7 +69,6 @@ export function renderTreeByGraphId(
       paths: Array.from(paths),
       children: [],
     };
-    // 循环节点直接截断
     if (paths.has(entryId)) {
       // 退出当前path
       paths.delete(entryId);
@@ -242,6 +241,7 @@ export const handleGraphNodes = (graphNodes: StaticGraphNode[]) => {
       importChangeSet.add(graphNode.relativeId);
     }
   });
+  console.log(graph, gitChangeSet);
   return {
     graph,
     gitChangeSet,

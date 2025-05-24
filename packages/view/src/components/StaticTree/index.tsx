@@ -129,7 +129,10 @@ export default function StaticTree() {
             // must be assigned in G6 3.3 and later versions. it can be any string you want, but should be unique in a custom item type
             name: "rect-shape",
           });
-          const content = textOverflow(extractFileName(cfg.relativeId as string), 100);
+          const content = textOverflow(
+            extractFileName(cfg.relativeId as string),
+            100,
+          );
           const text = group.addShape("text", {
             attrs: {
               text: content,
@@ -372,7 +375,7 @@ export default function StaticTree() {
   }, [highlightedNodeIds, graphRef.current, expandNodeSequentially]);
 
   useEffect(() => {
-    if(!staticRoot)return;
+    if (!staticRoot) return;
     const newData = deepClone(staticRoot);
     const map = new Map();
     //转换为g6的数据格式

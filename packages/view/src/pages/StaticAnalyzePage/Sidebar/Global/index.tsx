@@ -1,14 +1,17 @@
+import "./index.scss";
 import SidebarButton from "../components/SidebarButton";
 import { useStaticStore } from "@/contexts";
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { shallow } from "zustand/shallow";
-import { extractFileName, renderTreeByGraphId } from "../../utils";
+import { renderTreeByGraphId } from "../../utils";
 import useLanguage from "@/i18n/hooks/useLanguage";
+
 export const Global = () => {
   const [activeTab, setActiveTab] = useState<"git" | "import">("git");
   const { gitChangedNodes, importChangedNodes, setHighlightedNodeIds } =
     useStaticStore(
       (state) => ({
+        staticGraph: state.staticGraph,
         gitChangedNodes: state.gitChangedNodes,
         importChangedNodes: state.importChangedNodes,
         setHighlightedNodeIds: state.setHighlightedNodeIds,
@@ -16,50 +19,89 @@ export const Global = () => {
       shallow,
     );
   const { t } = useLanguage();
-
-
-  const gitFileList = useMemo(() => {
-    return Array.from(gitChangedNodes.keys()).map((item) => (
-      <div
-        key={item}
-        className="p-2 hover:bg-gray-100 rounded hover:text-blue-500 min-w-80 cursor-pointer"
-        data-path={item}
-      >
-        📄 {extractFileName(item)}
-      </div>
-    ));
-  }, [gitChangedNodes]);
-
-  const importFileList = useMemo(() => {
-    return Array.from(importChangedNodes.keys()).map((item) => (
-      <div
-        key={item}
-        className="p-2 hover:bg-gray-100 rounded hover:text-blue-500 min-w-80 cursor-pointer"
-        data-path={item}
-      >
-        ⚡ {extractFileName(item)}
-      </div>
-    ));
-  }, [importChangedNodes]);
-
-  const totalCount = useMemo(() => {
-    return activeTab === "git" ? gitChangedNodes.size : importChangedNodes.size;
-  }, [activeTab, gitChangedNodes.size, importChangedNodes.size]);
-
   const handleFileListClick = useCallback(
     (e) => {
+      console.log("handleFileListClick", e.target.dataset);
       const path = e.target.dataset.path || "";
       if (!path) return;
       if (activeTab === "git") {
-        renderTreeByGraphId(path,undefined,true)
+        renderTreeByGraphId(path, undefined, true);
         // setHighlightedNodeIds(new Set(gitChangedNodes.get(path)));
       } else if (activeTab === "import") {
-        renderTreeByGraphId(path)
+        renderTreeByGraphId(path);
         // setHighlightedNodeIds(new Set(importChangedNodes.get(path)));
       }
     },
     [gitChangedNodes, importChangedNodes, activeTab, setHighlightedNodeIds],
   );
+
+  const gitFileList = useMemo(() => {
+    return Array.from(gitChangedNodes.keys()).map((item) => {
+      const itemTrees = item.split("/").filter(Boolean);
+
+      return itemTrees.map((itemTree, index) => (
+        <div
+          key={itemTree}
+          style={{
+            paddingLeft: `${(index + 1) * 8}px`,
+            display: "flex",
+            alignItems: "center",
+          }}
+          className="group hover:bg-gray-100 rounded hover:text-blue-500 min-w-80"
+        >
+          {index === itemTrees.length - 1 ? (
+            <div className="flex items-center" onClick={handleFileListClick}>
+              <div data-path={item} className="cursor-pointer ml-1 w-full">
+                📄{itemTree}
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center">
+              <div className="treelist-selected group-hover:border-l-black"></div>
+              <div className="ml-1">{itemTree}</div>
+            </div>
+          )}
+        </div>
+      ));
+    });
+  }, [gitChangedNodes]);
+
+  const importFileList = useMemo(() => {
+    return Array.from(importChangedNodes.keys()).map((item) => {
+      const itemTrees = item.split("/").filter(Boolean);
+      return itemTrees.map((itemTree, index) => (
+        <div
+          data-path={item}
+          key={itemTree}
+          style={{
+            paddingLeft: `${(index + 1) * 8}px`,
+            display: "flex",
+            alignItems: "center",
+          }}
+          className="group hover:bg-gray-100 rounded hover:text-blue-500 min-w-80"
+        >
+          {index === itemTrees.length - 1 ? (
+            <div className="flex items-center" onClick={handleFileListClick}>
+              <div data-path={item} className="cursor-pointer ml-1 w-full">
+                ⚡{itemTree}
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center">
+              <div className="treelist-selected group-hover:border-l-black"></div>
+              <div className="ml-1" data-path={item}>
+                {itemTree}
+              </div>
+            </div>
+          )}
+        </div>
+      ));
+    });
+  }, [importChangedNodes]);
+
+  const totalCount = useMemo(() => {
+    return activeTab === "git" ? gitChangedNodes.size : importChangedNodes.size;
+  }, [activeTab, gitChangedNodes.size, importChangedNodes.size]);
 
   return (
     <div className="h-full flex flex-col">
@@ -81,7 +123,7 @@ export const Global = () => {
         <span className="text-[var(--color-primary-text)]">{totalCount}</span>
       </div>
 
-      <div className="flex-1 overflow-auto p-4" onClick={handleFileListClick}>
+      <div className="flex-1 overflow-auto p-4">
         {activeTab === "git" && (
           <div className="space-y-2">
             {gitFileList.length > 0 ? (

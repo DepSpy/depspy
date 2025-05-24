@@ -188,6 +188,8 @@ async function _getAllExportEffect(
             const preHash = getHashFromString(pre.treeShakingCode);
             if (curHash !== preHash) {
               exportChanges.isGitChange = true;
+              exportChanges.preCode = preCode;
+              exportChanges.curCode = curCode;
               exportChanges.addExportEffectedNameToReason(exportName, {
                 isNativeCodeChange: true,
               });
@@ -219,7 +221,7 @@ async function _getAllExportEffect(
                   importEffectedReason ||
                   (_import === ALL_EXPORT_NAME &&
                     Object.keys(
-                      sourceExportEffect?.exportEffectedNamesToReasons,
+                      sourceExportEffect?.exportEffectedNamesToReasons || {},
                     ).length) ||
                   sourceExportEffect.isSideEffectChange
                 ) {
@@ -261,7 +263,7 @@ async function _getAllExportEffect(
             const sourceExportEffect = importIdToExportEffected.get(importId);
             // 动态引入的文件是否有导出受到影响
             const isImportChange = Object.keys(
-              sourceExportEffect?.exportEffectedNamesToReasons,
+              sourceExportEffect?.exportEffectedNamesToReasons || {},
             ).length;
             // 如果动态引入有变化，则该导出受到影响
             if (isImportChange) {

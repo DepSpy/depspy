@@ -51,8 +51,8 @@
   },
   "dependencies": {
     "@antv/g6": "^4.8.24",
-    "@dep-spy/core": "workspace:^",
     "@dep-spy/cli": "workspace:^",
+    "@dep-spy/core": "workspace:^",
     "@dep-spy/utils": "workspace:^",
     "@types/d3": "^7.4.0",
     "@vitejs/plugin-react": "^4.0.4",
@@ -61,6 +61,7 @@
     "lodash-es": "^4.17.21",
     "react": "^18.2.0",
     "react-autosuggest": "^10.1.0",
+    "react-diff-viewer": "^3.1.1",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
     "react-i18next": "^13.1.2",
