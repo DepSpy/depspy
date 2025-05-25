@@ -38,6 +38,9 @@ const importIdToExportEffectedPromise: Map<
   Promise<Map<string, ExportEffectedNode>>
 > = new Map();
 
+// 记录大模型风险分析api的promise(避免堵塞递归的同时，保证递归完成后一定有结果)
+const riskAnalysisPromise: Promise<void>[] = [];
+
 // 获取指定导出真正依赖的源码和真正依赖的引入（复用vite的treeshaking规范）(缓存化)
 let getTreeShakingDetail: typeof _getTreeShakingDetail;
 // getAllExportEffect的包装层，避免外层因为本身的递归参数传入不必要的参数
@@ -58,7 +61,7 @@ export default async function getAllExportEffect(
   });
   return await _getAllExportEffect(
     options,
-    new Set([options.entry]),
+    new Set(),
     sourceToImportIdMap,
     getModuleInfo,
   );
@@ -198,8 +201,11 @@ async function _getAllExportEffect(
                 exportChanges.isSideEffectChange = true;
               }
               // 大模型风险风险添加字段
-              exportChanges.riskAnalysis = await getRiskAnalysis(
-                getGitDiffByCommitHash(entry, commitHash),
+              const diff = getGitDiffByCommitHash(entry, commitHash);
+              riskAnalysisPromise.push(
+                getRiskAnalysis(diff).then((riskAnalysis) => {
+                  exportChanges.riskAnalysis = riskAnalysis;
+                }),
               );
             }
           }
@@ -326,6 +332,15 @@ async function _getAllExportEffect(
       exportChanges.isGitChange = true;
       // 没有导出的文件，可以直接标记为副作用变动
       exportChanges.isSideEffectChange = true;
+      exportChanges.preCode = preCode;
+      exportChanges.curCode = curCode;
+      // 大模型风险分析
+      const diff = getGitDiffByCommitHash(entry, commitHash);
+      riskAnalysisPromise.push(
+        getRiskAnalysis(diff).then((riskAnalysis) => {
+          exportChanges.riskAnalysis = riskAnalysis;
+        }),
+      );
     }
     // 检查该文件依赖的静态引入是否变动
     currentInfo?.importedIds.forEach((importId) => {
@@ -358,5 +373,9 @@ async function _getAllExportEffect(
   await Promise.all(exportEffectPromise);
   importIdToExportEffected.set(entry, exportChanges);
   paths.delete(entry);
+  // 递归完成前确保大模型风险分析的结果全部完成
+  if (paths.size === 0) {
+    await Promise.all(riskAnalysisPromise);
+  }
   return importIdToExportEffected;
 }
