@@ -4,7 +4,7 @@ import OpenAI from "openai";
 export async function getRiskAnalysis(
   diff: string,
 ): Promise<{ level: string; reason: string } | null> {
-  if (diff) {
+  if (diff && ApiConfig.doubao.key) {
     const client = new OpenAI({
       apiKey: ApiConfig.doubao.key,
       baseURL: ApiConfig.doubao.baseURL,

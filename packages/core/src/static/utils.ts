@@ -428,12 +428,12 @@ export function mergeOptions(options: PluginDepSpyConfig): PluginDepSpyConfig {
 // 绝对路径转化为基于项目根目录的相对路径
 export function importIdToRelativeId(id: string) {
   const gitRootPath = getGitRootPath();
-  return normalizePath(id).replace(gitRootPath, "");
+  return normalizePath(id)?.replace(gitRootPath, "");
 }
 
 // 规范化windows的路径表示
 export function normalizePath(path: string) {
-  if (os.type() == "Windows_NT") {
+  if (os.type() == "Windows_NT" && path) {
     return path.replace(/\\/g, "/");
   }
   return path;

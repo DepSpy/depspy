@@ -20,22 +20,19 @@ export class webpackPluginDepSpy {
       // 如果用户没有提供entry，由webpack解析到的第一个entry作为入口
       if (!this.options.entry) {
         const entry = compiler.options.entry;
-        const context = compiler.options.context || process.cwd();
-        const entryPaths = await this.processEntry(entry, context);
-        // 由第一个entry作为入口
-        Object.values(entryPaths).some((paths: string[]) => {
-          return paths.some((entry) => {
-            if (entry) {
-              this.options.entry = entry;
-              return true;
-            }
-          });
-        });
+        if (typeof entry === "string") {
+          this.options.entry = path.resolve(compiler.context, entry);
+        } else if (entry && typeof entry === "object") {
+          const entryStr = Object.values(entry)[0]["import"][0];
+          if (path.isAbsolute(entryStr)) {
+            this.options.entry = entryStr;
+          } else {
+            this.options.entry = path.resolve(compiler.context, entryStr);
+          }
+        }
       }
     });
     compiler.hooks.compilation.tap("DependencyTreePlugin", (compilation) => {
-      const pathMapping = new Map();
-      // Webpack4 没有 finishModules 钩子，改用 optimizeModules
       compilation.hooks.optimizeModules.tap(
         "DependencyTreePlugin",
         (modules) => {
@@ -43,14 +40,13 @@ export class webpackPluginDepSpy {
             const filePath = module.resource;
             if (!filePath) return;
             // 收集路径映射
-            this.collectPathMapping(module, pathMapping);
-            // 收集静态导入
-            const importedIds = this.collectStaticImports(module);
-            // 收集动态导入
-            const dynamicallyImportedIds = this.collectDynamicImports(module);
+            const { importedIds, dynamicallyImportedIds } =
+              this.collectDependence(module, compilation);
             // 处理导出信息
-            const { renderedExports, removedExports } =
-              this.analyzeExports(module);
+            const { renderedExports, removedExports } = this.analyzeExports(
+              module,
+              compilation,
+            );
             this.importIdToModuleInfo.set(filePath, {
               importedIds: [...new Set(importedIds)],
               dynamicallyImportedIds: [...new Set(dynamicallyImportedIds)],
@@ -88,53 +84,46 @@ export class webpackPluginDepSpy {
       await sendDataByChunk(Object.values(graph), "/collectBundle");
     });
   }
-
-  // 收集静态导入
-  collectStaticImports(module) {
-    const imports = [];
-    module.dependencies.forEach((dep) => {
-      if (
-        dep.constructor.name === "HarmonyImportSpecifierDependency" ||
-        dep.constructor.name === "CommonJSRequireDependency"
-      ) {
-        const refModule = dep.module;
-        if (refModule && refModule.resource) {
-          imports.push(refModule.resource);
-        }
-      }
-    });
-    return imports;
-  }
-
-  // 收集动态导入
-  collectDynamicImports(module) {
-    const dynamicImports = [];
-    module.blocks.forEach((block) => {
-      block.dependencies.forEach((dep) => {
-        if (
-          dep.constructor.name === "ImportDependency" ||
-          dep.constructor.name === "ContextDependency"
-        ) {
-          const module = dep?.module;
-          if (module && module.resource) {
-            dynamicImports.push(module.resource);
-          }
-        }
-      });
-    });
-    return dynamicImports;
-  }
-
   // 分析导出
-  analyzeExports(module) {
+  analyzeExports(module, compilation) {
     const renderedExports = [];
     const removedExports = [];
+    let providedExports = [];
+    // Webpack5 的导出信息存储方式
+    if (compilation.moduleGraph?.getProvidedExports) {
+      providedExports = compilation.moduleGraph.getProvidedExports(module);
+    } else {
+      // 兼容 Webpack4
+      providedExports = module.buildMeta
+        ? module.buildMeta.providedExports
+        : [];
+    }
 
-    // Webpack4 的导出信息存储方式
-    const providedExports = module.buildMeta
-      ? module.buildMeta.providedExports
-      : [];
-    const usedExports = module.usedExports || [];
+    let usedExports = [];
+    // Webpack5 的导出使用信息存储方式
+    if (compilation.moduleGraph?.getUsedExports) {
+      const _usedExports = compilation.moduleGraph.getUsedExports(module);
+      if (_usedExports === true) {
+        // 如果是 true，表示所有导出都被使用
+        usedExports = [...providedExports];
+      } else if (_usedExports === false) {
+        // 如果是 false，表示没有导出被使用
+        usedExports = [];
+      } else if (_usedExports instanceof Set) {
+        usedExports = [..._usedExports];
+      }
+    } else {
+      // 兼容 Webpack4
+      const _usedExports = module.usedExports || [];
+      if (Array.isArray(_usedExports)) {
+        // 如果是 true，表示所有导出都被使用
+        usedExports = [..._usedExports];
+      } else if (Array.isArray(providedExports)) {
+        // 如果是 false，表示没有导出被使用
+        usedExports = [...providedExports];
+      }
+    }
+
     if (Array.isArray(providedExports) && Array.isArray(usedExports)) {
       renderedExports.push(
         ...providedExports.filter((exp) => usedExports.includes(exp)),
@@ -147,87 +136,45 @@ export class webpackPluginDepSpy {
     return { renderedExports, removedExports };
   }
   // 收集路径映射
-  collectPathMapping(module, pathMapping) {
+  collectDependence(module, compilation) {
+    const importedIds = [];
+    const dynamicallyImportedIds = [];
     // 遍历所有依赖收集映射关系
     module.dependencies.forEach((dep) => {
       // 处理静态导入映射
-      if (
-        dep.constructor.name === "HarmonyImportSpecifierDependency" ||
-        dep.constructor.name === "CommonJSRequireDependency"
-      ) {
-        const request = dep.request || dep.userRequest;
-        if (request && dep.module && dep.module.resource) {
-          this.sourceToImportIdMap.addRecord(
-            request,
-            module.resource,
-            dep.module.resource,
-          );
-        }
-      }
-
-      // 处理动态导入映射
-      if (dep.constructor.name === "ImportDependency") {
-        const request = dep.request || dep.userRequest;
-        const refModule = dep.module || dep._module;
-        if (request && refModule && refModule.resource) {
-          this.sourceToImportIdMap.addRecord(
-            request,
-            module.resource,
-            refModule.resource,
-          );
-        }
+      const request = dep.request || dep.userRequest;
+      const depModle = compilation.moduleGraph?.getModule
+        ? compilation.moduleGraph.getModule(dep)
+        : dep.module;
+      if (request && depModle && depModle.resource) {
+        importedIds.push(depModle.resource);
+        this.sourceToImportIdMap.addRecord(
+          request,
+          module.resource,
+          depModle.resource,
+        );
       }
     });
-
-    // 处理块级依赖（如require.ensure）
+    // 处理动态导入映射
     module.blocks.forEach((block) => {
       block.dependencies.forEach((dep) => {
-        if (dep.constructor.name === "ContextDependency") {
-          const request = dep.request || dep.userRequest;
-          const refModule = dep.module || dep._module;
-          if (request && refModule && refModule.resource) {
-            pathMapping.set(request, refModule.resource);
-          }
+        const request = dep.request || dep.userRequest;
+        const depModle = compilation.moduleGraph?.getModule
+          ? compilation.moduleGraph.getModule(dep)
+          : dep.module;
+        if (request && depModle && depModle.resource) {
+          dynamicallyImportedIds.push(depModle.resource);
+          this.sourceToImportIdMap.addRecord(
+            request,
+            module.resource,
+            depModle.resource,
+          );
         }
       });
     });
-  }
-
-  // 兼容不同版本方式的入口路径获取
-  processEntry(entry, context) {
-    // Webpack 4的入口函数可能不需要参数
-    if (typeof entry === "function") {
-      entry = entry();
-    }
-
-    // 标准化为对象格式
-    const normalized = this.normalizeEntries(entry);
-    return this.resolvePaths(normalized, context);
-  }
-
-  normalizeEntries(entries) {
-    if (typeof entries === "string" || Array.isArray(entries)) {
-      return { main: entries };
-    }
-    return entries || {};
-  }
-
-  resolvePaths(entries, context) {
-    const result = {};
-    for (const [name, value] of Object.entries(entries)) {
-      result[name] = this.resolveEntry(value, context);
-    }
-    return result;
-  }
-
-  resolveEntry(value, context) {
-    let paths = [];
-    if (typeof value === "string") {
-      paths = [value];
-    } else if (Array.isArray(value)) {
-      paths = value;
-    }
-    // 转为绝对路径（注意：Webpack 4会自动处理相对路径）
-    return paths.map((p) => path.resolve(context, p));
+    return {
+      importedIds,
+      dynamicallyImportedIds,
+    };
   }
 }

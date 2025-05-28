@@ -64,7 +64,7 @@ export const Global = () => {
         </div>
       ));
     });
-  }, [gitChangedNodes]);
+  }, [gitChangedNodes, handleFileListClick]);
 
   const importFileList = useMemo(() => {
     return Array.from(importChangedNodes.keys()).map((item) => {
@@ -97,7 +97,7 @@ export const Global = () => {
         </div>
       ));
     });
-  }, [importChangedNodes]);
+  }, [importChangedNodes, handleFileListClick]);
 
   const totalCount = useMemo(() => {
     return activeTab === "git" ? gitChangedNodes.size : importChangedNodes.size;

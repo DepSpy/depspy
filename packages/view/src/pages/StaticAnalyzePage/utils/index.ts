@@ -241,7 +241,6 @@ export const handleGraphNodes = (graphNodes: StaticGraphNode[]) => {
       importChangeSet.add(graphNode.relativeId);
     }
   });
-  console.log(graph, gitChangeSet);
   return {
     graph,
     gitChangeSet,
