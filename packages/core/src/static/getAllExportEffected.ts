@@ -79,6 +79,10 @@ async function _getAllExportEffect(
   getModuleInfo: (importId: string) => ModuleInfo,
 ) {
   const { entry, ignores = [], commitHash = "HEAD" } = options;
+  // 排除路径不存在的情况
+  if (!entry) {
+    return importIdToExportEffected;
+  }
   // 进入节点记录路径;
   paths.add(entry);
   // 计算过该文件哪些导出受到了影响，直接返回

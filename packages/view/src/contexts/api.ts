@@ -6,8 +6,6 @@ import { INJECT_MODE } from "../../constant";
 import { DEP_SPY_WINDOW_VAR } from "@dep-spy/core";
 
 const baseUrl = "http://localhost:2023";
-const staticBaseUrl =
-  import.meta.env.MODE === "development" ? "/api" : "http://localhost:2027";
 
 const maxPoolSize = 12;
 // 限制全展开时的并发数量
@@ -125,7 +123,7 @@ export const getStaticGraph = async () => {
   if (import.meta.env.MODE === INJECT_MODE) {
     return window[DEP_SPY_WINDOW_VAR];
   }
-  const res = await fetch(`${staticBaseUrl}/getStaticTree`, {
+  const res = await fetch(`${baseUrl}/getStaticTree`, {
     method: "GET",
   });
   const reader = await res.arrayBuffer();

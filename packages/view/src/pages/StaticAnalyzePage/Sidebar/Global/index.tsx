@@ -11,7 +11,7 @@ export const Global = () => {
   interface TreeNodeType {
     id: string;
     name: string;
-    children?: TreeNodeType[];
+    children: TreeNodeType[];
     path: string;
   }
   const [activeTab, setActiveTab] = useState<"git" | "import">("git");
