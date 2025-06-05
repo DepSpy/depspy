@@ -85,7 +85,8 @@
       "global": {
         "count": "当前数量",
         "noGit": "暂无 Git 变动文件",
-        "noImport": "暂无 导入 变动文件"
+        "noImport": "暂无 导入 变动文件",
+        "expand": "展开代码"
       }
     },
     "gitChanged": "Git 变更",

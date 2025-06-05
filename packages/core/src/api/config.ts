@@ -17,7 +17,7 @@ export const ApiConfig = {
   qwq: {
     model: "free:QwQ-32B",
     baseURL: "https://api.suanli.cn/v1",
-    key: "sk-W0rpStc95T7JVYVwDYc29IyirjtpPPby6SozFMQr17m8KWeo",
+    key: "",
   },
   ernieSpeed: {
     model: "ernie-lite-8k",

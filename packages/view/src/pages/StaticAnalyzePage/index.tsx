@@ -1,10 +1,12 @@
 import GridBackground from "@/components/GridBack";
+import Modal from "@/components/Modal";
 import { GithubIcon, LanguageIcon, ThemeIcon } from "@/components/icon";
 import Skeleton from "@/components/Skeleton";
 import StaticTree from "@/components/StaticTree";
-import { useStaticStore } from "@/contexts";
+import { useStaticStore, useOpenStore } from "@/contexts";
 import { useEffect } from "react";
 import { Sidebar } from "./Sidebar";
+import "./index.scss";
 
 import { handleGraphNodes, renderTreeByGraphId } from "./utils";
 import { getStaticGraph } from "@/contexts/api";
@@ -18,6 +20,7 @@ export default function StaticAnalyzePage() {
     setGitChangedNodes,
     setImportChangedNodes,
   } = useStaticStore();
+  const { codeSplitView, oldValue, newValue } = useOpenStore();
 
   async function initStaticGraph() {
     const staticGraph = await getStaticGraph();
@@ -51,12 +54,21 @@ export default function StaticAnalyzePage() {
       <div className="fixed">
         <StaticTree />
       </div>
-      {/* <div className="fixed left-0 bottom-0">
-        <Tool />
-      </div> */}
+      <div
+        className={`fixed z-50 flex items-center justify-center p-5 ${
+          codeSplitView ? "block modal-in" : "hidden"
+        }`}
+      >
+        <Modal
+          visible={codeSplitView}
+          oldValue={oldValue}
+          newValue={newValue}
+        />
+      </div>
       <div className="fixed -z-50 bg-bg-container">
         <GridBackground></GridBackground>
       </div>
+
       <Sidebar />
       <div className="fixed flex p-5">
         <LanguageIcon />

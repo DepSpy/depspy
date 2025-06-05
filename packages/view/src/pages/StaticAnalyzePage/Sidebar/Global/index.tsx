@@ -1,12 +1,19 @@
-import "./index.scss";
 import SidebarButton from "../components/SidebarButton";
 import { useStaticStore } from "@/contexts";
 import { useMemo, useState, useCallback } from "react";
 import { shallow } from "zustand/shallow";
 import { renderTreeByGraphId } from "../../utils";
 import useLanguage from "@/i18n/hooks/useLanguage";
+import { Tree } from "react-arborist";
+import { NodeRendererProps } from "react-arborist";
 
 export const Global = () => {
+  interface TreeNodeType {
+    id: string;
+    name: string;
+    children?: TreeNodeType[];
+    path: string;
+  }
   const [activeTab, setActiveTab] = useState<"git" | "import">("git");
   const { gitChangedNodes, importChangedNodes, setHighlightedNodeIds } =
     useStaticStore(
@@ -19,89 +26,83 @@ export const Global = () => {
       shallow,
     );
   const { t } = useLanguage();
-  const handleFileListClick = useCallback(
-    (e) => {
-      console.log("handleFileListClick", e.target.dataset);
-      const path = e.target.dataset.path || "";
-      if (!path) return;
-      if (activeTab === "git") {
-        renderTreeByGraphId(path, undefined, true);
-        // setHighlightedNodeIds(new Set(gitChangedNodes.get(path)));
-      } else if (activeTab === "import") {
-        renderTreeByGraphId(path);
-        // setHighlightedNodeIds(new Set(importChangedNodes.get(path)));
-      }
-    },
-    [gitChangedNodes, importChangedNodes, activeTab, setHighlightedNodeIds],
-  );
 
-  const gitFileList = useMemo(() => {
-    return Array.from(gitChangedNodes.keys()).map((item) => {
-      const itemTrees = item.split("/").filter(Boolean);
+  //  将文件路径转换为库渲染的树结构
+  const useFileTree = (filePaths: Set<string>) => {
+    return useMemo(() => {
+      const root: { children: TreeNodeType[] } = { children: [] };
+      let idCounter = 1;
 
-      return itemTrees.map((itemTree, index) => (
-        <div
-          key={itemTree}
-          style={{
-            paddingLeft: `${(index + 1) * 8}px`,
-            display: "flex",
-            alignItems: "center",
-          }}
-          className="group hover:bg-gray-100 rounded hover:text-blue-500 min-w-80"
-        >
-          {index === itemTrees.length - 1 ? (
-            <div className="flex items-center" onClick={handleFileListClick}>
-              <div data-path={item} className="cursor-pointer ml-1 w-full">
-                📄{itemTree}
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center">
-              <div className="treelist-selected group-hover:border-l-black"></div>
-              <div className="ml-1">{itemTree}</div>
-            </div>
-          )}
-        </div>
-      ));
-    });
-  }, [gitChangedNodes]);
+      filePaths.forEach((path) => {
+        const parts = path.split("/").filter(Boolean);
+        let currentLevel = root;
+        let currentPath = "";
 
-  const importFileList = useMemo(() => {
-    return Array.from(importChangedNodes.keys()).map((item) => {
-      const itemTrees = item.split("/").filter(Boolean);
-      return itemTrees.map((itemTree, index) => (
-        <div
-          data-path={item}
-          key={itemTree}
-          style={{
-            paddingLeft: `${(index + 1) * 8}px`,
-            display: "flex",
-            alignItems: "center",
-          }}
-          className="group hover:bg-gray-100 rounded hover:text-blue-500 min-w-80"
-        >
-          {index === itemTrees.length - 1 ? (
-            <div className="flex items-center" onClick={handleFileListClick}>
-              <div data-path={item} className="cursor-pointer ml-1 w-full">
-                ⚡{itemTree}
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center">
-              <div className="treelist-selected group-hover:border-l-black"></div>
-              <div className="ml-1" data-path={item}>
-                {itemTree}
-              </div>
-            </div>
-          )}
-        </div>
-      ));
-    });
-  }, [importChangedNodes]);
+        parts.forEach((part, index) => {
+          currentPath = currentPath ? `${currentPath}/${part}` : part;
+          const existingNode = currentLevel.children?.find(
+            (child) => child.name === part,
+          );
 
+          if (existingNode) {
+            if (index === parts.length - 1) {
+              existingNode.path = currentPath;
+            }
+            currentLevel = existingNode;
+          } else {
+            const isFile = index === parts.length - 1;
+            const newNode: TreeNodeType = {
+              id: `node-${idCounter++}`,
+              name: part,
+              children: isFile ? undefined : [],
+              path: currentPath,
+            };
+
+            currentLevel.children?.push(newNode);
+            currentLevel = newNode;
+          }
+        });
+      });
+      return root.children || [];
+    }, [filePaths, activeTab]);
+  };
+  const gitFileTree = useFileTree(gitChangedNodes);
+  const importFileTree = useFileTree(importChangedNodes);
   const totalCount = useMemo(() => {
     return activeTab === "git" ? gitChangedNodes.size : importChangedNodes.size;
   }, [activeTab, gitChangedNodes.size, importChangedNodes.size]);
+  const TreeNode = ({ node, style }: NodeRendererProps<TreeNodeType>) => {
+    const handleFileListClick = useCallback(
+      (path: string) => {
+        if (activeTab === "git") {
+          renderTreeByGraphId(path, undefined, true);
+        } else if (activeTab === "import") {
+          renderTreeByGraphId(path);
+        }
+      },
+      [gitChangedNodes, importChangedNodes, activeTab, setHighlightedNodeIds],
+    );
+
+    return (
+      <div
+        className="cursor-pointer transition-all duration-300 ease-in-out  active:scale-95 hover:bg-gray-100 hover:text-blue-500"
+        style={style}
+        onClick={() => {
+          node.toggle();
+          node.isLeaf ? handleFileListClick(node.data.path) : "";
+        }}
+      >
+        {node.isLeaf
+          ? activeTab === "git"
+            ? "📄"
+            : "⚡"
+          : node.isOpen
+          ? "🗁"
+          : "🗀"}
+        &nbsp;{node.data.name}
+      </div>
+    );
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -123,29 +124,44 @@ export const Global = () => {
         <span className="text-[var(--color-primary-text)]">{totalCount}</span>
       </div>
 
-      <div className="flex-1 overflow-auto p-4">
+      <div
+        className="flex-1 overflow-auto p-4"
+        style={{ scrollbarWidth: "none" }}
+      >
         {activeTab === "git" && (
-          <div className="space-y-2">
-            {gitFileList.length > 0 ? (
-              gitFileList
-            ) : (
+          <div className="space-y-2" style={{ height: "calc(100vh - 200px)" }}>
+            {gitChangedNodes.size === 0 ? (
               <div className="text-gray-400 p-4 text-center">
-                {/* 暂无 Git 变动文件 */}
+                {/* 暂无受影响文件 */}
                 {t("static.sidebar.global.noGit")}
               </div>
+            ) : (
+              <Tree
+                initialData={gitFileTree}
+                openByDefault={false}
+                height={1000}
+              >
+                {TreeNode}
+              </Tree>
             )}
           </div>
         )}
 
         {activeTab === "import" && (
-          <div className="space-y-2">
-            {importFileList.length > 0 ? (
-              importFileList
-            ) : (
+          <div className="space-y-2" style={{ scrollbarWidth: "none" }}>
+            {importChangedNodes.size === 0 ? (
               <div className="text-gray-400 p-4 text-center">
                 {/* 暂无受影响文件 */}
                 {t("static.sidebar.global.noImport")}
               </div>
+            ) : (
+              <Tree
+                initialData={importFileTree}
+                openByDefault={false}
+                height={1000}
+              >
+                {TreeNode}
+              </Tree>
             )}
           </div>
         )}

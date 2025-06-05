@@ -1,4 +1,5 @@
 import { StaticGraphNode as _StaticGraphNode } from "@dep-spy/core";
+import { DiffMethod } from "react-diff-viewer";
 
 export interface Node {
   name: string;
@@ -47,22 +48,20 @@ export interface StaticNode {
   };
 }
 // 前端使用的图结构
-export interface StaticGraphNode extends _StaticGraphNode{
+export interface StaticGraphNode extends _StaticGraphNode {
   importers: Set<string>;
-  dynamicImporters:Set<string>;
+  dynamicImporters: Set<string>;
 }
 
 // 用于前端视图渲染的结构
-export interface StaticTreeNode extends StaticGraphNode{
+export interface StaticTreeNode extends StaticGraphNode {
   // 路径 + 出现次数
-  id:string;
+  id: string;
   // 子节点
   children: StaticTreeNode[];
   // 从根节点到当前节点的路径数组
-  paths:string[];
+  paths: string[];
 }
-
-
 
 export interface generateGraphRes {
   root?: Node;
@@ -104,7 +103,7 @@ export interface Store {
 
 export interface StaticStore {
   staticRoot: StaticTreeNode;
-  staticGraph:Map<string, StaticGraphNode>;
+  staticGraph: Map<string, StaticGraphNode>;
   staticRootLoading: boolean;
   highlightedNodeIds: Set<string>;
   gitChangedNodes: Set<string>;
@@ -119,4 +118,34 @@ export interface StaticStore {
   setStaticRoot: (staticRoot: StaticTreeNode) => void;
   setStaticGraph: (staticRoot: Map<string, StaticGraphNode>) => void;
   setStaticRootLoading: (staticRootLoading: boolean) => void;
+}
+export interface OpenStore {
+  codeSplitView: boolean;
+  oldValue: string;
+  newValue: string;
+  setCodeSplitView: () => void;
+  setOldValue: (oldValue: string) => void;
+  setNewValue: (newValue: string) => void;
+}
+export interface DiffStyles {
+  oldValue: string;
+  newValue: string;
+  splitView: boolean;
+  compareMethod: DiffMethod;
+  showDiffOnly: boolean;
+  hideLineNumbers: boolean;
+  linesOffset: number;
+  styles: {
+    variables: {
+      light: Record<string, string>;
+      dark: Record<string, string>;
+    };
+    contentText: {
+      fontFamily: string;
+      fontSize: string;
+      lineHeight: string;
+    };
+    diffContainer: Record<string, string>;
+    line: Record<string, string>;
+  };
 }

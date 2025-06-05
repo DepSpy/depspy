@@ -1,10 +1,11 @@
-import { useStaticStore } from "@/contexts";
+import { useStaticStore, useOpenStore } from "@/contexts";
 import { traverseTree, extractFileName } from "../../utils";
 import { shallow } from "zustand/shallow";
 import { useEffect, useState, useMemo } from "react";
 import useLanguage from "@/i18n/hooks/useLanguage";
 import { useStore } from "@/contexts";
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer";
+import { DiffStyles } from "~/types";
 import "./index.scss";
 
 export const Selected = () => {
@@ -15,6 +16,7 @@ export const Selected = () => {
     }),
     shallow,
   );
+  const { setCodeSplitView, setOldValue, setNewValue } = useOpenStore();
   const { language } = useStore(
     (state) => ({
       language: state.language,
@@ -36,16 +38,15 @@ export const Selected = () => {
     preCode: "",
     curCode: "",
   });
+
   // 用于配置git diff的样式
-  const diffStyles = {
+  const diffStyles: DiffStyles = {
     oldValue: selectNodeInfo.preCode,
     newValue: selectNodeInfo.curCode,
-    splitView: true,
+    splitView: false,
     compareMethod: DiffMethod.LINES,
     showDiffOnly: true,
     hideLineNumbers: true,
-    leftTitle: t("static.preCode"),
-    rightTitle: t("static.curCode"),
     linesOffset: 100,
     styles: {
       variables: {
@@ -53,23 +54,24 @@ export const Selected = () => {
           diffViewerColor: "var(--diff-text-color)",
           diffViewerBackground: "var(--diff-background-color)",
           addedColor: "var(--diff-added-color)",
-          wordAddedBackground: "var(--diff-word-added-background-color)",
+          wordAddedBackground: "transparent",
           addedBackground: "var(--diff-added-background-color)",
           removedColor: "var(--diff-removed-color)",
-          wordRemovedBackground: "var(--diff-word-removed-background-color)",
+          wordRemovedBackground: "transparent",
           removedBackground: "var(--diff-removed-background-color)",
           diffViewerTitleBackground: "var(--color-bg-layout)",
           codeFoldBackground: "var(--diff-background-color)",
+          codeFoldContentColor: "var(--diff-fold-color)",
           emptyLineBackground: "var(--diff-background-color)",
         },
         dark: {
           diffViewerColor: "var(--diff-text-color)",
           diffViewerBackground: "var(--diff-background-color)",
           addedColor: "var(--diff-added-color)",
-          wordAddedBackground: "var(--diff-word-added-background-color)",
+          wordAddedBackground: "transparent",
           addedBackground: "var(--diff-added-background-color)",
           removedColor: "var(--diff-removed-color)",
-          wordRemovedBackground: "var(--diff-word-removed-background-color)",
+          wordRemovedBackground: "transparent",
           removedBackground: "var(--diff-removed-background-color)",
           diffViewerTitleBackground: "var(--color-bg-layout)",
           codeFoldBackground: "var(--diff-background-color)",
@@ -84,6 +86,7 @@ export const Selected = () => {
       diffContainer: {
         border: "none",
         boxShadow: "none",
+        overflowX: "auto",
       },
       line: {
         padding: "4px 0",
@@ -112,7 +115,11 @@ export const Selected = () => {
     });
     setSelectNodeInfo(res);
   }, [highlightedNodeIds, staticRoot]);
-
+  const handleCodeSplitView = () => {
+    setOldValue(selectNodeInfo.preCode);
+    setNewValue(selectNodeInfo.curCode);
+    setCodeSplitView();
+  };
   const SelectNodeCardList = useMemo(() => {
     if (!selectNodeInfo?.name) return null;
     return (
@@ -275,12 +282,21 @@ export const Selected = () => {
           )}
         </div>
         {/* git diff */}
-        <div className="mb-2">
-          <p className="text-[var(--color-text)] font-semibold">
-            {t("static.gitChanged")}:
-          </p>
+        <div className="mb-2 w-full">
+          <div className="flex justify-between items-center">
+            <p className="text-[var(--color-text)] font-semibold">
+              {t("static.gitChanged")}:
+            </p>
+            {Object.keys(selectNodeInfo.curCode).length ? (
+              <button onClick={handleCodeSplitView} className="button">
+                <span> {t("static.sidebar.global.expand")}</span>
+              </button>
+            ) : (
+              <></>
+            )}
+          </div>
           {Object.keys(selectNodeInfo.curCode).length ? (
-            <div className="border-solid rounded-lg my-2 p-2">
+            <div className="scroll-bar border-solid rounded-lg my-2 p-2 h-[800px] overflow-y-auto">
               <ReactDiffViewer {...diffStyles} />
             </div>
           ) : (

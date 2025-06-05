@@ -85,7 +85,8 @@
       "global": {
         "count": "Current count",
         "noGit": "No Git changed files",
-        "noImport": "No Import changed files"
+        "noImport": "No Import changed files",
+        "expand": "Expand Code"
       }
     },
     "gitChanged": "Git Changed",

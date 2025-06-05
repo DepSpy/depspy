@@ -49,5 +49,14 @@ export default defineConfig(({ mode }) => {
         "~": path.resolve(__dirname, "types"),
       },
     },
+    server: {
+      proxy: {
+        "/api": {
+          target: "http://localhost:2023",
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, ""),
+        },
+      },
+    },
   };
 });

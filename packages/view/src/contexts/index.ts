@@ -1,9 +1,18 @@
 import { shallow } from "zustand/shallow";
+import { create } from "zustand";
 import { createWithEqualityFn } from "zustand/traditional";
 import { subscribeWithSelector } from "zustand/middleware";
-import type { Node, StaticStore, Store, StaticTreeNode, StaticGraphNode } from "~/types";
+import type {
+  Node,
+  StaticStore,
+  Store,
+  OpenStore,
+  StaticTreeNode,
+  StaticGraphNode,
+} from "~/types";
 import { linkContext } from "./linkContext";
 import { searchNode } from "./searchNode";
+
 // import { StaticNode } from "@dep-spy/core";
 
 export const useStore = createWithEqualityFn<Store>()(
@@ -109,13 +118,23 @@ export const useStaticStore = createWithEqualityFn<StaticStore>()(
       set({ importChangedNodes }),
     setHighlightedNodeIds: (highlightedNodeIds: Set<string>) =>
       set({ highlightedNodeIds }),
-    setStaticGraph: (staticGraph: Map<string, StaticGraphNode>) => set({ staticGraph }),
+    setStaticGraph: (staticGraph: Map<string, StaticGraphNode>) =>
+      set({ staticGraph }),
     setStaticRoot: (staticRoot: StaticTreeNode) => set({ staticRoot }),
     setStaticRootLoading: (staticRootLoading: boolean) =>
       set({ staticRootLoading }),
   })),
   shallow,
 );
+export const useOpenStore = create<OpenStore>((set) => ({
+  codeSplitView: false,
+  oldValue: "",
+  newValue: "",
+  setCodeSplitView: () =>
+    set((state) => ({ codeSplitView: !state.codeSplitView })),
+  setOldValue: (oldValue: string) => set({ oldValue }),
+  setNewValue: (newValue: string) => set({ newValue }),
+}));
 if (import.meta.env.VITE_BUILD_MODE != "online") {
   linkContext(useStore);
 }
