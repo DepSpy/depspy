@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext"
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node", // 修改为 node
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   },
 
   "exclude": ["packages/view"]

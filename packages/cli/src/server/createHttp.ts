@@ -1,50 +1,12 @@
-import express, { Express, Response } from "express";
+import express, { Express } from "express";
 import { Graph, Node } from "@dep-spy/core";
+import { compose, toInfinity, jsonsToBuffer, reduceKey } from "@dep-spy/utils";
 import {
-  compose,
-  toInfinity,
-  limitDepth,
-  jsonsToBuffer,
-  reduceKey,
-} from "@dep-spy/utils";
-
-function successHandler(res: Response, data: unknown) {
-  res.send({
-    message: "success",
-    data,
-  });
-}
-
-function bufferHandler(res: Response, buffer: Buffer) {
-  res.set("Content-Type", "application/octet-stream");
-  res.send(buffer);
-}
-
-function errorHandler(res: Response, data: unknown) {
-  console.error(data);
-  res.send({
-    message: "fail",
-    data,
-  });
-}
-
-//生产json数组
-function generateNodeJsons(nodes: Node[]) {
-  const nodeJsons = nodes.map((node) => {
-    return JSON.stringify(
-      node,
-      compose([toInfinity, limitDepth], {
-        depth: node.path.length,
-      }),
-    );
-  });
-  return nodeJsons;
-}
-
-function nodesToBuffer(nodes: Node[]) {
-  const nodeJsons = generateNodeJsons(nodes);
-  return jsonsToBuffer(nodeJsons);
-}
+  bufferHandler,
+  errorHandler,
+  nodesToBuffer,
+  successHandler,
+} from "../utils";
 
 export function createHttp(app: Express, graph: Graph) {
   app.use(express.json());

@@ -21,6 +21,13 @@
   --color-border: #00000026;
   --color-border-secondary: #0000000f;
   --color-skeleton-bg: #d9d9d9;
+  --diff-text-color: #000000e0;
+  --diff-background-color: #f5f5f5;
+  --diff-word-added-background-color: transparent;
+  --diff-word-removed-background-color: transparent;
+  --diff-added-background-color: #e6ffed;
+  --diff-removed-background-color: #ffeef0;
+  --diff-fold-color: #212529;
 }
 
 .app[data-theme="dark"] {
@@ -38,12 +45,19 @@
   --color-text-description: #ffffff73;
   --color-icon: #ffffff73;
   --color-icon-hover: #ffffffd9;
-  --color-bg-container: #252529;
-  --color-bg-layout: #161618;
+  --color-bg-container: #24262b;
+  --color-bg-layout: #181a1f;
   --control-item-bg-hover: #ffffff14;
   --control-item-bg-active: #130542;
   --control-item-bg-active-hover: #1d0763;
   --color-border: #424242;
   --color-border-secondary: #303030;
   --color-skeleton-bg: #d9d9d9;
+  --diff-text-color: #ffffffd9;
+  --diff-background-color: #161618;
+  --diff-word-added-background-color: #04657b;
+  --diff-word-removed-background-color: #8c5974;
+  --diff-added-background-color: #044b53;
+  --diff-removed-background-color: #632f34;
+  --diff-fold-color: #555a7b;
 }

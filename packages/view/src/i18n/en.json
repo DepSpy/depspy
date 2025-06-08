@@ -60,5 +60,39 @@
   },
   "skeleton": {
     "tip": "Loading, please be patient 😇"
+  },
+  "static": {
+    "sidebar": {
+      "choose": {
+        "global": "GLOBAL",
+        "select": "SELECT"
+      },
+      "select": {
+        "export": {
+          "remove": "Removed Exports",
+          "render": "Rendered Exports",
+          "changed": "Changed Exports",
+          "noRemove": "No Removed Exports...",
+          "noRender": "No Rendered Exports...",
+          "noChanged": "No Changed Exports...",
+          "sideEffect": "<SideEffect>"
+        },
+        "import": {
+          "changed": "Changed Imports",
+          "noChanged": "No Changed Imports..."
+        }
+      },
+      "global": {
+        "count": "Current count",
+        "noGit": "No Git changed files",
+        "noImport": "No Import changed files",
+        "expand": "Expand Code"
+      }
+    },
+    "gitChanged": "Git Changed",
+    "importChanged": "Import Changed",
+    "sideEffectChanged": "SideEffect Changed",
+    "preCode":"Primary  Code",
+    "curCode":"Current Code"
   }
 }

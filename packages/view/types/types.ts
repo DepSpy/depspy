@@ -1,4 +1,4 @@
-import { StaticNode } from "@dep-spy/core";
+import { StaticGraphNode as _StaticGraphNode } from "@dep-spy/core";
 
 export interface Node {
   name: string;
@@ -17,6 +17,49 @@ export interface Node {
   dependenciesList: Record<string, string>;
   parent: Node | null;
   unfold?: boolean;
+}
+
+export interface StaticNode {
+  id: string;
+  name: string;
+  children: StaticNode[];
+  parentId: string;
+  pathId: string;
+  depth: number;
+  idpath: string[];
+  path: string[];
+  rootId?: string;
+  removedExports: string[];
+  renderedExports: string[];
+  isGitChange: boolean;
+  isImportChange: boolean;
+  isSideEffectChange: boolean;
+  exportEffectedNamesToReasons: {
+    [key: string]: {
+      isNativeCodeChange?: boolean;
+      importEffectedNames: {
+        [key: string]: string[];
+      };
+    };
+  };
+  importEffectedNames: {
+    [key: string]: string[];
+  };
+}
+// 前端使用的图结构
+export interface StaticGraphNode extends _StaticGraphNode {
+  importers: Set<string>;
+  dynamicImporters: Set<string>;
+}
+
+// 用于前端视图渲染的结构
+export interface StaticTreeNode extends StaticGraphNode {
+  // 路径 + 出现次数
+  id: string;
+  // 子节点
+  children: StaticTreeNode[];
+  // 从根节点到当前节点的路径数组
+  paths: string[];
 }
 
 export interface generateGraphRes {
@@ -58,8 +101,27 @@ export interface Store {
 }
 
 export interface StaticStore {
-  staticRoot: StaticNode;
+  staticRoot: StaticTreeNode;
+  staticGraph: Map<string, StaticGraphNode>;
   staticRootLoading: boolean;
-  setStaticRoot: (staticRoot: StaticNode) => void;
+  highlightedNodeId: string;
+  gitChangedNodes: Set<string>;
+  importChangedNodes: Set<string>;
+  fullscreen: boolean;
+  setFullscreen: (fullscreen: boolean) => void,
+  setGitChangedNodes: (gitChangedNodes: Set<string>) => void,
+  setImportChangedNodes: (importChangedNodes: Set<string>) => void,
+  setHighlightedNodeId: (nodeId: string) => void;
+  setStaticRoot: (staticRoot: StaticTreeNode) => void;
+  setStaticGraph: (staticRoot: Map<string, StaticGraphNode>) => void;
   setStaticRootLoading: (staticRootLoading: boolean) => void;
 }
+export interface OpenStore {
+  codeSplitView: boolean;
+  oldValue: string;
+  newValue: string;
+  setCodeSplitView: () => void;
+  setOldValue: (oldValue: string) => void;
+  setNewValue: (newValue: string) => void;
+}
+

@@ -17,6 +17,8 @@
       {
         "endOfLine": "auto"
       }
-    ]
+    ],
+    "@typescript-eslint/ban-ts-comment":
+       "warn"
   }
 }

@@ -1,4 +1,4 @@
-import { StaticNode, generateGraph, Graph } from "@dep-spy/core";
+import { generateGraph, Graph } from "@dep-spy/core";
 import { useStaticStore, useStore } from "./index";
 import {
   getDependency,
@@ -7,7 +7,7 @@ import {
   searchNode,
   updateDepth,
 } from "./api";
-import { Node } from "~/types.ts";
+import { Node, StaticTreeNode } from "~/types.ts";
 export const EventType = {
   init: "init",
   depth: "depth",
@@ -225,7 +225,7 @@ export const EventBus = {
     }
     useStore.setState({ rootLoading: false });
   },
-  initStatic: (staticRoot: StaticNode) => {
+  initStatic: (staticRoot: StaticTreeNode) => {
     useStaticStore.setState({ staticRoot, staticRootLoading: false });
   },
 };

@@ -3,7 +3,8 @@ export { Config } from "@dep-spy/core";
 export const defaultConfig = {
   depth: 3,
   size: false,
-  entry: null,
+  entry: "",
+  command: "",
   output: {
     graph: "ds.graph.json",
     staticGraph: "ds.static.json",
@@ -15,4 +16,5 @@ export const defaultConfig = {
 export const enum MODE {
   ONLINE = "online",
   OFFLINE = "vite",
+  INJECT = "inject",
 }

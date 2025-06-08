@@ -4,7 +4,7 @@ import path from "path";
 import { EventBus, TASK_TYPE } from "./eventBus";
 
 // 本地线程池
-export default new ThreadsPool<typeof EventBus>(
+export default () => new ThreadsPool<typeof EventBus>(
   os?.cpus ? os.cpus().length : 0,
   (index: number) => {
     return new ThreadsWorker({

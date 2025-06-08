@@ -1,107 +1,73 @@
-import * as fs from "fs";
-import { getFileInfo } from "@dep-spy/utils";
-import { Config, StaticNode } from "../type";
-import path from "path";
+import { StaticGraphNode, PluginDepSpyConfig, GetModuleInfo } from "../type";
+import getAllExportEffect from "./getAllExportEffected";
+import {
+  ExportEffectedNode,
+  getGitRootPath,
+  importIdToRelativeId,
+  SourceToImportId,
+} from "./utils";
 
 export class StaticGraph {
-  private graph: StaticNode;
-  private resolvedPaths: string[] = [];
-  private cache: Map<string, GraphNode> = new Map();
-  private baseDirs: string[] = [];
+  // 邻接链表
+  graph: Record<string, StaticGraphNode> = {};
+  // 项目根目录（git的根目录）
+  rootId = getGitRootPath();
+  // 所有模块的受影响详情
+  allExportEffected: Map<string, ExportEffectedNode> = new Map();
 
   constructor(
-    private readonly entry: string,
-    private readonly config: Config = {},
-  ) {
-    this.resolvedPaths.push(process.cwd());
-  }
-  private initGraph(entry: string) {
-    //文件id
-    const id = entry + this.baseDirs.at(-1);
-    //循环检测
-    if (this.cache.has(id)) {
-      return {
-        ...this.cache.get(id),
-        imports: [],
-        export: [],
-        dependencies: {},
-      };
-    }
-    const { imports, path, resolvedPath, baseDir } = getFileInfo(
-      entry || this.entry,
-      this.baseDirs.at(-1),
+    // 用户配置
+    public options: PluginDepSpyConfig,
+    // 所有模块的受影响详情
+    public sourceToImportIdMap: SourceToImportId,
+    // 获取模块信息
+    public getModuleInfo: GetModuleInfo,
+  ) {}
+
+  /** 生成邻接链表表示图 */
+  async generateGraph(importId: string = this.options.entry) {
+    this.allExportEffected = await getAllExportEffect(
+      this.options,
+      this.sourceToImportIdMap,
+      this.getModuleInfo,
     );
-
-    const curNode = new GraphNode({
-      path,
-      resolvedPath,
-      imports,
-      exports: [],
-      dependencies: {},
-    });
-
-    //baseDir+path可以唯一确定一个文件，resolvedPath也可以但是不用计算
-    this.cache.set(id, curNode);
-    this.resolvedPaths.push(resolvedPath);
-    this.baseDirs.push(baseDir);
-
-    for (const path of imports) {
-      const childNode = this.initGraph(path);
-      curNode.dependencies[path] = childNode;
+    return this.generateNode(importId);
+  }
+  private generateNode(importId: string) {
+    // 相对路径
+    const relativeId = importIdToRelativeId(importId);
+    // 如果已经存在，直接返回, 避免无限递归
+    if (this.graph[relativeId]) {
+      return this.graph;
     }
-
-    this.cache.delete(id);
-    this.resolvedPaths.pop();
-    this.baseDirs.pop();
-    return curNode;
-  }
-  async outputToFile() {
-    await this.ensureGraph();
-    const { staticGraph } = this.config.output;
-    if (staticGraph) {
-      this.writeJson(await this.getGraph(), staticGraph);
+    // 获取当前节点的信息
+    const exportEffected = this.allExportEffected.get(importId);
+    if (exportEffected) {
+      // graphNodes，保存模块详情
+      this.graph[relativeId] = this.transformGraphNodes(importId);
+      // 递归（静态 + 动态）导入的id
+      const allImportIds = exportEffected.importedIds.concat(
+        exportEffected.dynamicallyImportedIds,
+      );
+      allImportIds.forEach((importId) => {
+        this.generateNode(importId);
+      });
     }
-  }
-  private writeJson(
-    result: StaticNode[] | StaticNode | Record<string, StaticNode[]>,
-    outDir: string,
-  ) {
-    fs.writeFileSync(path.join(process.cwd(), outDir), JSON.stringify(result), {
-      flag: "w",
-    });
-  }
-  public getGraph() {
-    this.ensureGraph();
     return this.graph;
   }
-  public ensureGraph() {
-    if (!this.graph) {
-      this.graph = this.initGraph(this.entry);
-    }
-  }
-}
-class GraphNode implements StaticNode {
-  path: string = "";
-  resolvedPath: string = "";
-  imports: string[] = [];
-  exports: string[] = [];
-  dependencies: Record<string, StaticNode> = {};
-  constructor(fields: {
-    path: string;
-    resolvedPath: string;
-    imports: string[];
-    exports: string[];
-    dependencies: Record<string, StaticNode>;
-  }) {
-    Object.entries(fields).forEach(([key, value]) => {
-      if (value) this[key] = value;
-    });
-    //拦截set，剔除无效属性
-    return new Proxy(this, {
-      set: function (target, property, value, receiver) {
-        if (value) return Reflect.set(target, property, value, receiver);
-        return true;
-      },
-    });
+
+  /** 转换图节点 */
+  private transformGraphNodes(importId: string): StaticGraphNode {
+    const exportEffected = this.allExportEffected.get(importId);
+    return {
+      ...exportEffected,
+      importedIds: exportEffected.importedIds.map(importIdToRelativeId),
+      dynamicallyImportedIds:
+        exportEffected.dynamicallyImportedIds.map(importIdToRelativeId),
+      // 文件绝对路径s
+      // importId,
+      // 文件相对路径
+      relativeId: importIdToRelativeId(importId),
+    };
   }
 }

@@ -12,6 +12,8 @@ const root = path.join(staticPath, mode);
 
 export function createServer(graph: Graph, option: Config) {
   const app = express();
+  app.use(express.raw({ type: "application/octet-stream" }));
+
   createHttp(app, graph);
   app.use(express.static(root));
   app.get("*", (_, res) => {

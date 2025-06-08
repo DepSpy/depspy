@@ -1,10 +1,15 @@
 import { shallow } from "zustand/shallow";
 import { createWithEqualityFn } from "zustand/traditional";
 import { subscribeWithSelector } from "zustand/middleware";
-import type { Node, StaticStore, Store } from "~/types";
+import type {
+  Node,
+  StaticStore,
+  Store,
+  StaticTreeNode,
+  StaticGraphNode,
+} from "~/types";
 import { linkContext } from "./linkContext";
 import { searchNode } from "./searchNode";
-import { StaticNode } from "@dep-spy/core";
 
 export const useStore = createWithEqualityFn<Store>()(
   subscribeWithSelector((set) => ({
@@ -51,8 +56,9 @@ export const useStore = createWithEqualityFn<Store>()(
     searchNode,
     setCollapse: (collapse) => set({ collapse }),
     setTheme: (theme: string) => {
-      localStorage.setItem("theme", theme === "light" ? "dark" : "light");
-      set({ theme: theme === "light" ? "dark" : "light" });
+      const newTheme = theme === "light"? "dark" : "light";
+      localStorage.setItem("theme", newTheme);
+      set({ theme: newTheme });
     },
     setLanguage: (language: string) => {
       localStorage.setItem("language", language);
@@ -92,13 +98,34 @@ export const useStore = createWithEqualityFn<Store>()(
 export const useStaticStore = createWithEqualityFn<StaticStore>()(
   subscribeWithSelector((set) => ({
     staticRootLoading: true,
+    staticGraph: null,
     staticRoot: null,
-    setStaticRoot: (staticRoot: StaticNode) => set({ staticRoot }),
+    highlightedNodeId: "",
+    gitChangedNodes: new Set(),
+    importChangedNodes: new Set(),
+    fullscreen: false,
+    setFullscreen: (fullscreen: boolean) => set({ fullscreen }),
+    setGitChangedNodes: (gitChangedNodes: Set<string>) =>
+      set({ gitChangedNodes }),
+    setImportChangedNodes: (importChangedNodes: Set<string>) =>
+      set({ importChangedNodes }),
+    setHighlightedNodeId: (highlightedNodeId: string) =>
+      set({ highlightedNodeId }),
+    setStaticGraph: (staticGraph: Map<string, StaticGraphNode>) =>
+      set({ staticGraph }),
+    setStaticRoot: (staticRoot: StaticTreeNode) => set({ staticRoot }),
     setStaticRootLoading: (staticRootLoading: boolean) =>
       set({ staticRootLoading }),
   })),
   shallow,
 );
+useStaticStore.subscribe((state) => state.staticRoot, (staticRoot) => {
+  setTimeout(() => {
+    useStaticStore.setState({
+      highlightedNodeId: staticRoot.id
+    })
+  }, 50)
+})
 if (import.meta.env.VITE_BUILD_MODE != "online") {
   linkContext(useStore);
 }
