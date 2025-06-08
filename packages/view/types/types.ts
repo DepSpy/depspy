@@ -1,5 +1,4 @@
 import { StaticGraphNode as _StaticGraphNode } from "@dep-spy/core";
-import { DiffMethod } from "react-diff-viewer";
 
 export interface Node {
   name: string;
@@ -105,16 +104,14 @@ export interface StaticStore {
   staticRoot: StaticTreeNode;
   staticGraph: Map<string, StaticGraphNode>;
   staticRootLoading: boolean;
-  highlightedNodeIds: Set<string>;
+  highlightedNodeId: string;
   gitChangedNodes: Set<string>;
   importChangedNodes: Set<string>;
-  showGitChangedNodes: boolean;
-  showImportChangedNodes: boolean;
-  setShowGitChangedNodes: (flag: boolean) => void;
-  setShowImportChangedNodes: (flag: boolean) => void;
-  setGitChangedNodes: (nodeIds: Set<string>) => void;
-  setImportChangedNodes: (nodeIds: Set<string>) => void;
-  setHighlightedNodeIds: (nodeIds: Set<string>) => void;
+  fullscreen: boolean;
+  setFullscreen: (fullscreen: boolean) => void,
+  setGitChangedNodes: (gitChangedNodes: Set<string>) => void,
+  setImportChangedNodes: (importChangedNodes: Set<string>) => void,
+  setHighlightedNodeId: (nodeId: string) => void;
   setStaticRoot: (staticRoot: StaticTreeNode) => void;
   setStaticGraph: (staticRoot: Map<string, StaticGraphNode>) => void;
   setStaticRootLoading: (staticRootLoading: boolean) => void;
@@ -127,25 +124,4 @@ export interface OpenStore {
   setOldValue: (oldValue: string) => void;
   setNewValue: (newValue: string) => void;
 }
-export interface DiffStyles {
-  oldValue: string;
-  newValue: string;
-  splitView: boolean;
-  compareMethod: DiffMethod;
-  showDiffOnly: boolean;
-  hideLineNumbers: boolean;
-  linesOffset: number;
-  styles: {
-    variables: {
-      light: Record<string, string>;
-      dark: Record<string, string>;
-    };
-    contentText: {
-      fontFamily: string;
-      fontSize: string;
-      lineHeight: string;
-    };
-    diffContainer: Record<string, string>;
-    line: Record<string, string>;
-  };
-}
+

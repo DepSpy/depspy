@@ -91,6 +91,7 @@
     },
     "gitChanged": "Git Changed",
     "importChanged": "Import Changed",
+    "sideEffectChanged": "SideEffect Changed",
     "preCode":"Primary  Code",
     "curCode":"Current Code"
   }

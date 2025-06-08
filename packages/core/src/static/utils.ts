@@ -252,7 +252,7 @@ export function getFileContentAtCommit(
     const command = `git show ${commitHash}:${gitPath}`;
     // 同步执行 Git 命令
     const output = execSync(command);
-    // 将输出转换为字符串并返回
+    // 将输出转换为字符串并统一换行符为 LF
     return output.toString();
   } catch (error) {
     return "";
@@ -271,6 +271,10 @@ export function readFileSyncSafe(id: string) {
   let code = "";
   try {
     code = readFileSync(filePath, { encoding: "utf-8" });
+    // 统一不同系统的换行符
+    if(os.type() == "Windows_NT"){
+      code = code.replace(/\r\n/g, "\n");
+    }
   } catch (e) {
     console.error(`路径:${filePath}读取失败`, e);
   }

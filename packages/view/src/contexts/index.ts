@@ -1,19 +1,15 @@
 import { shallow } from "zustand/shallow";
-import { create } from "zustand";
 import { createWithEqualityFn } from "zustand/traditional";
 import { subscribeWithSelector } from "zustand/middleware";
 import type {
   Node,
   StaticStore,
   Store,
-  OpenStore,
   StaticTreeNode,
   StaticGraphNode,
 } from "~/types";
 import { linkContext } from "./linkContext";
 import { searchNode } from "./searchNode";
-
-// import { StaticNode } from "@dep-spy/core";
 
 export const useStore = createWithEqualityFn<Store>()(
   subscribeWithSelector((set) => ({
@@ -60,8 +56,9 @@ export const useStore = createWithEqualityFn<Store>()(
     searchNode,
     setCollapse: (collapse) => set({ collapse }),
     setTheme: (theme: string) => {
-      localStorage.setItem("theme", theme === "light" ? "dark" : "light");
-      set({ theme: theme === "light" ? "dark" : "light" });
+      const newTheme = theme === "light"? "dark" : "light";
+      localStorage.setItem("theme", newTheme);
+      set({ theme: newTheme });
     },
     setLanguage: (language: string) => {
       localStorage.setItem("language", language);
@@ -103,21 +100,17 @@ export const useStaticStore = createWithEqualityFn<StaticStore>()(
     staticRootLoading: true,
     staticGraph: null,
     staticRoot: null,
-    highlightedNodeIds: new Set(),
+    highlightedNodeId: "",
     gitChangedNodes: new Set(),
     importChangedNodes: new Set(),
-    showGitChangedNodes: false,
-    showImportChangedNodes: false,
-    setShowGitChangedNodes: (showGitChangedNodes: boolean) =>
-      set({ showGitChangedNodes }),
-    setShowImportChangedNodes: (showImportChangedNodes: boolean) =>
-      set({ showImportChangedNodes }),
+    fullscreen: false,
+    setFullscreen: (fullscreen: boolean) => set({ fullscreen }),
     setGitChangedNodes: (gitChangedNodes: Set<string>) =>
       set({ gitChangedNodes }),
     setImportChangedNodes: (importChangedNodes: Set<string>) =>
       set({ importChangedNodes }),
-    setHighlightedNodeIds: (highlightedNodeIds: Set<string>) =>
-      set({ highlightedNodeIds }),
+    setHighlightedNodeId: (highlightedNodeId: string) =>
+      set({ highlightedNodeId }),
     setStaticGraph: (staticGraph: Map<string, StaticGraphNode>) =>
       set({ staticGraph }),
     setStaticRoot: (staticRoot: StaticTreeNode) => set({ staticRoot }),
@@ -126,15 +119,13 @@ export const useStaticStore = createWithEqualityFn<StaticStore>()(
   })),
   shallow,
 );
-export const useOpenStore = create<OpenStore>((set) => ({
-  codeSplitView: false,
-  oldValue: "",
-  newValue: "",
-  setCodeSplitView: () =>
-    set((state) => ({ codeSplitView: !state.codeSplitView })),
-  setOldValue: (oldValue: string) => set({ oldValue }),
-  setNewValue: (newValue: string) => set({ newValue }),
-}));
+useStaticStore.subscribe((state) => state.staticRoot, (staticRoot) => {
+  setTimeout(() => {
+    useStaticStore.setState({
+      highlightedNodeId: staticRoot.id
+    })
+  }, 50)
+})
 if (import.meta.env.VITE_BUILD_MODE != "online") {
   linkContext(useStore);
 }

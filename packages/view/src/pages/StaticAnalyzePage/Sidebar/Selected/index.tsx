@@ -1,339 +1,147 @@
-import { useStaticStore, useOpenStore } from "@/contexts";
-import { traverseTree, extractFileName } from "../../utils";
+import { useStaticStore } from "@/contexts";
+import { extractFileName } from "../../utils";
 import { shallow } from "zustand/shallow";
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import useLanguage from "@/i18n/hooks/useLanguage";
-import { useStore } from "@/contexts";
-import ReactDiffViewer, { DiffMethod } from "react-diff-viewer";
-import { DiffStyles } from "~/types";
+import DiffPannel from "@/components/DiffPanel";
+import { Card, Collapse, Flex, Tag, Typography, Empty } from "antd";
 import "./index.scss";
 
+const { Title, Text } = Typography;
+const { Panel } = Collapse;
+
 export const Selected = () => {
-  const { staticRoot, highlightedNodeIds } = useStaticStore(
+  const { staticGraph, highlightedNodeId } = useStaticStore(
     (state) => ({
-      staticRoot: state.staticRoot,
-      highlightedNodeIds: state.highlightedNodeIds,
+      staticGraph: state.staticGraph,
+      highlightedNodeId: state.highlightedNodeId,
     }),
     shallow,
   );
-  const { setCodeSplitView, setOldValue, setNewValue } = useOpenStore();
-  const { language } = useStore(
-    (state) => ({
-      language: state.language,
-    }),
-    shallow,
-  );
+  const selectNodeInfo = useMemo(() => {
+    const entryId = highlightedNodeId.split("-")[0];
+    return staticGraph.get(entryId)
+  }, [highlightedNodeId, staticGraph]);
+
   const { t } = useLanguage();
 
-  //用于渲染节点信息列表
-  const [selectNodeInfo, setSelectNodeInfo] = useState<SelectNodeInfo>({
-    name: "",
-    removedExports: [],
-    renderedExports: [],
-    isGitChange: false,
-    isImportChange: false,
-    isSideEffectChange: false,
-    exportEffectedNamesToReasons: {},
-    importEffectedNames: {},
-    preCode: "",
-    curCode: "",
-  });
-
-  // 用于配置git diff的样式
-  const diffStyles: DiffStyles = {
-    oldValue: selectNodeInfo.preCode,
-    newValue: selectNodeInfo.curCode,
-    splitView: false,
-    compareMethod: DiffMethod.LINES,
-    showDiffOnly: true,
-    hideLineNumbers: true,
-    linesOffset: 100,
-    styles: {
-      variables: {
-        light: {
-          diffViewerColor: "var(--diff-text-color)",
-          diffViewerBackground: "var(--diff-background-color)",
-          addedColor: "var(--diff-added-color)",
-          wordAddedBackground: "transparent",
-          addedBackground: "var(--diff-added-background-color)",
-          removedColor: "var(--diff-removed-color)",
-          wordRemovedBackground: "transparent",
-          removedBackground: "var(--diff-removed-background-color)",
-          diffViewerTitleBackground: "var(--color-bg-layout)",
-          codeFoldBackground: "var(--diff-background-color)",
-          codeFoldContentColor: "var(--diff-fold-color)",
-          emptyLineBackground: "var(--diff-background-color)",
-        },
-        dark: {
-          diffViewerColor: "var(--diff-text-color)",
-          diffViewerBackground: "var(--diff-background-color)",
-          addedColor: "var(--diff-added-color)",
-          wordAddedBackground: "transparent",
-          addedBackground: "var(--diff-added-background-color)",
-          removedColor: "var(--diff-removed-color)",
-          wordRemovedBackground: "transparent",
-          removedBackground: "var(--diff-removed-background-color)",
-          diffViewerTitleBackground: "var(--color-bg-layout)",
-          codeFoldBackground: "var(--diff-background-color)",
-          emptyLineBackground: "var(--diff-background-color)",
-        },
-      },
-      contentText: {
-        fontFamily: '"Fira Code", monospace',
-        fontSize: "14px",
-        lineHeight: "1.5",
-      },
-      diffContainer: {
-        border: "none",
-        boxShadow: "none",
-        overflowX: "auto",
-      },
-      line: {
-        padding: "4px 0",
-      },
-    },
-  };
-  useEffect(() => {
-    if (!staticRoot || !highlightedNodeIds.size) return;
-    const selectId = Array.from(highlightedNodeIds)[0];
-    let res: SelectNodeInfo = null;
-    traverseTree(staticRoot, (node) => {
-      if (selectId === node.id) {
-        res = {
-          name: node.relativeId,
-          removedExports: node.removedExports,
-          renderedExports: node.renderedExports,
-          exportEffectedNamesToReasons: node.exportEffectedNamesToReasons,
-          importEffectedNames: node.importEffectedNames,
-          isGitChange: node.isGitChange,
-          isImportChange: node.isImportChange,
-          isSideEffectChange: node.isSideEffectChange,
-          preCode: node.preCode,
-          curCode: node.curCode,
-        };
-      }
-    });
-    setSelectNodeInfo(res);
-  }, [highlightedNodeIds, staticRoot]);
-  const handleCodeSplitView = () => {
-    setOldValue(selectNodeInfo.preCode);
-    setNewValue(selectNodeInfo.curCode);
-    setCodeSplitView();
-  };
-  const SelectNodeCardList = useMemo(() => {
-    if (!selectNodeInfo?.name) return null;
-    return (
-      <div className="w-full h-full p-4 rounded-lg shadow-md mb-4">
-        <h2 className="text-[var(--color-primary-text)] text-xl font-bold mb-2">
-          {selectNodeInfo.name}
-        </h2>
-
-        {/* bool类型字段展示 */}
-        <div className="mb-2">
-          <div className="list-disc list-inside text-[var(--color-text-description)] my-2">
-            {selectNodeInfo.isGitChange && (
-              <div className="inline-flex rounded-lg border-[var(--color-primary-border--active)] border-solid p-2 m-2 text-[var(--color-text)] cursor-default">
-                Git Changed
-              </div>
-            )}
-            {selectNodeInfo.isImportChange && (
-              <div className="inline-flex rounded-lg border-[var(--color-primary-border--active)] border-solid p-2 m-2 text-[var(--color-text)] cursor-default">
-                Import Changed
-              </div>
-            )}
-            {selectNodeInfo.isSideEffectChange && (
-              <div className="inline-flex rounded-lg border-[var(--color-primary-border--active)] border-solid p-2 m-2 text-[var(--color-text)] cursor-default">
-                SideEffect Changed
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Removed Exports: */}
-        <div className="mb-2">
-          <p className="text-[var(--color-text)] font-semibold">
-            {t("static.sidebar.select.export.remove")}:
-          </p>
-          {selectNodeInfo.removedExports.length ? (
-            <div className="list-disc list-inside text-[var(--color-text-description)] my-2">
-              {selectNodeInfo.removedExports.map((exportItem, index) => (
-                <div
-                  key={index}
-                  className="inline-flex rounded-lg border-[var(--color-primary-border)] border-solid p-2 m-2 text-[var(--color-text)] cursor-default"
-                >
-                  {exportItem}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="w-full text-center text-lg text-[var(--color-primary-text)]">
-              {/* 没有移除的导出... */}
-              {t("static.sidebar.select.export.noRemove")}
-            </div>
-          )}
-        </div>
-
-        {/* Rendered Exports: */}
-        <div>
-          <p className="text-[var(--color-text)] font-semibold">
-            {t("static.sidebar.select.export.render")}:
-          </p>
-          {selectNodeInfo.renderedExports.length ? (
-            <div className="list-disc list-inside text-[var(--color-text-description)] my-2">
-              {selectNodeInfo.renderedExports.map((exportItem, index) => (
-                <div
-                  key={index}
-                  className="inline-flex rounded-lg border-[var(--color-primary-border)] border-solid p-2 m-2 text-[var(--color-text)] cursor-default"
-                >
-                  {exportItem}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="w-full text-center text-lg text-[var(--color-primary-text)]">
-              {/* 没有加载的导出... */}
-              {t("static.sidebar.select.export.noRender")}
-            </div>
-          )}
-        </div>
-
-        {/* changedImports */}
-        <div className="mb-2">
-          <p className="text-[var(--color-text)] font-semibold">
-            {t("static.sidebar.select.import.changed")}:
-          </p>
-          {Object.keys(selectNodeInfo.importEffectedNames).length ? (
-            <div className="list-disc list-inside text-[var(--color-text-description)] my-2">
-              {Object.keys(selectNodeInfo.importEffectedNames).map((Item) => (
-                <div key={Item} className="text-[var(--color-text)]">
-                  <div className="pl-2">{extractFileName(Item)}</div>
-                  {selectNodeInfo.importEffectedNames[Item].map(
-                    (valus, index) => (
-                      <div
-                        key={index}
-                        className="inline-flex rounded-lg border-[var(--color-primary-border)] border-solid p-2 m-2 cursor-default"
-                      >
-                        {valus}
-                      </div>
-                    ),
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="w-full text-center text-lg text-[var(--color-primary-text)]">
-              {t("static.sidebar.select.import.noChanged")}
-            </div>
-          )}
-        </div>
-
-        {/* changedExports */}
-        <div className="mb-2">
-          <p className="text-[var(--color-text)] font-semibold">
-            {t("static.sidebar.select.export.changed")}:
-          </p>
-          {Object.keys(selectNodeInfo.exportEffectedNamesToReasons).length ? (
-            <div className="list-disc list-inside text-[var(--color-text-description)] my-2">
-              {!!Object.keys(selectNodeInfo.exportEffectedNamesToReasons)
-                .length &&
-                Object.keys(selectNodeInfo.exportEffectedNamesToReasons).map(
-                  (Item) => (
-                    <div
-                      key={Item}
-                      className="border-solid rounded-lg my-2 p-2"
-                    >
-                      <div className="text-[var(--color-text)] font-semibold">
-                        {Item || t("static.sidebar.select.export.sideEffect")}
-                      </div>
-                      <div>Reasons:</div>
-                      {selectNodeInfo.exportEffectedNamesToReasons[Item]
-                        .isNativeCodeChange && (
-                        <div className="inline-flex rounded-lg border-[var(--color-primary-border--active)] border-solid p-2 m-2 text-[var(--color-text)] cursor-default">
-                          Native Code Changed
-                        </div>
-                      )}
-                      {Object.keys(
-                        selectNodeInfo.exportEffectedNamesToReasons[Item]
-                          .importEffectedNames,
-                      ).map((key) => (
-                        <div key={key} className="text-[var(--color-text)]">
-                          <div className="pl-2">{key}</div>
-                          {selectNodeInfo.exportEffectedNamesToReasons[
-                            Item
-                          ].importEffectedNames[key].map((valus, index) => (
-                            <div
-                              key={index}
-                              className="inline-flex rounded-lg border-[var(--color-primary-border)] border-solid p-2 m-2 cursor-default"
-                            >
-                              {valus ||
-                                t("static.sidebar.select.export.sideEffect")}
-                            </div>
-                          ))}
-                        </div>
-                      ))}
-                    </div>
-                  ),
-                )}
-            </div>
-          ) : (
-            <div className="w-full text-center text-lg text-[var(--color-primary-text)]">
-              {t("static.sidebar.select.export.noChanged")}
-            </div>
-          )}
-        </div>
-        {/* git diff */}
-        <div className="mb-2 w-full">
-          <div className="flex justify-between items-center">
-            <p className="text-[var(--color-text)] font-semibold">
-              {t("static.gitChanged")}:
-            </p>
-            {Object.keys(selectNodeInfo.curCode).length ? (
-              <button onClick={handleCodeSplitView} className="button">
-                <span> {t("static.sidebar.global.expand")}</span>
-              </button>
-            ) : (
-              <></>
-            )}
-          </div>
-          {Object.keys(selectNodeInfo.curCode).length ? (
-            <div className="scroll-bar border-solid rounded-lg my-2 p-2 h-[800px] overflow-y-auto">
-              <ReactDiffViewer {...diffStyles} />
-            </div>
-          ) : (
-            <div className="w-full text-center text-lg text-[var(--color-primary-text)]">
-              {t("static.sidebar.global.noGit")}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }, [selectNodeInfo, language]);
-
+  if(!selectNodeInfo){
+    return null;
+  }
   return (
-    <>
-      <div className="bg-bg-layout min-w-90">{SelectNodeCardList}</div>
-    </>
+    <div className="bg-bg-layout min-w-90">
+      <Card variant="borderless" className="w-full mb-4 bg-bgLayout" title={
+        <Flex justify="space-between" align="center">
+          <Title level={4} className="color-primaryBase">{selectNodeInfo.relativeId}</Title>
+          <Flex gap="small">
+            {selectNodeInfo.isGitChange && <Tag color="yellow">{t("static.gitChanged")}</Tag>}
+            {selectNodeInfo.isImportChange && <Tag color="blue">{t("static.importChanged")}</Tag>}
+            {selectNodeInfo.isSideEffectChange && <Tag color="red">{t("static.sideEffectChanged")}</Tag>}
+          </Flex>
+        </Flex>
+      }>
+        <Flex wrap gap="small">
+          {/* Git Diff */}
+          <Collapse ghost>
+            <Panel header={<Text strong>{t("static.gitChanged")}</Text>} key="1">
+              {selectNodeInfo.curCode ? (
+                <div className="scroll-bar rounded-lg p-2" style={{ height: '400px', overflow: 'auto' }}>
+                  <DiffPannel preCode={selectNodeInfo.preCode} curCode={selectNodeInfo.curCode} />
+                </div>
+              ) : (
+                <Empty description={t("static.sidebar.global.noGit")} />
+              )}
+            </Panel>
+          </Collapse>
+          {/* Removed Exports */}
+          <Collapse ghost>
+            <Panel header={<Text strong>{t("static.sidebar.select.export.remove")}</Text>} key="4">
+              {selectNodeInfo.removedExports.length ? (
+                <Flex wrap gap="small">
+                  {selectNodeInfo.removedExports.map((exportItem, index) => (
+                    <Tag key={index} bordered={false} color="purple-inverse" style={{ padding: '4px 8px' }}>
+                      {exportItem}
+                    </Tag>
+                  ))}
+                </Flex>
+              ) : (
+                <Empty description={t("static.sidebar.select.export.noRemove")} />
+              )}
+            </Panel>
+          </Collapse>
+          {/* Rendered Exports */}
+          <Collapse ghost>
+            <Panel header={<Text strong>{t("static.sidebar.select.export.render")}</Text>} key="5">
+              {selectNodeInfo.renderedExports.length ? (
+                <Flex wrap gap="small">
+                  {selectNodeInfo.renderedExports.map((exportItem, index) => (
+                    <Tag key={index} bordered={false} color="purple-inverse" style={{ padding: '4px 8px' }}>
+                      {exportItem}
+                    </Tag>
+                  ))}
+                </Flex>
+              ) : (
+                <Empty description={t("static.sidebar.select.export.noRender")} />
+              )}
+            </Panel>
+          </Collapse>
+          {/* Changed Imports */}
+          <Collapse ghost>
+            <Panel header={<Text strong>{t("static.sidebar.select.import.changed")}</Text>} key="2">
+              {Object.keys(selectNodeInfo.importEffectedNames).length ? (
+                <Flex vertical gap="small">
+                  {Object.keys(selectNodeInfo.importEffectedNames).map((Item) => (
+                    <Card key={Item} size="small" title={extractFileName(Item)}>
+                      <Flex wrap gap="small">
+                        {selectNodeInfo.importEffectedNames[Item].map((value, index) => (
+                          <Tag key={index} bordered={false} color="purple-inverse" style={{ padding: '4px 8px' }}>
+                            {value}
+                          </Tag>
+                        ))}
+                      </Flex>
+                    </Card>
+                  ))}
+                </Flex>
+              ) : (
+                <Empty description={t("static.sidebar.select.import.noChanged")} />
+              )}
+            </Panel>
+          </Collapse>
+          {/* Changed Exports */}
+          <Collapse ghost>
+            <Panel header={<Text strong>{t("static.sidebar.select.export.changed")}</Text>} key="3">
+              {Object.keys(selectNodeInfo.exportEffectedNamesToReasons).length ? (
+                <Flex vertical gap="small">
+                  {Object.keys(selectNodeInfo.exportEffectedNamesToReasons).map((Item) => (
+                    <Card key={Item} size="small" title={
+                      <Text strong>{Item || t("static.sidebar.select.export.sideEffect")}</Text>
+                    }>
+                      {selectNodeInfo.exportEffectedNamesToReasons[Item].isNativeCodeChange && (
+                        <Tag color="purple-inverse" style={{ margin: '4px' }}>Native Code Changed</Tag>
+                      )}
+
+                      {Object.keys(selectNodeInfo.exportEffectedNamesToReasons[Item].importEffectedNames).map((key) => (
+                        <Card key={key} size="small" style={{ marginTop: '8px' }} title={key}>
+                          <Flex wrap gap="small">
+                            {selectNodeInfo.exportEffectedNamesToReasons[Item].importEffectedNames[key].map((value, index) => (
+                              <Tag key={index} bordered={false} color="purple-inverse" style={{ padding: '4px 8px' }}>
+                                {value || t("static.sidebar.select.export.sideEffect")}
+                              </Tag>
+                            ))}
+                          </Flex>
+                        </Card>
+                      ))}
+                    </Card>
+                  ))}
+                </Flex>
+              ) : (
+                <Empty description={t("static.sidebar.select.export.noChanged")} />
+              )}
+            </Panel>
+          </Collapse>
+        </Flex>
+
+      </Card>
+    </div>
   );
 };
-
-interface SelectNodeInfo {
-  name: string;
-  removedExports: string[];
-  renderedExports: string[];
-  isGitChange: boolean;
-  isImportChange: boolean;
-  isSideEffectChange: boolean;
-  exportEffectedNamesToReasons: {
-    [key: string]: {
-      isNativeCodeChange?: boolean;
-      importEffectedNames: {
-        [key: string]: string[];
-      };
-    };
-  };
-  importEffectedNames: {
-    [key: string]: string[];
-  };
-  preCode: string;
-  curCode: string;
-}

@@ -6,6 +6,7 @@ import generate404 from "./plugins/generate404";
 import neutralization from "./plugins/neutralization";
 import { vitePluginDepSpy } from "@dep-spy/core/vite-plugin-dep-spy";
 import { modeOutDirMap } from "./constant";
+import svgr from "vite-plugin-svgr";
 
 //@ts-ignore
 export default defineConfig(({ mode }) => {
@@ -25,10 +26,9 @@ export default defineConfig(({ mode }) => {
     },
     envDir: "./env",
     plugins: [
-      vitePluginDepSpy({
-        commitHash: "a84090ced964200d4cde7c1407702486e0f3878c",
-      }),
+      vitePluginDepSpy(),
       reactPlugin(),
+      svgr({ svgrOptions: { icon: true } }),
       UnoCSS(),
       generate404(),
       neutralization([

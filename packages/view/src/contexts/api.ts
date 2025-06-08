@@ -5,7 +5,7 @@ import { stringifyObjToParams } from "@/utils/stringifyObjToParams.ts";
 import { INJECT_MODE } from "../../constant";
 import { DEP_SPY_WINDOW_VAR } from "@dep-spy/core";
 
-const baseUrl = "http://localhost:2023";
+const baseUrl = import.meta.env.DEV ? "/api":"";
 
 const maxPoolSize = 12;
 // 限制全展开时的并发数量
@@ -32,13 +32,11 @@ export const getNode = async (query: {
   path?: string[];
 }) => {
   const [res, error] = await getNodePool.addTask(query);
-
   if (error) {
     return {
       data: null,
     };
   }
-
   // 读取readableStream
   const reader = await res.arrayBuffer();
   const treeLeaves = parseNodeBuffer(reader);

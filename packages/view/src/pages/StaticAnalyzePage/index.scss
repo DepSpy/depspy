@@ -12,3 +12,12 @@
     transform: scale(1);
   }
 }
+
+.scroll-bar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scroll-bar::-webkit-scrollbar {
+  display: none;
+}
