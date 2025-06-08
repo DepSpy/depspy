@@ -57,7 +57,7 @@ $ pnpm run ds static "pnpm run build"
 ```
 分析完成后 `http://localhost:2023/static-analyze` 即可访问源码分析页
 
-![ui](https://pic1.imgdb.cn/item/682dfbb058cb8da5c8037c60.png)
+![ui](https://pic1.imgdb.cn/item/6845926a58cb8da5c83a3d80.png)
 
 ### 包分析
 

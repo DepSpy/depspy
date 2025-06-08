@@ -26,7 +26,9 @@ export default defineConfig(({ mode }) => {
     },
     envDir: "./env",
     plugins: [
-      vitePluginDepSpy(),
+      vitePluginDepSpy({
+        commitHash: "8ead6fa181ba634f601f5b2ea74e45705099132f",
+      }),
       reactPlugin(),
       svgr({ svgrOptions: { icon: true } }),
       UnoCSS(),
